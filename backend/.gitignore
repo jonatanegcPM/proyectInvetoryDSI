@@ -1,0 +1,57 @@
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Dd]evelopment/
+[Dd]ist/
+[Dd]eploy/
+[Dd]ebug_x86/
+[Dd]ebug_x64/
+[Dd]ebug_anycpu/
+[Dd]ebug_arm/
+[Dd]ebug_arm64/
+[Dd]ebug_mips/
+[Dd]ebug_mips64/
+[Dd]ebug_wasm/
+[Dd]ebug_anycpu_wasm/
+[Dd]ebug_wasm/
+[Dd]ebug_x86_wasm/
+
+# Output folders
+bin/
+obj/
+
+# Uncomment if you have tasks that create project's static files in wwwroot
+#wwwroot/
+
+# User-specific files for Visual Studio 
+.vscode/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows Installer Directory
+InstallShield/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Microsoft Visual Studio 
+.vscode/
+
+# Ignore ASP.NET Core logs
+logs/
+
+# Ignore Node modules for front-end projects (if any)
+node_modules/
+
+# User-specific files for Visual Studio 
+.idea/
