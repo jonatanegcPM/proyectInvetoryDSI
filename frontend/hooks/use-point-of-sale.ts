@@ -63,8 +63,12 @@ export function usePointOfSale() {
       if (event.key === "Enter") {
         event.preventDefault()
         if (barcodeBuffer.current.length > 0) {
-          findProductByBarcode(barcodeBuffer.current)
+          // Importante: Guardar el código de barras actual antes de limpiarlo
+          const currentBarcode = barcodeBuffer.current
           barcodeBuffer.current = ""
+
+          // Buscar y agregar el producto después de limpiar el buffer
+          findProductByBarcode(currentBarcode)
         }
       } else {
         // Solo agregar al buffer si es un carácter alfanumérico
@@ -87,6 +91,7 @@ export function usePointOfSale() {
     // En una implementación real, aqui se hace una llamada a la API
     const product = productsData.find((p) => p.barcode === barcode)
     if (product) {
+      // Usar una función de actualización de estado para asegurar que tenemos el estado más reciente
       addToCart(product)
       setScanMessage(`Producto escaneado: ${product.name}`)
       setScanError("")
@@ -97,12 +102,14 @@ export function usePointOfSale() {
   }
 
   const addToCart = (product: Product) => {
-    const existingItem = cart.find((item) => item.id === product.id)
-    if (existingItem) {
-      setCart(cart.map((item) => (item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item)))
-    } else {
-      setCart([...cart, { ...product, quantity: 1 }])
-    }
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((item) => item.id === product.id)
+      if (existingItem) {
+        return prevCart.map((item) => (item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item))
+      } else {
+        return [...prevCart, { ...product, quantity: 1 }]
+      }
+    })
   }
 
   const removeFromCart = (productId: number) => {
