@@ -8,7 +8,7 @@ export function CustomerSelector({ selectedCustomer, onCustomerSelect, customers
   return (
     <div className="w-full">
       <Label htmlFor="customer">Cliente</Label>
-      <Select onValueChange={onCustomerSelect}>
+      <Select onValueChange={onCustomerSelect} value={selectedCustomer ? selectedCustomer.id.toString() : undefined}>
         <SelectTrigger id="customer">
           <SelectValue placeholder="Seleccionar cliente" />
         </SelectTrigger>

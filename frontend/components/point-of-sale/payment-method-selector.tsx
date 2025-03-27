@@ -9,7 +9,7 @@ export function PaymentMethodSelector({ paymentMethod, onPaymentMethodChange }: 
   return (
     <div className="w-full">
       <Label htmlFor="payment-method">Método de Pago</Label>
-      <Select onValueChange={onPaymentMethodChange} value={paymentMethod}>
+      <Select onValueChange={onPaymentMethodChange} value={paymentMethod || undefined} defaultValue={undefined}>
         <SelectTrigger id="payment-method">
           <SelectValue placeholder="Seleccionar método de pago" />
         </SelectTrigger>

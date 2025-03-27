@@ -156,6 +156,8 @@ export function usePointOfSale() {
     setSelectedCustomer(customer || null)
   }
 
+  // Mejorar la función completeSale para asegurar que todos los estados se reseteen correctamente
+
   const completeSale = async () => {
     if (cart.length === 0 || !selectedCustomer || !paymentMethod) return
 
@@ -178,10 +180,12 @@ export function usePointOfSale() {
       // Aquí se enviaría newSale a la API
       console.log("Venta completada:", newSale)
 
-      // Limpiar el carrito y resetear estados
+      // Limpiar el carrito y resetear estados de forma más explícita
       setCart([])
       setSelectedCustomer(null)
       setPaymentMethod("")
+
+      // Mostrar mensaje de éxito
       alert("¡Venta completada con éxito!")
     } catch (error) {
       console.error("Error al procesar la venta:", error)

@@ -72,12 +72,17 @@ export function ShoppingCart({
         </div>
 
         <CustomerSelector
+          key={selectedCustomer ? selectedCustomer.id : "no-customer"} // Añadir key para forzar re-render
           selectedCustomer={selectedCustomer}
           onCustomerSelect={onCustomerSelect}
           customers={customers}
         />
 
-        <PaymentMethodSelector paymentMethod={paymentMethod} onPaymentMethodChange={onPaymentMethodChange} />
+        <PaymentMethodSelector
+          key={paymentMethod || "no-payment"} // Añadir key para forzar re-render
+          paymentMethod={paymentMethod}
+          onPaymentMethodChange={onPaymentMethodChange}
+        />
 
         <Button
           className="w-full"
