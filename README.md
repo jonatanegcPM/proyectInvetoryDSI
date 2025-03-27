@@ -137,9 +137,9 @@ Este repositorio sigue un flujo de trabajo organizado para asegurar un desarroll
 ## Autores
 
 - [Jonatan Elías Guevara](https://github.com/jonatanegcPM)
-- [Keyri Daniela Chávez]()
+- [Keyri Daniela Chávez](https://github.com/Keiryhernandez)
 - [Rodrigo Alexander Mejía]()
-- [Adonys de Jesús Amaya]()
+- [Adonys de Jesús Amaya](https://github.com/adonysdiaz)
 - [José Carlos López](https://github.com/Jos3C190)
 
 ## Licencia
