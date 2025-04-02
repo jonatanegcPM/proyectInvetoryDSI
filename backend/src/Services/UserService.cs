@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
-using ProyectScrumTeams.Data;
-using ProyectScrumTeams.Models;
+using proyectInvetoryDSI.Data;
+using proyectInvetoryDSI.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BCrypt.Net;
 
-namespace ProyectScrumTeams.Services
+namespace proyectInvetoryDSI.Services
 {
     public class UserService
     {

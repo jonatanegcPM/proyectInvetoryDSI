@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using ProyectScrumTeams.Data;
-using ProyectScrumTeams.Services;
+using proyectInvetoryDSI.Data;
+using proyectInvetoryDSI.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -65,6 +65,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<SupplierService>();
 builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<DashboardService>();
 
 // Configuración de la API
 builder.Services.AddControllers();
