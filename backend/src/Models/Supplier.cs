@@ -1,4 +1,4 @@
-namespace ProyectScrumTeams.Models
+namespace proyectInvetoryDSI.Models
 {
     public class Supplier
     {

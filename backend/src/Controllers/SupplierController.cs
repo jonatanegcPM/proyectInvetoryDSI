@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using ProyectScrumTeams.Services;
-using ProyectScrumTeams.Models;
+using proyectInvetoryDSI.Services;
+using proyectInvetoryDSI.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace ProyectScrumTeams.Controllers
+namespace proyectInvetoryDSI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

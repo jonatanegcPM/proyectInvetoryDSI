@@ -4,11 +4,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
-using ProyectScrumTeams.Models;
-using ProyectScrumTeams.Services;
+using proyectInvetoryDSI.Models;
+using proyectInvetoryDSI.Services;
 using System.Threading.Tasks;
 
-namespace ProyectScrumTeams.Controllers
+namespace proyectInvetoryDSI.Controllers
 {
     [Route("api/auth")]
     [ApiController]
