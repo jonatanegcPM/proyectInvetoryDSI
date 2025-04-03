@@ -66,7 +66,7 @@ builder.Services.AddScoped<SupplierService>();
 builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<DashboardService>();
-
+builder.Services.AddScoped<IPosService, PosService>(); 
 // Configuración de la API
 builder.Services.AddControllers();
 

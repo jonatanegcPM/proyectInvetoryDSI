@@ -53,6 +53,16 @@ dotnet build
 ```bash
 dotnet clean
 ```
+- **migraciones:**
+
+```bash
+
+dotnet ef migrations add AddBarcodeToProduct
+dotnet ef database update
+
+```
+
+
 
 ### 🎨 Frontend (React + Next)
 

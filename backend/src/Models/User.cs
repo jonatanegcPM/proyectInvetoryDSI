@@ -10,5 +10,8 @@ namespace proyectInvetoryDSI.Models
         public string? Email { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsActive { get; set; } = true;
+
+        // Navigation Property
+        public Role? Role { get; set; }
     }
 }

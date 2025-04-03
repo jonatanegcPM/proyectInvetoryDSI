@@ -70,7 +70,7 @@ namespace proyectInvetoryDSI.Data
                 .HasDefaultValue(true);
         }
 
-        private void ConfigureUser(ModelBuilder modelBuilder)
+            private void ConfigureUser(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
                 .Property(u => u.Name)
@@ -98,7 +98,15 @@ namespace proyectInvetoryDSI.Data
             modelBuilder.Entity<User>()
                 .Property(u => u.IsActive)
                 .HasDefaultValue(true);
+
+            // Definir la relación con Role
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Role)
+                .WithMany()
+                .HasForeignKey(u => u.RoleID)
+                .OnDelete(DeleteBehavior.Restrict); // Evita eliminación en cascada
         }
+
 
         // Dashboard Cofiguration 
             private void ConfigureCustomer(ModelBuilder modelBuilder)
@@ -177,6 +185,16 @@ namespace proyectInvetoryDSI.Data
             modelBuilder.Entity<Product>()
                 .Property(p => p.Price)
                 .HasColumnType("decimal(18,2)");
+
+                        // Agrega esta configuración para el campo Barcode
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Barcode)
+                .HasMaxLength(50); // Ajusta la longitud según tus necesidades
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.StockQuantity)
+                .IsRequired();
+
 
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Supplier)
