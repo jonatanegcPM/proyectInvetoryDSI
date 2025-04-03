@@ -404,3 +404,4 @@ C:\Users\MINEDUCYT\Desktop\proyectInvetoryDSI\backend\obj\Debug\net8.0\refint\ba
 C:\Users\MINEDUCYT\Desktop\proyectInvetoryDSI\backend\obj\Debug\net8.0\backend.pdb
 C:\Users\MINEDUCYT\Desktop\proyectInvetoryDSI\backend\obj\Debug\net8.0\backend.genruntimeconfig.cache
 C:\Users\MINEDUCYT\Desktop\proyectInvetoryDSI\backend\obj\Debug\net8.0\ref\backend.dll
+C:\Users\MINEDUCYT\Desktop\proyectInvetoryDSI\backend\bin\Debug\net8.0\System.Linq.Dynamic.Core.dll

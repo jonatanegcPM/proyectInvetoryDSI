@@ -81,7 +81,7 @@ namespace proyectInvetoryDSI.Controllers
             });
         }
 
-        private string GenerateJwtToken(User user)
+            private string GenerateJwtToken(User user)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
             var key = Encoding.ASCII.GetBytes(jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key no puede ser nulo."));
@@ -90,7 +90,8 @@ namespace proyectInvetoryDSI.Controllers
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString() ?? string.Empty),
+                    new Claim("userId", user.UserID.ToString() ?? string.Empty), // Para compatibilidad específica
+                    new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString() ?? string.Empty), // Estándar
                     new Claim(ClaimTypes.Name, user.Name ?? string.Empty),
                     new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
                     new Claim(ClaimTypes.Role, user.RoleID.ToString() ?? string.Empty)

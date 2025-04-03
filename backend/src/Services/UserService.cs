@@ -16,25 +16,67 @@ namespace proyectInvetoryDSI.Services
             _context = context;
         }
 
-        public async Task<List<User>> GetAllUsersAsync()
+            public async Task<List<User>> GetAllUsersAsync()
         {
-            return await _context.Users.ToListAsync();
+            return await _context.Users.Include(u => u.Role).ToListAsync();
         }
 
         public async Task<User?> GetUserByIdAsync(int id)
         {
-            return await _context.Users.FindAsync(id);
+            return await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserID == id);
         }
 
-        public async Task AddUserAsync(User user)
+
+        public async Task<User> AddUserAsync(User user)
         {
-            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password); // Hash de la contraseña
+            // Validar si el email ya existe
+            var emailExists = await _context.Users.AnyAsync(u => u.Email == user.Email);
+            if (emailExists)
+            {
+                throw new InvalidOperationException("El correo electrónico ya está registrado");
+            }
+
+            // Validar si el username ya existe
+            var usernameExists = await _context.Users.AnyAsync(u => u.Username == user.Username);
+            if (usernameExists)
+            {
+                throw new InvalidOperationException("El nombre de usuario ya está en uso");
+            }
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-        }
+            
+            // Cargar la información del rol
+            var createdUser = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserID == user.UserID);
 
-        public async Task UpdateUserAsync(User user)
+            if (createdUser == null)
+            {
+                throw new Exception("Error al recuperar el usuario recién creado");
+            }
+            
+            return createdUser;
+        }
+            public async Task UpdateUserAsync(User user)
         {
+            // Validar si el email ya existe en otro usuario
+            var emailExists = await _context.Users
+                .AnyAsync(u => u.Email == user.Email && u.UserID != user.UserID);
+            if (emailExists)
+            {
+                throw new InvalidOperationException("El correo electrónico ya está registrado en otro usuario");
+            }
+
+            // Validar si el username ya existe en otro usuario
+            var usernameExists = await _context.Users
+                .AnyAsync(u => u.Username == user.Username && u.UserID != user.UserID);
+            if (usernameExists)
+            {
+                throw new InvalidOperationException("El nombre de usuario ya está en uso por otro usuario");
+            }
+
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }

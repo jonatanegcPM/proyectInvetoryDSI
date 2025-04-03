@@ -38,15 +38,28 @@ namespace proyectInvetoryDSI.Controllers
         }
 
         // POST: api/User
-        [HttpPost]
+                [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
         {
-            await _userService.AddUserAsync(user);
-            return CreatedAtAction(nameof(GetUser), new { id = user.UserID }, user);
+            try
+            {
+                var createdUser = await _userService.AddUserAsync(user);
+                return CreatedAtAction(nameof(GetUser), new { id = createdUser.UserID }, createdUser);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Manejar el caso de email o username duplicado
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Manejar otros errores
+                return StatusCode(500, new { message = "Error interno del servidor", details = ex.Message });
+            }
         }
 
         // PUT: api/User/id
-        [HttpPut("{id}")]
+                [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, User user)
         {
             if (id != user.UserID)
@@ -54,10 +67,20 @@ namespace proyectInvetoryDSI.Controllers
                 return BadRequest();
             }
 
-            await _userService.UpdateUserAsync(user);
-            return NoContent();
+            try
+            {
+                await _userService.UpdateUserAsync(user);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Error interno del servidor", details = ex.Message });
+            }
         }
-
         // DELETE: api/User/id
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)

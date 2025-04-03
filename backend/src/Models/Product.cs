@@ -8,9 +8,10 @@ namespace proyectInvetoryDSI.Models
         public decimal Price { get; set; }
         public int StockQuantity { get; set; }
         public DateTime? ExpirationDate { get; set; }
-        public int? SupplierID { get; set; } 
+        public int? SupplierID { get; set; }
+        public string? Barcode { get; set; } // Nuevo campo
 
         // Navigation Property
-        public Supplier? Supplier { get; set; } 
+        public Supplier? Supplier { get; set; }
     }
 }
