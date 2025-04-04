@@ -126,7 +126,11 @@ export default function Dashboard() {
           />
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <ExportMenu />
+          <ExportMenu
+            transactions={transactions}
+            dateFilter={dateFilter}
+            isLoading={isLoadingTransactions || isLoadingStats}
+          />
           <NewSaleButton />
         </div>
       </div>
