@@ -9,7 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import type { InventoryItem } from "@/types/dashboard"
+import type { InventoryItem } from "@/services/dashboard-service"
 
 interface OrderProductModalProps {
   isOpen: boolean
@@ -33,7 +33,7 @@ export function OrderProductModal({ isOpen, onOpenChange, inventoryItem }: Order
           <div className="flex items-center gap-2 mb-4">
             <AlertCircle className="h-5 w-5 text-destructive" />
             <span className="font-medium">
-              Stock crítico: {inventoryItem.currentStock} / {inventoryItem.minStock}
+              Stock crítico: {inventoryItem.currentStock} / {inventoryItem.reorderLevel}
             </span>
           </div>
           <div className="space-y-2">
@@ -49,7 +49,7 @@ export function OrderProductModal({ isOpen, onOpenChange, inventoryItem }: Order
             </div>
             <div>
               <h4 className="text-sm font-medium text-muted-foreground">Cantidad Sugerida</h4>
-              <p className="text-base">{inventoryItem.minStock * 2 - inventoryItem.currentStock}</p>
+              <p className="text-base">{inventoryItem.reorderLevel - inventoryItem.currentStock}</p>
             </div>
           </div>
         </div>
