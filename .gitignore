@@ -1,0 +1,34 @@
+# Archivos de compilación y temporales
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+*.log
+*.cache
+
+# Configuración de usuario y entorno
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Dependencias y paquetes
+packages/
+node_modules/
+project.lock.json
+**/project.lock.json
+
+# Publicaciones y despliegues
+publish/
+*.Publish.xml
+app.publish/
+
+# Archivos de configuración local (pueden contener credenciales)
+secrets.json
+appsettings.Development.json
+
+# Archivos de git y logs
+!.gitignore
+!.gitattributes
