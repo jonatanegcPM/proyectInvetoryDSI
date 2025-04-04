@@ -60,7 +60,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Sidebar -  fijo */}
+      {/* Sidebar - Ahora fijo */}
       <div
         className={`${sidebarOpen ? "w-64" : "w-20"} bg-card border-r flex flex-col fixed h-full`}
         style={{ transition: mounted ? "width 0.3s ease" : "none" }}
@@ -101,7 +101,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder.svg" alt="Avatar" />
+                <AvatarImage src="/default-avatar-icon.avif" alt="Avatar" />
                 <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
               </Avatar>
               {sidebarOpen && (

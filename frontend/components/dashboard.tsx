@@ -1,70 +1,122 @@
 "use client"
-import { DollarSign, ShoppingCart, Users, Package, Clipboard, BarChart4 } from "lucide-react"
+
+import { useState } from "react"
+
+import { DollarSign, ShoppingCart, Users, Package } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
-// Hooks personalizados
-import { useDashboardData } from "@/hooks/use-dashboard-data"
-import { useTransactionDetails } from "@/hooks/use-transaction-details"
-import { useInventoryDetails } from "@/hooks/use-inventory-details"
+// Hooks and services
+import { useDashboardApi } from "@/hooks/use-dashboard-api"
+import type { InventoryItem } from "@/services/dashboard-service"
 
-// Componentes
+// Components
 import { StatsCard } from "@/components/dashboard/stats-card"
 import { SearchBar } from "@/components/dashboard/search-bar"
 import { DateFilter } from "@/components/dashboard/date-filter"
 import { Pagination } from "@/components/dashboard/pagination"
 import { TransactionsTable } from "@/components/dashboard/transactions-table"
 import { InventoryTable } from "@/components/dashboard/inventory-table"
-import { QuickAction } from "@/components/dashboard/quick-action"
 import { TransactionDetailsModal } from "@/components/dashboard/transaction-details-modal"
 import { OrderProductModal } from "@/components/dashboard/order-product-modal"
 import { ExportMenu } from "@/components/dashboard/export-menu"
 import { NewSaleButton } from "@/components/dashboard/new-sale-button"
+import { SalesTrendChart } from "@/components/dashboard/sales-trend-chart"
+import { TopProductsChart } from "@/components/dashboard/top-products-chart"
 
 export default function Dashboard() {
-  // Obtener datos y funciones de los hooks personalizados
   const {
+    // Data
+    stats,
+    transactions,
+    transactionsPagination,
+    lowStockItems,
+    selectedTransaction,
+    salesTrendData,
+    topSellingProducts,
+
+    // Loading states
+    isLoadingStats,
+    isLoadingTransactions,
+    isLoadingInventory,
+    isLoadingTransactionDetails,
+    isLoadingChartData,
+
+    // UI states
+    error,
     searchTerm,
-    setSearchTerm,
     dateFilter,
+    currentPage,
+    itemsPerPage,
+    isTransactionDetailsOpen,
+
+    // Actions
+    setSearchTerm,
     setDateFilter,
-    currentTransactions,
-    currentInventory,
-    searchedTransactions,
-    searchedInventory,
-    currentTransactionPage,
-    setCurrentTransactionPage,
-    transactionsPerPage,
-    setTransactionsPerPage,
-    totalTransactionPages,
-    indexOfFirstTransaction,
-    indexOfLastTransaction,
-    currentInventoryPage,
-    setCurrentInventoryPage,
-    inventoryPerPage,
-    setInventoryPerPage,
-    totalInventoryPages,
-    indexOfFirstInventoryItem,
-    indexOfLastInventoryItem,
-  } = useDashboardData()
+    setCurrentPage,
+    setItemsPerPage,
+    handleViewTransactionDetails,
+    setIsTransactionDetailsOpen,
+  } = useDashboardApi()
 
-  const { selectedTransaction, isTransactionDetailsOpen, setIsTransactionDetailsOpen, handleViewTransactionDetails } =
-    useTransactionDetails()
+  // State for inventory item ordering
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItem | null>(null)
+  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false)
 
-  const { selectedInventoryItem, isOrderDialogOpen, setIsOrderDialogOpen, handleOrderProduct } = useInventoryDetails()
+  // Function to handle ordering products
+  const handleOrderProduct = (item: InventoryItem) => {
+    setSelectedInventoryItem(item)
+    setIsOrderDialogOpen(true)
+  }
+
+  // Función para obtener la descripción del período según el filtro
+  const getFilterDescription = () => {
+    switch (dateFilter) {
+      case "day":
+        return "Datos de hoy"
+      case "week":
+        return "Datos de esta semana"
+      case "month":
+        return "Datos de este mes"
+      case "year":
+        return "Datos de este año"
+      case "all":
+        return "Todos los datos"
+      default:
+        return "Datos de esta semana"
+    }
+  }
+
+  // Actualizar la función para obtener el texto del período según el filtro
+  const getChangePeriodText = () => {
+    switch (dateFilter) {
+      case "day":
+        return "desde ayer"
+      case "week":
+        return "desde la semana pasada"
+      case "month":
+        return "desde el mes pasado"
+      case "year":
+        return "desde el año pasado"
+      case "all":
+        return "cambio total"
+      default:
+        return "desde el período anterior"
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center w-full sm:w-auto">
           <SearchBar
@@ -80,7 +132,7 @@ export default function Dashboard() {
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h2 className="text-lg font-semibold">Resumen</h2>
+        <h2 className="text-lg font-semibold">{getFilterDescription()}</h2>
         <DateFilter dateFilter={dateFilter} setDateFilter={setDateFilter} />
       </div>
 
@@ -88,28 +140,44 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Ventas Totales"
-          value="$12,548.75"
-          description="+18.2% desde el mes pasado"
+          value={stats ? `$${stats.sales.total.toFixed(2)}` : "$0.00"}
           icon={<DollarSign className="h-4 w-4" />}
+          isLoading={isLoadingStats}
+          changeValue={stats?.sales.change !== null ? stats?.sales.change : undefined}
+          changePeriodText={getChangePeriodText()}
         />
         <StatsCard
           title="Transacciones"
-          value="587"
-          description="+7.2% desde el mes pasado"
+          value={stats ? stats.transactions.count.toString() : "0"}
           icon={<ShoppingCart className="h-4 w-4" />}
+          isLoading={isLoadingStats}
+          changeValue={stats?.transactions.change !== null ? stats?.transactions.change : undefined}
+          changePeriodText={getChangePeriodText()}
         />
         <StatsCard
           title="Clientes"
-          value="287"
-          description="+12.5% desde el mes pasado"
+          value={stats ? stats.customers.count.toString() : "0"}
           icon={<Users className="h-4 w-4" />}
+          isLoading={isLoadingStats}
+          changeValue={stats?.customers.change !== null ? stats?.customers.change : undefined}
+          changePeriodText={getChangePeriodText()}
         />
         <StatsCard
           title="Productos con Bajo Stock"
-          value="24"
+          value={stats ? stats.inventory.lowStock.toString() : "0"}
           description="Requieren atención"
           icon={<Package className="h-4 w-4" />}
+          isLoading={isLoadingStats}
         />
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Gráfico de tendencia de ventas */}
+        <SalesTrendChart data={salesTrendData} isLoading={isLoadingChartData} dateFilter={dateFilter} />
+
+        {/* Gráfico de productos más vendidos */}
+        <TopProductsChart data={topSellingProducts} isLoading={isLoadingChartData} />
       </div>
 
       {/* Tabs Section */}
@@ -123,29 +191,39 @@ export default function Dashboard() {
             <CardHeader>
               <CardTitle>Transacciones Recientes</CardTitle>
               <CardDescription>
-                {dateFilter === "today"
+                {dateFilter === "day"
                   ? "Transacciones de hoy"
                   : dateFilter === "week"
                     ? "Transacciones de esta semana"
                     : dateFilter === "month"
                       ? "Transacciones de este mes"
-                      : "Todas las transacciones"}
+                      : dateFilter === "year"
+                        ? "Transacciones de este año"
+                        : "Todas las transacciones"}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TransactionsTable transactions={currentTransactions} onViewDetails={handleViewTransactionDetails} />
+              <TransactionsTable
+                transactions={transactions}
+                isLoading={isLoadingTransactions}
+                onViewDetails={handleViewTransactionDetails}
+              />
             </CardContent>
             <CardFooter>
-              <Pagination
-                currentPage={currentTransactionPage}
-                totalPages={totalTransactionPages}
-                itemsPerPage={transactionsPerPage}
-                totalItems={searchedTransactions.length}
-                onPageChange={setCurrentTransactionPage}
-                onItemsPerPageChange={setTransactionsPerPage}
-                startIndex={indexOfFirstTransaction}
-                endIndex={indexOfLastTransaction}
-              />
+              {transactionsPagination && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={transactionsPagination.pages}
+                  itemsPerPage={itemsPerPage}
+                  totalItems={transactionsPagination.total}
+                  onPageChange={setCurrentPage}
+                  onItemsPerPageChange={(value) => {
+                    setItemsPerPage(Number.parseInt(value))
+                    setCurrentPage(1)
+                  }}
+                  disabled={isLoadingTransactions}
+                />
+              )}
             </CardFooter>
           </Card>
         </TabsContent>
@@ -156,139 +234,36 @@ export default function Dashboard() {
               <CardDescription>Productos que requieren atención</CardDescription>
             </CardHeader>
             <CardContent>
-              <InventoryTable inventory={currentInventory} onOrderProduct={handleOrderProduct} />
+              <InventoryTable
+                inventory={lowStockItems}
+                isLoading={isLoadingInventory}
+                onOrderProduct={handleOrderProduct}
+              />
             </CardContent>
             <CardFooter>
               <Pagination
-                currentPage={currentInventoryPage}
-                totalPages={totalInventoryPages}
-                itemsPerPage={inventoryPerPage}
-                totalItems={searchedInventory.length}
-                onPageChange={setCurrentInventoryPage}
-                onItemsPerPageChange={setInventoryPerPage}
-                startIndex={indexOfFirstInventoryItem}
-                endIndex={indexOfLastInventoryItem}
+                currentPage={currentPage}
+                totalPages={Math.ceil(lowStockItems.length / itemsPerPage)}
+                itemsPerPage={itemsPerPage}
+                totalItems={lowStockItems.length}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={(value) => {
+                  setItemsPerPage(Number.parseInt(value))
+                  setCurrentPage(1)
+                }}
+                disabled={isLoadingInventory}
               />
             </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Acciones Rápidas</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Dialog>
-            <DialogTrigger asChild>
-              <div>
-                <QuickAction
-                  icon={<ShoppingCart className="h-8 w-8" />}
-                  title="Nueva Venta"
-                  description="Procesar una nueva transacción"
-                  onClick={() => {}}
-                />
-              </div>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Nueva Venta</DialogTitle>
-                <DialogDescription>Inicia una nueva transacción de venta.</DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <p>Esta funcionalidad te redirigirá al módulo de Punto de Venta.</p>
-              </div>
-              <DialogFooter>
-                <Button variant="outline">Cancelar</Button>
-                <Button>Ir a Punto de Venta</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog>
-            <DialogTrigger asChild>
-              <div>
-                <QuickAction
-                  icon={<Package className="h-8 w-8" />}
-                  title="Gestionar Inventario"
-                  description="Revisar y actualizar el inventario"
-                  onClick={() => {}}
-                />
-              </div>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Gestionar Inventario</DialogTitle>
-                <DialogDescription>Accede al módulo de gestión de inventario.</DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <p>Esta funcionalidad te redirigirá al módulo de Inventario.</p>
-              </div>
-              <DialogFooter>
-                <Button variant="outline">Cancelar</Button>
-                <Button>Ir a Inventario</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog>
-            <DialogTrigger asChild>
-              <div>
-                <QuickAction
-                  icon={<Clipboard className="h-8 w-8" />}
-                  title="Generar Reporte"
-                  description="Crear informes y análisis"
-                  onClick={() => {}}
-                />
-              </div>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Generar Reporte</DialogTitle>
-                <DialogDescription>Crea informes personalizados para tu farmacia.</DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <p>Esta funcionalidad te redirigirá al módulo de Reportes.</p>
-              </div>
-              <DialogFooter>
-                <Button variant="outline">Cancelar</Button>
-                <Button>Ir a Reportes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog>
-            <DialogTrigger asChild>
-              <div>
-                <QuickAction
-                  icon={<BarChart4 className="h-8 w-8" />}
-                  title="Ver Estadísticas"
-                  description="Analizar el rendimiento"
-                  onClick={() => {}}
-                />
-              </div>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Ver Estadísticas</DialogTitle>
-                <DialogDescription>Analiza el rendimiento de tu farmacia.</DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <p>Esta funcionalidad te mostrará estadísticas detalladas.</p>
-              </div>
-              <DialogFooter>
-                <Button variant="outline">Cancelar</Button>
-                <Button>Ver Estadísticas</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      {/* Modales */}
+      {/* Modals */}
       <TransactionDetailsModal
         isOpen={isTransactionDetailsOpen}
         onOpenChange={setIsTransactionDetailsOpen}
         transaction={selectedTransaction}
+        isLoading={isLoadingTransactionDetails}
       />
 
       <OrderProductModal

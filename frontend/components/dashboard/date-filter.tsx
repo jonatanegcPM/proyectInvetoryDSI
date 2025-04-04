@@ -2,12 +2,16 @@
 
 import { Button } from "@/components/ui/button"
 import { Filter } from "lucide-react"
-import type { DateFilterProps } from "@/types/dashboard"
+
+interface DateFilterProps {
+  dateFilter: "day" | "week" | "month" | "year" | "all"
+  setDateFilter: (filter: "day" | "week" | "month" | "year" | "all") => void
+}
 
 export function DateFilter({ dateFilter, setDateFilter }: DateFilterProps) {
   return (
     <div className="flex items-center gap-2 w-full sm:w-auto">
-      <Button variant={dateFilter === "today" ? "default" : "outline"} size="sm" onClick={() => setDateFilter("today")}>
+      <Button variant={dateFilter === "day" ? "default" : "outline"} size="sm" onClick={() => setDateFilter("day")}>
         Hoy
       </Button>
       <Button variant={dateFilter === "week" ? "default" : "outline"} size="sm" onClick={() => setDateFilter("week")}>
@@ -15,6 +19,9 @@ export function DateFilter({ dateFilter, setDateFilter }: DateFilterProps) {
       </Button>
       <Button variant={dateFilter === "month" ? "default" : "outline"} size="sm" onClick={() => setDateFilter("month")}>
         Este Mes
+      </Button>
+      <Button variant={dateFilter === "year" ? "default" : "outline"} size="sm" onClick={() => setDateFilter("year")}>
+        Este Año
       </Button>
       {dateFilter !== "all" && (
         <Button variant="ghost" size="sm" onClick={() => setDateFilter("all")}>

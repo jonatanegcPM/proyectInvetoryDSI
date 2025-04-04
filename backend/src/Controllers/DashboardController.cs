@@ -18,9 +18,9 @@ namespace proyectInvetoryDSI.Controllers
         }
 
         [HttpGet("stats")]
-        public async Task<IActionResult> GetStats()
+        public async Task<IActionResult> GetStats([FromQuery] string dateFilter = "month")
         {
-            var stats = await _dashboardService.GetDashboardStats();
+            var stats = await _dashboardService.GetDashboardStats(dateFilter);
             return Ok(stats);
         }
 
@@ -48,5 +48,13 @@ namespace proyectInvetoryDSI.Controllers
             }
             return Ok(transaction);
         }
+
+        [HttpGet("inventory/top-selling")]
+        public async Task<IActionResult> GetTopSellingProducts([FromQuery] string dateFilter = "month", [FromQuery] int limit = 5)
+        {
+            var products = await _dashboardService.GetTopSellingProducts(dateFilter, limit);
+            return Ok(products);
+        }
+
     }
 }

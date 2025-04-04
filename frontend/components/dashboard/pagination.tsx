@@ -1,9 +1,18 @@
 "use client"
 
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import type { PaginationProps } from "@/types/dashboard"
+
+interface PaginationProps {
+  currentPage: number
+  totalPages: number
+  itemsPerPage: number
+  totalItems: number
+  onPageChange: (page: number) => void
+  onItemsPerPageChange: (value: string) => void
+  disabled?: boolean
+}
 
 export function Pagination({
   currentPage,
@@ -12,23 +21,24 @@ export function Pagination({
   totalItems,
   onPageChange,
   onItemsPerPageChange,
-  startIndex,
-  endIndex,
+  disabled = false,
 }: PaginationProps) {
+  // Calculate start and end item indices
+  const startIndex = (currentPage - 1) * itemsPerPage + 1
+  const endIndex = Math.min(currentPage * itemsPerPage, totalItems)
+
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div className="flex items-center gap-2 w-full sm:w-auto">
+      <div className="flex items-center gap-2">
         <p className="text-sm text-muted-foreground">
-          Mostrando {startIndex + 1}-{endIndex > totalItems ? totalItems : endIndex} de {totalItems}
+          Mostrando {totalItems > 0 ? `${startIndex}-${endIndex} de ${totalItems}` : "0 resultados"}
         </p>
         <Select
           value={itemsPerPage.toString()}
-          onValueChange={(value) => {
-            onItemsPerPageChange(Number(value))
-            onPageChange(1)
-          }}
+          onValueChange={onItemsPerPageChange}
+          disabled={disabled || totalItems === 0}
         >
-          <SelectTrigger className="w-[70px]">
+          <SelectTrigger className="h-8 w-[70px]">
             <SelectValue placeholder="5" />
           </SelectTrigger>
           <SelectContent>
@@ -39,8 +49,13 @@ export function Pagination({
           </SelectContent>
         </Select>
       </div>
-      <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-        <Button variant="outline" size="sm" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1}>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={disabled || currentPage === 1 || totalItems === 0}
+        >
           <ChevronLeft className="h-4 w-4 mr-1" />
           Anterior
         </Button>
@@ -48,7 +63,7 @@ export function Pagination({
           variant="outline"
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages || totalPages === 0}
+          disabled={disabled || currentPage === totalPages || totalItems === 0}
         >
           Siguiente
           <ChevronRight className="h-4 w-4 ml-1" />

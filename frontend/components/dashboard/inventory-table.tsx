@@ -3,21 +3,30 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Package } from "lucide-react"
-import type { InventoryItem } from "@/types/dashboard"
+import { Package, Loader2 } from "lucide-react"
+import type { InventoryItem } from "@/services/dashboard-service"
 
 interface InventoryTableProps {
   inventory: InventoryItem[]
+  isLoading: boolean
   onOrderProduct: (item: InventoryItem) => void
 }
 
-export function InventoryTable({ inventory, onOrderProduct }: InventoryTableProps) {
+export function InventoryTable({ inventory, isLoading, onOrderProduct }: InventoryTableProps) {
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   if (inventory.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-6 text-center">
         <Package className="h-10 w-10 text-muted-foreground mb-2" />
-        <h3 className="text-lg font-medium">No hay productos</h3>
-        <p className="text-sm text-muted-foreground">No se encontraron productos con los filtros actuales.</p>
+        <h3 className="text-lg font-medium">No hay productos en stock crítico</h3>
+        <p className="text-sm text-muted-foreground">Todos los productos tienen niveles de stock adecuados.</p>
       </div>
     )
   }
@@ -40,7 +49,7 @@ export function InventoryTable({ inventory, onOrderProduct }: InventoryTableProp
             <TableCell className="font-medium">{item.name}</TableCell>
             <TableCell>{item.category}</TableCell>
             <TableCell>{item.currentStock}</TableCell>
-            <TableCell>{item.minStock}</TableCell>
+            <TableCell>{item.reorderLevel}</TableCell>
             <TableCell>
               <Badge
                 variant={item.status === "critical" ? "destructive" : item.status === "low" ? "warning" : "success"}

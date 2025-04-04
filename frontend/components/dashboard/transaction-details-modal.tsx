@@ -12,16 +12,43 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import type { TransactionDetails } from "@/types/dashboard"
+import { Loader2, Printer } from "lucide-react"
+import type { TransactionDetails } from "@/services/dashboard-service"
+import { generateTransactionPDF } from "@/lib/pdf-generator"
 
 interface TransactionDetailsModalProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   transaction: TransactionDetails | null
+  isLoading: boolean
 }
 
-export function TransactionDetailsModal({ isOpen, onOpenChange, transaction }: TransactionDetailsModalProps) {
+export function TransactionDetailsModal({
+  isOpen,
+  onOpenChange,
+  transaction,
+  isLoading,
+}: TransactionDetailsModalProps) {
+  if (isLoading) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[600px]">
+          <div className="flex justify-center items-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   if (!transaction) return null
+
+  const handlePrint = () => {
+    // Generar el PDF y abrirlo en una nueva ventana
+    const pdfBlob = generateTransactionPDF(transaction)
+    const pdfUrl = URL.createObjectURL(pdfBlob)
+    window.open(pdfUrl, "_blank")
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -38,7 +65,7 @@ export function TransactionDetailsModal({ isOpen, onOpenChange, transaction }: T
             </div>
             <div>
               <h4 className="text-sm font-medium text-muted-foreground">Fecha</h4>
-              <p className="text-base">{format(new Date(transaction.date), "dd/MM/yyyy")}</p>
+              <p className="text-base">{format(new Date(transaction.date), "dd/MM/yyyy HH:mm")}</p>
             </div>
             <div>
               <h4 className="text-sm font-medium text-muted-foreground">Cliente</h4>
@@ -94,7 +121,7 @@ export function TransactionDetailsModal({ isOpen, onOpenChange, transaction }: T
               <span>${transaction.subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="font-medium">IVA (16%):</span>
+              <span className="font-medium">IVA (13%):</span>
               <span>${transaction.tax.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-lg font-bold mt-2">
@@ -104,8 +131,10 @@ export function TransactionDetailsModal({ isOpen, onOpenChange, transaction }: T
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline">Imprimir</Button>
-          <Button variant="outline">Enviar por Email</Button>
+          <Button variant="outline" onClick={handlePrint}>
+            <Printer className="mr-2 h-4 w-4" />
+            Imprimir
+          </Button>
           <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
         </DialogFooter>
       </DialogContent>

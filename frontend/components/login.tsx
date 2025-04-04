@@ -55,12 +55,12 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f8f9fa] to-[#e9ecef] dark:from-gray-900 dark:to-gray-800 p-4">
-      <Card className="w-full max-w-md shadow-xl">
+      <Card className="w-full max-w-md shadow-xl bg-white dark:bg-white dark:text-gray-900 dark:border-gray-200">
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center mb-4">
-            <div className="relative w-48 h-24">
+            <div className="relative w-64 h-24">
               <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/farmacias-brasil-logo-nIHq3euBsjEKmdPQwIz2t0dl0DEKC5.webp"
+                src="/farmacias-brasil-logo.webp"
                 alt="Farmacias Brasil Logo"
                 fill
                 className="object-contain"
@@ -68,7 +68,7 @@ export default function Login() {
               />
             </div>
           </div>
-          <CardDescription className="text-[#003399]">Sistema de Punto de Venta</CardDescription>
+          <CardDescription className="text-[#003399] dark:text-[#003399]">Sistema de Punto de Venta</CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
@@ -102,6 +102,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isSubmitting}
                 required
+                className="bg-white dark:bg-gray-100 dark:text-gray-900 dark:border-gray-300"
               />
             </div>
 
@@ -117,6 +118,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isSubmitting}
                 required
+                className="bg-white dark:bg-gray-100 dark:text-gray-900 dark:border-gray-300"
               />
             </div>
 
@@ -127,6 +129,7 @@ export default function Login() {
                   checked={remember}
                   onCheckedChange={(checked) => setRemember(checked === true)}
                   disabled={isSubmitting}
+                  className="dark:border-gray-500"
                 />
                 <label htmlFor="remember" className="text-sm font-medium cursor-pointer">
                   Recordarme
@@ -150,7 +153,7 @@ export default function Login() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="text-center text-sm text-muted-foreground">
+        <CardFooter className="text-center text-sm text-muted-foreground dark:text-gray-500">
           {IS_MOCK_MODE ? (
             <p className="w-full">Credenciales: admin@farmacia.com / password123</p>
           ) : (
