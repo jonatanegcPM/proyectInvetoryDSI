@@ -91,6 +91,10 @@ export function useDashboardApi() {
     try {
       // Siempre enviamos el filtro, incluso si es "all"
       const data = await DashboardService.getTransactions(dateFilter, currentPage, itemsPerPage)
+
+      // Agregar log para depuración
+      //console.log(`Recibidas ${data.transactions?.length || 0} transacciones para el filtro ${dateFilter}`)
+
       setTransactions(data.transactions || [])
       setTransactionsPagination(data.pagination)
     } catch (err) {

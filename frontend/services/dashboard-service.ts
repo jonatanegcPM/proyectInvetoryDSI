@@ -156,6 +156,8 @@ export const DashboardService = {
       url.searchParams.append("page", page.toString())
       url.searchParams.append("limit", limit.toString())
 
+      //console.log(`Fetching transactions with dateFilter=${dateFilter}, page=${page}, limit=${limit}`)
+
       const response = await fetch(url.toString(), {
         method: "GET",
         headers: {
@@ -168,7 +170,10 @@ export const DashboardService = {
         throw new Error(`Error fetching transactions: ${response.statusText}`)
       }
 
-      return await response.json()
+      const data = await response.json()
+      //console.log(`Received ${data.transactions?.length || 0} transactions out of ${data.pagination?.total || 0} total`)
+
+      return data
     } catch (error) {
       console.error("Error in getTransactions:", error)
       throw error
