@@ -67,6 +67,10 @@ builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<IPosService, PosService>(); 
+
+// Agregar estos servicios en Program.cs
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddHttpContextAccessor();
 // Configuración de la API
 builder.Services.AddControllers();
 

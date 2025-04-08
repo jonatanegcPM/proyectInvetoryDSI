@@ -1,19 +1,22 @@
 using Microsoft.EntityFrameworkCore;
 using proyectInvetoryDSI.Models;
-using proyectInvetoryDSI.Data;
 
 namespace proyectInvetoryDSI.Data
 {
     public class AppDbContext : DbContext
     {
-        public DbSet<Supplier> Suppliers { get; set; }
-        public DbSet<Role> Roles { get; set; }
-        public DbSet<User> Users { get; set; } // Agregar esta línea
-        public DbSet<Customer> Customers { get; set; }
-        public DbSet<Sale> Sales { get; set; }
-        public DbSet<SaleDetail> SaleDetails { get; set; }
-        public DbSet<Product> Products { get; set; }
-        public DbSet<Inventory> Inventories { get; set; }
+        public DbSet<Supplier> Suppliers { get; set; } = null!;
+        public DbSet<Role> Roles { get; set; } = null!;
+        public DbSet<User> Users { get; set; } = null!;
+        public DbSet<Customer> Customers { get; set; } = null!;
+        public DbSet<Sale> Sales { get; set; } = null!;
+        public DbSet<SaleDetail> SaleDetails { get; set; } = null!;
+        public DbSet<Product> Products { get; set; } = null!;
+        public DbSet<Inventory> Inventories { get; set; } = null!;
+        public DbSet<InventoryTransaction> InventoryTransactions { get; set; } = null!;
+        public DbSet<Category> Categories { get; set; } = null!;
+        public DbSet<Purchase> Purchases { get; set; } = null!;
+        public DbSet<PurchaseDetail> PurchaseDetails { get; set; } = null!;
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -21,13 +24,16 @@ namespace proyectInvetoryDSI.Data
         {
             ConfigureSupplier(modelBuilder);
             ConfigureRole(modelBuilder);
-            ConfigureUser(modelBuilder); // Agregar esta línea
+            ConfigureUser(modelBuilder);
             ConfigureCustomer(modelBuilder);
             ConfigureSale(modelBuilder);
             ConfigureSaleDetail(modelBuilder);
             ConfigureProduct(modelBuilder);
             ConfigureInventory(modelBuilder);
-   
+            ConfigureInventoryTransaction(modelBuilder);
+            ConfigureCategory(modelBuilder);
+            ConfigurePurchase(modelBuilder);
+            ConfigurePurchaseDetail(modelBuilder);
         }
 
         private void ConfigureSupplier(ModelBuilder modelBuilder)
@@ -39,18 +45,22 @@ namespace proyectInvetoryDSI.Data
 
             modelBuilder.Entity<Supplier>()
                 .Property(p => p.Contact)
+                .IsRequired()
                 .HasMaxLength(100);
 
             modelBuilder.Entity<Supplier>()
                 .Property(p => p.Phone)
+                .IsRequired()
                 .HasMaxLength(20);
 
             modelBuilder.Entity<Supplier>()
                 .Property(p => p.Email)
+                .IsRequired()
                 .HasMaxLength(100);
 
             modelBuilder.Entity<Supplier>()
                 .Property(p => p.Address)
+                .IsRequired()
                 .HasMaxLength(255);
         }
 
@@ -70,7 +80,7 @@ namespace proyectInvetoryDSI.Data
                 .HasDefaultValue(true);
         }
 
-            private void ConfigureUser(ModelBuilder modelBuilder)
+        private void ConfigureUser(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
                 .Property(u => u.Name)
@@ -99,17 +109,14 @@ namespace proyectInvetoryDSI.Data
                 .Property(u => u.IsActive)
                 .HasDefaultValue(true);
 
-            // Definir la relación con Role
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Role)
                 .WithMany()
                 .HasForeignKey(u => u.RoleID)
-                .OnDelete(DeleteBehavior.Restrict); // Evita eliminación en cascada
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
-
-        // Dashboard Cofiguration 
-            private void ConfigureCustomer(ModelBuilder modelBuilder)
+        private void ConfigureCustomer(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Customer>()
                 .Property(c => c.Name)
@@ -142,12 +149,14 @@ namespace proyectInvetoryDSI.Data
             modelBuilder.Entity<Sale>()
                 .HasOne(s => s.Customer)
                 .WithMany()
-                .HasForeignKey(s => s.CustomerID);
+                .HasForeignKey(s => s.CustomerID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Sale>()
                 .HasOne(s => s.User)
                 .WithMany()
-                .HasForeignKey(s => s.UserID);
+                .HasForeignKey(s => s.UserID)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
         private void ConfigureSaleDetail(ModelBuilder modelBuilder)
@@ -163,12 +172,14 @@ namespace proyectInvetoryDSI.Data
             modelBuilder.Entity<SaleDetail>()
                 .HasOne(sd => sd.Sale)
                 .WithMany(s => s.SaleDetails)
-                .HasForeignKey(sd => sd.SaleID);
+                .HasForeignKey(sd => sd.SaleID)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<SaleDetail>()
                 .HasOne(sd => sd.Product)
                 .WithMany()
-                .HasForeignKey(sd => sd.ProductID);
+                .HasForeignKey(sd => sd.ProductID)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
         private void ConfigureProduct(ModelBuilder modelBuilder)
@@ -186,20 +197,58 @@ namespace proyectInvetoryDSI.Data
                 .Property(p => p.Price)
                 .HasColumnType("decimal(18,2)");
 
-                        // Agrega esta configuración para el campo Barcode
             modelBuilder.Entity<Product>()
                 .Property(p => p.Barcode)
-                .HasMaxLength(50); // Ajusta la longitud según tus necesidades
+                .HasMaxLength(100);
 
             modelBuilder.Entity<Product>()
                 .Property(p => p.StockQuantity)
                 .IsRequired();
 
+            modelBuilder.Entity<Product>()
+                .Property(p => p.SKU)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Location)
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("in-stock");
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.CreatedAt)
+                .HasDefaultValueSql("GETDATE()");
+
+            modelBuilder.Entity<Product>()
+                .Property(p => p.LastUpdated)
+                .HasDefaultValueSql("GETDATE()");
 
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Supplier)
                 .WithMany()
-                .HasForeignKey(p => p.SupplierID);
+                .HasForeignKey(p => p.SupplierID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Creator)
+                .WithMany()
+                .HasForeignKey(p => p.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Product>()
+                .HasMany(p => p.InventoryTransactions)
+                .WithOne(it => it.Product)
+                .HasForeignKey(it => it.ProductID)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         private void ConfigureInventory(ModelBuilder modelBuilder)
@@ -211,9 +260,106 @@ namespace proyectInvetoryDSI.Data
             modelBuilder.Entity<Inventory>()
                 .HasOne(i => i.Product)
                 .WithMany()
-                .HasForeignKey(i => i.ProductID);
+                .HasForeignKey(i => i.ProductID)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
+        private void ConfigureInventoryTransaction(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<InventoryTransaction>()
+                .Property(it => it.TransactionType)
+                .IsRequired()
+                .HasMaxLength(50);
 
+            modelBuilder.Entity<InventoryTransaction>()
+                .Property(it => it.TransactionDate)
+                .HasDefaultValueSql("GETDATE()");
+
+            modelBuilder.Entity<InventoryTransaction>()
+                .HasOne(it => it.Product)
+                .WithMany(p => p.InventoryTransactions)
+                .HasForeignKey(it => it.ProductID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<InventoryTransaction>()
+                .HasOne(it => it.User)
+                .WithMany()
+                .HasForeignKey(it => it.UserID)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+
+        private void ConfigureCategory(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Category>()
+                .Property(c => c.CategoryName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Category>()
+                .Property(c => c.Description)
+                .HasMaxLength(255);
+
+            modelBuilder.Entity<Category>()
+                .Property(c => c.IsActive)
+                .HasDefaultValue(true);
+
+            modelBuilder.Entity<Category>()
+                .HasMany(c => c.Products)
+                .WithOne(p => p.Category)
+                .HasForeignKey(p => p.CategoryID)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+
+        private void ConfigurePurchase(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Purchase>()
+                .Property(p => p.PurchaseDate)
+                .IsRequired();
+
+            modelBuilder.Entity<Purchase>()
+                .Property(p => p.TotalAmount)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<Purchase>()
+                .HasOne(p => p.Supplier)
+                .WithMany()
+                .HasForeignKey(p => p.SupplierID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Purchase>()
+                .HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Purchase>()
+                .HasMany(p => p.PurchaseDetails)
+                .WithOne(pd => pd.Purchase)
+                .HasForeignKey(pd => pd.PurchaseID)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+
+        private void ConfigurePurchaseDetail(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<PurchaseDetail>()
+                .Property(pd => pd.UnitPrice)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<PurchaseDetail>()
+                .Property(pd => pd.Subtotal)
+                .HasColumnType("decimal(18,2)");
+
+            modelBuilder.Entity<PurchaseDetail>()
+                .HasOne(pd => pd.Purchase)
+                .WithMany(p => p.PurchaseDetails)
+                .HasForeignKey(pd => pd.PurchaseID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PurchaseDetail>()
+                .HasOne(pd => pd.Product)
+                .WithMany()
+                .HasForeignKey(pd => pd.ProductID)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

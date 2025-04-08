@@ -6,11 +6,26 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class AddBarcodeToProduct : Migration
+    public partial class DataBase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Categories",
+                columns: table => new
+                {
+                    CategoryID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CategoryName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Categories", x => x.CategoryID);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Customers",
                 columns: table => new
@@ -81,7 +96,7 @@ namespace backend.Migrations
                         column: x => x.RoleID,
                         principalTable: "Roles",
                         principalColumn: "RoleID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -96,16 +111,66 @@ namespace backend.Migrations
                     StockQuantity = table.Column<int>(type: "int", nullable: false),
                     ExpirationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     SupplierID = table.Column<int>(type: "int", nullable: true),
-                    Barcode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
+                    Barcode = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    SKU = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    CategoryID = table.Column<int>(type: "int", nullable: true),
+                    ReorderLevel = table.Column<int>(type: "int", nullable: true),
+                    CostPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Location = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "in-stock"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()"),
+                    CreatedBy = table.Column<int>(type: "int", nullable: true),
+                    LastUpdated = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Products", x => x.ProductID);
                     table.ForeignKey(
+                        name: "FK_Products_Categories_CategoryID",
+                        column: x => x.CategoryID,
+                        principalTable: "Categories",
+                        principalColumn: "CategoryID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_Products_Suppliers_SupplierID",
                         column: x => x.SupplierID,
                         principalTable: "Suppliers",
-                        principalColumn: "SupplierID");
+                        principalColumn: "SupplierID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Products_Users_CreatedBy",
+                        column: x => x.CreatedBy,
+                        principalTable: "Users",
+                        principalColumn: "UserID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Purchases",
+                columns: table => new
+                {
+                    PurchaseID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PurchaseDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SupplierID = table.Column<int>(type: "int", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    UserID = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Purchases", x => x.PurchaseID);
+                    table.ForeignKey(
+                        name: "FK_Purchases_Suppliers_SupplierID",
+                        column: x => x.SupplierID,
+                        principalTable: "Suppliers",
+                        principalColumn: "SupplierID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Purchases_Users_UserID",
+                        column: x => x.UserID,
+                        principalTable: "Users",
+                        principalColumn: "UserID",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -127,13 +192,13 @@ namespace backend.Migrations
                         column: x => x.CustomerID,
                         principalTable: "Customers",
                         principalColumn: "CustomerID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Sales_Users_UserID",
                         column: x => x.UserID,
                         principalTable: "Users",
                         principalColumn: "UserID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -158,6 +223,67 @@ namespace backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "InventoryTransactions",
+                columns: table => new
+                {
+                    TransactionID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ProductID = table.Column<int>(type: "int", nullable: false),
+                    TransactionType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    PreviousStock = table.Column<int>(type: "int", nullable: false),
+                    NewStock = table.Column<int>(type: "int", nullable: false),
+                    TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()"),
+                    UserID = table.Column<int>(type: "int", nullable: false),
+                    Notes = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_InventoryTransactions", x => x.TransactionID);
+                    table.ForeignKey(
+                        name: "FK_InventoryTransactions_Products_ProductID",
+                        column: x => x.ProductID,
+                        principalTable: "Products",
+                        principalColumn: "ProductID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_InventoryTransactions_Users_UserID",
+                        column: x => x.UserID,
+                        principalTable: "Users",
+                        principalColumn: "UserID",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PurchaseDetails",
+                columns: table => new
+                {
+                    PurchaseDetailID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PurchaseID = table.Column<int>(type: "int", nullable: false),
+                    ProductID = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Subtotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PurchaseDetails", x => x.PurchaseDetailID);
+                    table.ForeignKey(
+                        name: "FK_PurchaseDetails_Products_ProductID",
+                        column: x => x.ProductID,
+                        principalTable: "Products",
+                        principalColumn: "ProductID",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PurchaseDetails_Purchases_PurchaseID",
+                        column: x => x.PurchaseID,
+                        principalTable: "Purchases",
+                        principalColumn: "PurchaseID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SaleDetails",
                 columns: table => new
                 {
@@ -177,7 +303,7 @@ namespace backend.Migrations
                         column: x => x.ProductID,
                         principalTable: "Products",
                         principalColumn: "ProductID",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_SaleDetails_Sales_SaleID",
                         column: x => x.SaleID,
@@ -192,9 +318,49 @@ namespace backend.Migrations
                 column: "ProductID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_InventoryTransactions_ProductID",
+                table: "InventoryTransactions",
+                column: "ProductID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_InventoryTransactions_UserID",
+                table: "InventoryTransactions",
+                column: "UserID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_CategoryID",
+                table: "Products",
+                column: "CategoryID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_CreatedBy",
+                table: "Products",
+                column: "CreatedBy");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Products_SupplierID",
                 table: "Products",
                 column: "SupplierID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseDetails_ProductID",
+                table: "PurchaseDetails",
+                column: "ProductID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PurchaseDetails_PurchaseID",
+                table: "PurchaseDetails",
+                column: "PurchaseID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Purchases_SupplierID",
+                table: "Purchases",
+                column: "SupplierID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Purchases_UserID",
+                table: "Purchases",
+                column: "UserID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SaleDetails_ProductID",
@@ -229,13 +395,25 @@ namespace backend.Migrations
                 name: "Inventories");
 
             migrationBuilder.DropTable(
+                name: "InventoryTransactions");
+
+            migrationBuilder.DropTable(
+                name: "PurchaseDetails");
+
+            migrationBuilder.DropTable(
                 name: "SaleDetails");
+
+            migrationBuilder.DropTable(
+                name: "Purchases");
 
             migrationBuilder.DropTable(
                 name: "Products");
 
             migrationBuilder.DropTable(
                 name: "Sales");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
 
             migrationBuilder.DropTable(
                 name: "Suppliers");
