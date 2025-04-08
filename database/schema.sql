@@ -7,7 +7,7 @@ GO
 -- Table: Roles
 CREATE TABLE Roles (
     RoleID INT PRIMARY KEY IDENTITY(1,1),
-    RoleName NVARCHAR(50) NOT NULL UNIQUE,
+    RoleName NVARCHAR(50) NOT NULL,
     Description NVARCHAR(255),
     IsActive BIT DEFAULT 1
 );
@@ -16,7 +16,7 @@ CREATE TABLE Roles (
 CREATE TABLE Users (
     UserID INT PRIMARY KEY IDENTITY(1,1),
     Name NVARCHAR(100) NOT NULL,
-    Username NVARCHAR(50) NOT NULL UNIQUE,
+    Username NVARCHAR(50) NOT NULL,
     Password NVARCHAR(255) NOT NULL,
     RoleID INT NOT NULL,
     Email NVARCHAR(100),
@@ -29,22 +29,47 @@ CREATE TABLE Users (
 CREATE TABLE Suppliers (
     SupplierID INT PRIMARY KEY IDENTITY(1,1),
     Name NVARCHAR(100) NOT NULL,
-    Contact NVARCHAR(100),
-    Phone NVARCHAR(20),
-    Email NVARCHAR(100),
-    Address NVARCHAR(255)
+    Contact NVARCHAR(100) NOT NULL,
+    Phone NVARCHAR(20) NOT NULL,
+    Email NVARCHAR(100) NOT NULL,
+    Address NVARCHAR(255) NOT NULL
 );
 
+
+-- Primero, creamos la tabla Categories que necesitamos para los productos
+CREATE TABLE Categories (
+    CategoryID INT PRIMARY KEY IDENTITY(1,1),
+    CategoryName NVARCHAR(100) NOT NULL,
+    Description NVARCHAR(255),
+    IsActive BIT DEFAULT 1
+);
 -- Table: Products
 CREATE TABLE Products (
     ProductID INT PRIMARY KEY IDENTITY(1,1),
+    -- Campos originales
     Name NVARCHAR(100) NOT NULL,
     Description NVARCHAR(255),
     Price DECIMAL(18,2) NOT NULL,
     StockQuantity INT NOT NULL,
     ExpirationDate DATE,
     SupplierID INT,
-    FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID)
+    Barcode NVARCHAR(100),
+    
+    -- Campos nuevos para los endpoints
+    SKU NVARCHAR(50),
+    CategoryID INT,
+    ReorderLevel INT,
+    CostPrice DECIMAL(18,2),
+    Location NVARCHAR(100),
+    Status NVARCHAR(20) DEFAULT 'in-stock',
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    CreatedBy INT,
+    LastUpdated DATETIME DEFAULT GETDATE(),
+    
+    -- Claves foráneas
+    FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID),
+    FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID),
+    FOREIGN KEY (CreatedBy) REFERENCES Users(UserID)
 );
 
 -- Table: Customers
@@ -62,9 +87,9 @@ CREATE TABLE Sales (
     SaleDate DATETIME NOT NULL,
     CustomerID INT,
     TotalAmount DECIMAL(18,2) NOT NULL,
-    UserID INT NOT NULL,  -- Cambiado de EmployeeID a UserID
+    UserID INT NOT NULL,
     FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID),
-    FOREIGN KEY (UserID) REFERENCES Users(UserID)  -- Referencia a Users en lugar de Employees
+    FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
 
 -- Table: SaleDetails
@@ -88,6 +113,19 @@ CREATE TABLE Inventory (
     FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
 );
 
+CREATE TABLE InventoryTransactions (
+    TransactionID INT PRIMARY KEY IDENTITY(1,1),
+    ProductID INT NOT NULL,
+    TransactionType NVARCHAR(50) NOT NULL, -- 'Recepción', 'Venta', 'Ajuste', etc.
+    Quantity INT NOT NULL,
+    PreviousStock INT NOT NULL,
+    NewStock INT NOT NULL,
+    TransactionDate DATETIME DEFAULT GETDATE(),
+    UserID INT NOT NULL,
+    Notes NVARCHAR(255),
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID),
+    FOREIGN KEY (UserID) REFERENCES Users(UserID)
+);
 -- Table: Invoices
 CREATE TABLE Invoices (
     InvoiceID INT PRIMARY KEY IDENTITY(1,1),
@@ -122,9 +160,9 @@ CREATE TABLE Purchases (
     PurchaseDate DATETIME NOT NULL,
     SupplierID INT NOT NULL,
     TotalAmount DECIMAL(18,2) NOT NULL,
-    UserID INT NOT NULL,  -- Cambiado de EmployeeID a UserID
+    UserID INT NOT NULL,
     FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID),
-    FOREIGN KEY (UserID) REFERENCES Users(UserID)  -- Referencia a Users en lugar de Employees
+    FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
 
 -- Table: PurchaseDetails

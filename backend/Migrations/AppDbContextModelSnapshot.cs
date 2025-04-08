@@ -22,6 +22,33 @@ namespace backend.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("proyectInvetoryDSI.Models.Category", b =>
+                {
+                    b.Property<int>("CategoryID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryID"));
+
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.HasKey("CategoryID");
+
+                    b.ToTable("Categories");
+                });
+
             modelBuilder.Entity("proyectInvetoryDSI.Models.Customer", b =>
                 {
                     b.Property<int>("CustomerID")
@@ -78,6 +105,51 @@ namespace backend.Migrations
                     b.ToTable("Inventories");
                 });
 
+            modelBuilder.Entity("proyectInvetoryDSI.Models.InventoryTransaction", b =>
+                {
+                    b.Property<int>("TransactionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionID"));
+
+                    b.Property<int>("NewStock")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PreviousStock")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<string>("TransactionType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
+
+                    b.HasKey("TransactionID");
+
+                    b.HasIndex("ProductID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("InventoryTransactions");
+                });
+
             modelBuilder.Entity("proyectInvetoryDSI.Models.Product", b =>
                 {
                     b.Property<int>("ProductID")
@@ -87,8 +159,22 @@ namespace backend.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductID"));
 
                     b.Property<string>("Barcode")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("CategoryID")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("CostPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
@@ -96,6 +182,15 @@ namespace backend.Migrations
 
                     b.Property<DateTime?>("ExpirationDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -105,6 +200,20 @@ namespace backend.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int?>("ReorderLevel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SKU")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("in-stock");
+
                     b.Property<int>("StockQuantity")
                         .HasColumnType("int");
 
@@ -113,9 +222,74 @@ namespace backend.Migrations
 
                     b.HasKey("ProductID");
 
+                    b.HasIndex("CategoryID");
+
+                    b.HasIndex("CreatedBy");
+
                     b.HasIndex("SupplierID");
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("proyectInvetoryDSI.Models.Purchase", b =>
+                {
+                    b.Property<int>("PurchaseID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PurchaseID"));
+
+                    b.Property<DateTime>("PurchaseDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SupplierID")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
+
+                    b.HasKey("PurchaseID");
+
+                    b.HasIndex("SupplierID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("Purchases");
+                });
+
+            modelBuilder.Entity("proyectInvetoryDSI.Models.PurchaseDetail", b =>
+                {
+                    b.Property<int>("PurchaseDetailID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PurchaseDetailID"));
+
+                    b.Property<int>("ProductID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PurchaseID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("PurchaseDetailID");
+
+                    b.HasIndex("ProductID");
+
+                    b.HasIndex("PurchaseID");
+
+                    b.ToTable("PurchaseDetails");
                 });
 
             modelBuilder.Entity("proyectInvetoryDSI.Models.Role", b =>
@@ -302,13 +476,85 @@ namespace backend.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("proyectInvetoryDSI.Models.InventoryTransaction", b =>
+                {
+                    b.HasOne("proyectInvetoryDSI.Models.Product", "Product")
+                        .WithMany("InventoryTransactions")
+                        .HasForeignKey("ProductID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("proyectInvetoryDSI.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("proyectInvetoryDSI.Models.Product", b =>
+                {
+                    b.HasOne("proyectInvetoryDSI.Models.Category", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("proyectInvetoryDSI.Models.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("proyectInvetoryDSI.Models.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("proyectInvetoryDSI.Models.Purchase", b =>
                 {
                     b.HasOne("proyectInvetoryDSI.Models.Supplier", "Supplier")
                         .WithMany()
-                        .HasForeignKey("SupplierID");
+                        .HasForeignKey("SupplierID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("proyectInvetoryDSI.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Supplier");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("proyectInvetoryDSI.Models.PurchaseDetail", b =>
+                {
+                    b.HasOne("proyectInvetoryDSI.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("proyectInvetoryDSI.Models.Purchase", "Purchase")
+                        .WithMany("PurchaseDetails")
+                        .HasForeignKey("PurchaseID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Purchase");
                 });
 
             modelBuilder.Entity("proyectInvetoryDSI.Models.Sale", b =>
@@ -316,13 +562,13 @@ namespace backend.Migrations
                     b.HasOne("proyectInvetoryDSI.Models.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("proyectInvetoryDSI.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Customer");
@@ -335,7 +581,7 @@ namespace backend.Migrations
                     b.HasOne("proyectInvetoryDSI.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("proyectInvetoryDSI.Models.Sale", "Sale")
@@ -354,10 +600,25 @@ namespace backend.Migrations
                     b.HasOne("proyectInvetoryDSI.Models.Role", "Role")
                         .WithMany()
                         .HasForeignKey("RoleID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("proyectInvetoryDSI.Models.Category", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("proyectInvetoryDSI.Models.Product", b =>
+                {
+                    b.Navigation("InventoryTransactions");
+                });
+
+            modelBuilder.Entity("proyectInvetoryDSI.Models.Purchase", b =>
+                {
+                    b.Navigation("PurchaseDetails");
                 });
 
             modelBuilder.Entity("proyectInvetoryDSI.Models.Sale", b =>
