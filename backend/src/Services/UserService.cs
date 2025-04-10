@@ -98,7 +98,9 @@ namespace proyectInvetoryDSI.Services
                 return null;
             }
 
-            var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .SingleOrDefaultAsync(u => u.Email == email);
 
             if (user == null || !VerifyPasswordHash(password, user.Password))
             {

@@ -53,13 +53,10 @@ dotnet build
 ```bash
 dotnet clean
 ```
-- **migraciones:**
+- **Migraciones:**
 
 ```bash
-
-dotnet ef migrations add AddBarcodeToProduct
 dotnet ef database update
-
 ```
 
 
@@ -148,7 +145,7 @@ Este repositorio sigue un flujo de trabajo organizado para asegurar un desarroll
 
 - [Jonatan Elías Guevara](https://github.com/jonatanegcPM)
 - [Keyri Daniela Chávez](https://github.com/Keiryhernandez)
-- [Rodrigo Alexander Mejía]()
+- [Rodrigo Alexander Mejía](https://github.com/rodri1003)
 - [Adonys de Jesús Amaya](https://github.com/adonysdiaz)
 - [José Carlos López](https://github.com/Jos3C190)
 

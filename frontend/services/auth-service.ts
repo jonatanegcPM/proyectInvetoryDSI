@@ -21,6 +21,7 @@ export interface ValidateResponse {
     name: string
     email: string
     role: string
+    roleName: string
   }
 }
 
@@ -41,6 +42,7 @@ const TEST_CREDENTIALS = {
     name: "Administrador",
     email: "admin@farmacia.com",
     role: "1",
+    roleName: "Administrador",
   },
 }
 

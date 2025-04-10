@@ -48,7 +48,8 @@ namespace proyectInvetoryDSI.Controllers
                     id = user.UserID,
                     name = user.Name,
                     email = user.Email,
-                    role = user.RoleID 
+                    role = user.RoleID,
+                    roleName = user.Role?.RoleName
                 }
             });
         }
@@ -67,6 +68,7 @@ namespace proyectInvetoryDSI.Controllers
             var userName = user.FindFirst(ClaimTypes.Name)?.Value;
             var userEmail = user.FindFirst(ClaimTypes.Email)?.Value;
             var userRole = user.FindFirst(ClaimTypes.Role)?.Value;
+            var userRoleName = user.FindFirst("RoleName")?.Value;
 
             return Ok(new
             {
@@ -76,12 +78,13 @@ namespace proyectInvetoryDSI.Controllers
                     id = userId,
                     name = userName,
                     email = userEmail,
-                    role = userRole
+                    role = userRole,
+                    roleName = userRoleName
                 }
             });
         }
 
-            private string GenerateJwtToken(User user)
+        private string GenerateJwtToken(User user)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
             var key = Encoding.ASCII.GetBytes(jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key no puede ser nulo."));
@@ -90,11 +93,12 @@ namespace proyectInvetoryDSI.Controllers
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim("userId", user.UserID.ToString() ?? string.Empty), // Para compatibilidad específica
-                    new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString() ?? string.Empty), // Estándar
+                    new Claim("userId", user.UserID.ToString() ?? string.Empty),
+                    new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString() ?? string.Empty),
                     new Claim(ClaimTypes.Name, user.Name ?? string.Empty),
                     new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-                    new Claim(ClaimTypes.Role, user.RoleID.ToString() ?? string.Empty)
+                    new Claim(ClaimTypes.Role, user.RoleID.ToString() ?? string.Empty),
+                    new Claim("RoleName", user.Role?.RoleName ?? string.Empty)
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["ExpiryInMinutes"] ?? "120")),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
