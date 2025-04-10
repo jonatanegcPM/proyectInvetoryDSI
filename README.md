@@ -13,7 +13,17 @@
 ![Version](https://img.shields.io/badge/Version-1.0-green?style=for-the-badge)
 
 
-## ⚙️ Requisitos Previos
+## 📂 Estructura del Proyecto
+El proyecto está organizado en las siguientes carpetas:
+
+- **`UX-UI/`**: Recursos de diseño, prototipos y documentación de la interfaz de usuario.
+- **`architecture/`**: Diagramas y documentación técnica de la arquitectura del sistema.
+- **`backend/`**: Código fuente de la API en ASP.NET Core.
+- **`database/`**: Scripts SQL.
+- **`docs/`**: Documentación general y archivos adicionales (como imágenes del README).
+- **`frontend/`**: Aplicación web desarrollada con Next.js y React.
+
+## ⚙️ Requisitos Previos 
 
 Antes de ejecutar el proyecto, asegúrate de tener instalado lo siguiente en tu sistema:
 
@@ -24,10 +34,21 @@ Antes de ejecutar el proyecto, asegúrate de tener instalado lo siguiente en tu 
 ####  Backend (ASP.NET Core)
 - **.NET SDK 7.0 o superior** → [Descargar .NET SDK](https://dotnet.microsoft.com/en-us/download/dotnet)
 - **SQL Server** (para la base de datos) → [Descargar SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-- **Entity Framework Core** 
 
 #### Frontend (React + Next.js)
 - **Node.js 18 LTS o superior** → [Descargar Node.js](https://nodejs.org/es)
+
+## 📥 Instalación Inicial
+1. Clona el repositorio:
+   
+   ```bash
+   git clone https://github.com/jonatanegcPM/proyectInvetoryDSI.git
+   ```
+2. Navega al directorio:
+   
+   ```bash
+   cd proyectInvetoryDSI
+   ```
 
 
 ## 🚀 Configuración del Proyecto
@@ -38,44 +59,65 @@ Este proyecto consta de dos partes: **backend** (ASP.NET Core Web API) y **front
 
 Para administrar el backend, usa los siguientes comandos:
 
-- **Ejecutar el servidor:**  
+1. Navega a la carpeta del backend:
 
 ```bash
-dotnet run
+cd backend
 ```
-- **Reconstruir el proyecto:**
+
+2. Restaura las dependencias:  
 
 ```bash
-dotnet build
+dotnet restore
 ```
-- **Limpiar archivos generados:**
 
-```bash
-dotnet clean
+3. Configura la base de datos en appsettings.json:
+
+```json
+"ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=FarmaciasBrasil;Trusted_Connection=True;TrustServerCertificate=True;"
+  }
 ```
-- **Migraciones:**
+4. Aplica las migraciones:
 
 ```bash
 dotnet ef database update
 ```
 
+5. Ejecuta el servidor:
 
+```bash
+dotnet run
+```
 
 ### 🎨 Frontend (React + Next)
 
 Para administrar el frontend, usa los siguientes comandos:
 
-- **Ejecutar el entorno de desarrollo:**
+1. Navega a la carpeta del frontend:
+
+```bash
+cd frontend
+```
+
+2. Instala las dependencias:
+
+```bash
+npm install
+```
+
+3. Ejecutar el entorno de desarrollo:
 
 ```bash
 npm run dev
 ```
-- **Construir el proyecto para producción:**
+4. Construir el proyecto para producción:
 
 ```bash
 npm run build
 ```
-- **Iniciar el servidor en modo producción:**
+5. Iniciar el servidor en modo producción:
+
 ```bash
 npm start
 ```
