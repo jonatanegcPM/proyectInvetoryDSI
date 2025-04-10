@@ -72,7 +72,7 @@ export function ShoppingCart({
         </div>
 
         <CustomerSelector
-          key={selectedCustomer ? selectedCustomer.id : "no-customer"} // Añadir key para forzar re-render
+          key={selectedCustomer ? `customer-${selectedCustomer.id}` : "no-customer"} 
           selectedCustomer={selectedCustomer}
           onCustomerSelect={onCustomerSelect}
           customers={customers}
@@ -96,4 +96,3 @@ export function ShoppingCart({
     </>
   )
 }
-
