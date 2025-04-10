@@ -19,7 +19,7 @@ export function exportToPDF(transactions: Transaction[], dateFilter: string): vo
   try {
     const logoWidth = 60 // Ancho del logo en mm
     const logoHeight = 20 // Altura aproximada manteniendo la proporción
-    doc.addImage("/farmacias-brasil-logo.webp", "WEBP", 15, 10, logoWidth, logoHeight)
+    doc.addImage("/farmacias-brasil-logo.jpg", "JPG", 15, 10, logoWidth, logoHeight)
   } catch (error) {
     console.error("Error al añadir el logo al PDF:", error)
   }
