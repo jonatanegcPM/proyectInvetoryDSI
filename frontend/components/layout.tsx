@@ -108,7 +108,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <div className="ml-2">
                   <p className="text-sm font-medium">{user?.name || "Usuario"}</p>
                   <p className="text-xs text-muted-foreground">
-                    {user?.role === "1" || user?.role === 1 ? "Administrador" : "Usuario"}
+                    {user?.roleName || `Rol ${user?.role || "desconocido"}`}
                   </p>
                 </div>
               )}
