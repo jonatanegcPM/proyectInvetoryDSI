@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { Check, ChevronsUpDown, User } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -13,24 +13,25 @@ import type { CustomerSelectorProps } from "@/types/point-of-sale"
 export function CustomerSelector({ selectedCustomer, onCustomerSelect, customers }: CustomerSelectorProps) {
   const [open, setOpen] = useState(false)
   const [searchValue, setSearchValue] = useState("")
-  const [filteredCustomers, setFilteredCustomers] = useState(customers)
 
-  // Filtrar clientes cuando cambia el término de búsqueda
-  useEffect(() => {
-    if (!searchValue) {
-      setFilteredCustomers(customers)
-      return
+  const filteredCustomers = useMemo(() => {
+    if (!searchValue.trim()) {
+      return customers
     }
 
-    const lowercasedSearch = searchValue.toLowerCase()
-    const filtered = customers.filter(
+    const lowercasedSearch = searchValue.toLowerCase().trim()
+    return customers.filter(
       (customer) =>
         customer.name.toLowerCase().includes(lowercasedSearch) ||
         customer.email.toLowerCase().includes(lowercasedSearch) ||
         customer.phone.toLowerCase().includes(lowercasedSearch),
     )
-    setFilteredCustomers(filtered)
   }, [searchValue, customers])
+
+  // Agregar log para depuración
+  console.log("Término de búsqueda:", searchValue)
+  console.log("Clientes filtrados:", filteredCustomers)
+  console.log("Total clientes disponibles:", customers.length)
 
   return (
     <div className="w-full space-y-2">

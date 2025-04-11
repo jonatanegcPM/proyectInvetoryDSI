@@ -23,9 +23,9 @@ export default function PointOfSale() {
     scanMessage,
     scanError,
     isProcessing,
-    currentProducts,
-    filteredProducts,
-    customersData,
+    isLoading,
+    products,
+    customers,
 
     // Funciones
     setSearchTerm,
@@ -42,6 +42,7 @@ export default function PointOfSale() {
     currentPage,
     itemsPerPage,
     totalPages,
+    totalItems,
     nextPage,
     prevPage,
     changeItemsPerPage,
@@ -77,16 +78,17 @@ export default function PointOfSale() {
           </CardHeader>
           <CardContent>
             <ProductsTable
-              products={currentProducts}
+              products={products}
               onAddToCart={addToCart}
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={(page) => (page > currentPage ? nextPage() : prevPage())}
               onItemsPerPageChange={changeItemsPerPage}
               itemsPerPage={itemsPerPage}
-              totalItems={filteredProducts.length}
+              totalItems={totalItems}
               startIndex={indexOfFirstItem}
               endIndex={indexOfLastItem}
+              isLoading={isLoading}
             />
           </CardContent>
         </Card>
@@ -104,7 +106,7 @@ export default function PointOfSale() {
               total={calculateTotal()}
               selectedCustomer={selectedCustomer}
               onCustomerSelect={handleCustomerSelect}
-              customers={customersData}
+              customers={customers}
               paymentMethod={paymentMethod}
               onPaymentMethodChange={setPaymentMethod}
               onCompleteSale={completeSale}
@@ -116,4 +118,3 @@ export default function PointOfSale() {
     </div>
   )
 }
-

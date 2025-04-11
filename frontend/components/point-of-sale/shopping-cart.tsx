@@ -21,6 +21,7 @@ export function ShoppingCart({
   onCompleteSale,
   isProcessing,
 }: ShoppingCartProps) {
+  const cart = cartItems
   return (
     <>
       <Table>
@@ -66,9 +67,19 @@ export function ShoppingCart({
         </TableBody>
       </Table>
       <CardFooter className="flex-col items-start gap-4">
-        <div className="flex justify-between w-full">
-          <span className="font-semibold">Total:</span>
-          <span className="font-semibold">${total}</span>
+        <div className="flex flex-col w-full gap-1">
+          <div className="flex justify-between w-full">
+            <span className="text-muted-foreground">Subtotal:</span>
+            <span>${cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between w-full">
+            <span className="text-muted-foreground">Impuesto (13%):</span>
+            <span>${(cart.reduce((total, item) => total + item.price * item.quantity, 0) * 0.13).toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between w-full font-semibold">
+            <span>Total:</span>
+            <span>${total}</span>
+          </div>
         </div>
 
         <CustomerSelector
