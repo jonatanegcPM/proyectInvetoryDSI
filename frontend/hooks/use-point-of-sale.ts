@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { toast } from "@/hooks/use-toast"
 import type { CartItem } from "@/types/point-of-sale"
 import { POSService, type Product, type Customer } from "@/services/pos-service"
 import { PreferencesService } from "@/services/preferences-service"
+import { normalizeSearchString } from "@/lib/utils"
 
 export function usePointOfSale() {
   // Obtener preferencias guardadas
@@ -44,7 +45,6 @@ export function usePointOfSale() {
   const lastScanTime = useRef(0)
 
   // Cargar productos
-
   const fetchProducts = useCallback(
     async (page = 1, limit = savedPreferences.productsPerPage) => {
       const isInitialLoad = initialLoading
@@ -53,7 +53,7 @@ export function usePointOfSale() {
       }
 
       try {
-        const response = await POSService.getProducts(searchTerm, page, limit)
+        const response = await POSService.getProducts("", page, limit)
         setProducts(response.products)
         setPagination(response.pagination)
       } catch (error) {
@@ -70,7 +70,7 @@ export function usePointOfSale() {
         }
       }
     },
-    [searchTerm, initialLoading, savedPreferences.productsPerPage],
+    [initialLoading, savedPreferences.productsPerPage],
   )
 
   const fetchCustomers = useCallback(async () => {
@@ -92,15 +92,6 @@ export function usePointOfSale() {
     fetchProducts()
     fetchCustomers()
   }, [fetchProducts, fetchCustomers])
-
-  // Efecto para recargar productos cuando cambia el término de búsqueda
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      fetchProducts(1, savedPreferences.productsPerPage)
-    }, 500)
-
-    return () => clearTimeout(delayDebounceFn)
-  }, [searchTerm, fetchProducts, savedPreferences.productsPerPage])
 
   // Activar/desactivar el escáner de códigos de barras
   const toggleScanning = () => {
@@ -285,11 +276,25 @@ export function usePointOfSale() {
     }
   }
 
-  const changeItemsPerPage = (value: string) => {
-    const newLimit = Number.parseInt(value)
-    fetchProducts(1, newLimit)
-    PreferencesService.setPointOfSalePreferences({ productsPerPage: newLimit })
+  const changeItemsPerPage = (value: number) => {
+    fetchProducts(1, value)
+    PreferencesService.setPointOfSalePreferences({ productsPerPage: value })
   }
+
+  // Filtrar productos por término de búsqueda
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return products
+    }
+
+    return products.filter((product) => {
+      return (
+        normalizeSearchString(product.name).includes(normalizeSearchString(searchTerm)) ||
+        normalizeSearchString(product.description || "").includes(normalizeSearchString(searchTerm)) ||
+        (product.barcode && normalizeSearchString(product.barcode).includes(normalizeSearchString(searchTerm)))
+      )
+    })
+  }, [products, searchTerm])
 
   return {
     // Datos
@@ -302,7 +307,7 @@ export function usePointOfSale() {
     scanError,
     isProcessing,
     isLoading,
-    products,
+    products: filteredProducts,
     customers,
 
     // Funciones

@@ -10,6 +10,7 @@ import type {
   SortConfig,
   InventoryStats,
 } from "@/types/inventory"
+import { normalizeSearchString } from "@/lib/utils"
 
 // Datos de ejemplo para productos
 const productsData: Product[] = [
@@ -371,9 +372,9 @@ export function useInventory() {
   // Filtrar productos por búsqueda y categoría
   const filteredProducts = productsData.filter((product) => {
     const matchesSearch =
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.supplier.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      normalizeSearchString(product.name).includes(normalizeSearchString(searchTerm)) ||
+      normalizeSearchString(product.sku).includes(normalizeSearchString(searchTerm)) ||
+      normalizeSearchString(product.supplier).includes(normalizeSearchString(searchTerm)) ||
       (product.barcode && product.barcode.includes(searchTerm))
 
     const matchesCategory = selectedCategory === "Todos" || product.category === selectedCategory
