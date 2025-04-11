@@ -21,7 +21,6 @@ namespace proyectInvetoryDSI.DTOs
     {
         public int ProductId { get; set; }
         public int Quantity { get; set; }
-        public decimal Price { get; set; }
     }
 
     public class SaleResponseDTO
@@ -29,11 +28,11 @@ namespace proyectInvetoryDSI.DTOs
         public string Id { get; set; } = string.Empty;
         public DateTime Date { get; set; }
         public int CustomerId { get; set; }
+        public CustomerDTO? Customer { get; set; }
         public List<SaleItemDTO> Items { get; set; } = new List<SaleItemDTO>();
         public decimal Subtotal { get; set; }
         public decimal Tax { get; set; }
         public decimal Total { get; set; }
         public string PaymentMethod { get; set; } = string.Empty;
-        public string Receipt { get; set; } = string.Empty;
     }
 }

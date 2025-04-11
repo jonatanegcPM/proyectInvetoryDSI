@@ -12,9 +12,9 @@ namespace proyectInvetoryDSI.Services
     public class PosService : IPosService
     {
         private readonly AppDbContext _context;
-        private const decimal TaxRate = 0.18m; // 18% de impuestos
-        private const string ReceiptBaseUrl = "https://api.farmaciasbrasil.com/receipts";
+        private const decimal TaxRate = 0.13m; // 13% de impuestos
         private const decimal Tolerance = 0.01m; // Margen de tolerancia para comparaciones decimales
+        private static readonly TimeZoneInfo ElSalvadorTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
 
         public PosService(AppDbContext context)
         {
@@ -114,7 +114,9 @@ namespace proyectInvetoryDSI.Services
                     .Select(c => new CustomerDTO
                     {
                         Id = c.CustomerID,
-                        Name = c.Name
+                        Name = c.Name,
+                        Email = c.Email,
+                        Phone = c.Phone
                     })
                     .ToListAsync();
 
@@ -152,7 +154,9 @@ namespace proyectInvetoryDSI.Services
 
                 await transaction.CommitAsync();
 
-                return BuildSaleResponse(sale, saleDetails, subtotal, tax, total, saleDto.PaymentMethod);
+                var customer = await _context.Customers.FindAsync(sale.CustomerID) ?? 
+                    throw new KeyNotFoundException($"Cliente con ID {sale.CustomerID} no encontrado");
+                return BuildSaleResponse(sale, saleDetails, subtotal, tax, total, saleDto.PaymentMethod, customer);
             }
             catch (Exception)
             {
@@ -172,9 +176,12 @@ namespace proyectInvetoryDSI.Services
 
         private async Task<Sale> ProcessSale(CreateSaleDTO saleDto, int userId)
         {
+            var utcNow = DateTime.UtcNow;
+            var localTime = TimeZoneInfo.ConvertTimeFromUtc(utcNow, ElSalvadorTimeZone);
+
             var sale = new Sale
             {
-                SaleDate = DateTime.UtcNow,
+                SaleDate = localTime,
                 CustomerID = saleDto.CustomerId,
                 TotalAmount = saleDto.Total,
                 UserID = userId
@@ -201,14 +208,14 @@ namespace proyectInvetoryDSI.Services
                 product.StockQuantity -= item.Quantity;
                 _context.Products.Update(product);
 
-                // Crear detalle de venta
-                var itemSubtotal = Math.Round(item.Price * item.Quantity, 2);
+                // Crear detalle de venta usando el precio de la base de datos
+                var itemSubtotal = Math.Round(product.Price * item.Quantity, 2);
                 var saleDetail = new SaleDetail
                 {
                     SaleID = saleId,
                     ProductID = item.ProductId,
                     Quantity = item.Quantity,
-                    UnitPrice = Math.Round(item.Price, 2),
+                    UnitPrice = Math.Round(product.Price, 2),
                     Subtotal = itemSubtotal
                 };
 
@@ -238,7 +245,7 @@ namespace proyectInvetoryDSI.Services
         }
 
         private SaleResponseDTO BuildSaleResponse(Sale sale, List<SaleDetail> saleDetails, 
-            decimal subtotal, decimal tax, decimal total, string paymentMethod)
+            decimal subtotal, decimal tax, decimal total, string paymentMethod, Customer customer)
         {
             var saleIdFormatted = $"S-{sale.SaleID:D5}";
 
@@ -247,6 +254,13 @@ namespace proyectInvetoryDSI.Services
                 Id = saleIdFormatted,
                 Date = sale.SaleDate,
                 CustomerId = sale.CustomerID,
+                Customer = new CustomerDTO
+                {
+                    Id = customer.CustomerID,
+                    Name = customer.Name,
+                    Email = customer.Email,
+                    Phone = customer.Phone
+                },
                 Items = saleDetails.Select(sd => new SaleItemDTO
                 {
                     ProductId = sd.ProductID,
@@ -258,8 +272,7 @@ namespace proyectInvetoryDSI.Services
                 Subtotal = subtotal,
                 Tax = tax,
                 Total = total,
-                PaymentMethod = paymentMethod,
-                Receipt = $"{ReceiptBaseUrl}/{saleIdFormatted}.pdf"
+                PaymentMethod = paymentMethod
             };
         }
     }
