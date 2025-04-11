@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { toast } from "@/hooks/use-toast"
 import { PreferencesService, type DashboardPreferences } from "@/services/preferences-service"
+import { normalizeSearchString } from "@/lib/utils"
 
 // Definir los tipos necesarios
 interface SalesTrendData {
@@ -193,16 +194,16 @@ export function useDashboardApi() {
   // Filter transactions by search term
   const filteredTransactions = transactions.filter(
     (transaction) =>
-      transaction.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.customer.toLowerCase().includes(searchTerm.toLowerCase()),
+      normalizeSearchString(transaction.id).includes(normalizeSearchString(searchTerm)) ||
+      normalizeSearchString(transaction.customer).includes(normalizeSearchString(searchTerm)),
   )
 
   // Filter low stock items by search term
   const filteredLowStockItems = lowStockItems.filter(
     (item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchTerm.toLowerCase()),
+      normalizeSearchString(item.name).includes(normalizeSearchString(searchTerm)) ||
+      normalizeSearchString(item.sku).includes(normalizeSearchString(searchTerm)) ||
+      normalizeSearchString(item.category).includes(normalizeSearchString(searchTerm)),
   )
 
   // Calcular elementos de inventario paginados basados en el término de búsqueda
