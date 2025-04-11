@@ -60,9 +60,9 @@ export default function PointOfSale() {
         toggleScanning={toggleScanning}
       />
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Product Search and List */}
-        <Card className="flex-1">
+        <Card className="h-fit">
           <CardHeader>
             <CardTitle>Productos</CardTitle>
             <div className="relative">
@@ -94,7 +94,7 @@ export default function PointOfSale() {
         </Card>
 
         {/* Shopping Cart and Checkout */}
-        <Card className="flex-1">
+        <Card>
           <CardHeader>
             <CardTitle>Carrito de Compra</CardTitle>
           </CardHeader>
