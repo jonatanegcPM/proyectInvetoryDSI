@@ -10,6 +10,15 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import type { CustomerSelectorProps } from "@/types/point-of-sale"
 
+// Función para normalizar cadenas y eliminar acentos
+const normalizeString = (str: string) => {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+}
+
 export function CustomerSelector({ selectedCustomer, onCustomerSelect, customers }: CustomerSelectorProps) {
   const [open, setOpen] = useState(false)
   const [searchValue, setSearchValue] = useState("")
@@ -19,12 +28,12 @@ export function CustomerSelector({ selectedCustomer, onCustomerSelect, customers
       return customers
     }
 
-    const lowercasedSearch = searchValue.toLowerCase().trim()
+    const normalizedSearch = normalizeString(searchValue)
     return customers.filter(
       (customer) =>
-        customer.name.toLowerCase().includes(lowercasedSearch) ||
-        customer.email.toLowerCase().includes(lowercasedSearch) ||
-        customer.phone.toLowerCase().includes(lowercasedSearch),
+        normalizeString(customer.name).includes(normalizedSearch) ||
+        normalizeString(customer.email).includes(normalizedSearch) ||
+        normalizeString(customer.phone).includes(normalizedSearch),
     )
   }, [searchValue, customers])
 
@@ -59,11 +68,14 @@ export function CustomerSelector({ selectedCustomer, onCustomerSelect, customers
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-          <Command>
+          <Command shouldFilter={false}>
             <CommandInput
               placeholder="Buscar por nombre, email o teléfono..."
               value={searchValue}
-              onValueChange={setSearchValue}
+              onValueChange={(value) => {
+                setSearchValue(value);
+                setOpen(true);
+              }}
             />
             <CommandList>
               <CommandEmpty>
@@ -73,7 +85,7 @@ export function CustomerSelector({ selectedCustomer, onCustomerSelect, customers
                 {filteredCustomers.map((customer) => (
                   <CommandItem
                     key={customer.id}
-                    value={customer.id.toString()}
+                    value={customer.name}
                     onSelect={() => {
                       onCustomerSelect(customer.id.toString())
                       setOpen(false)
