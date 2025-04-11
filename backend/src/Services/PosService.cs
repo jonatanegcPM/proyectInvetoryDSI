@@ -154,7 +154,8 @@ namespace proyectInvetoryDSI.Services
 
                 await transaction.CommitAsync();
 
-                var customer = await _context.Customers.FindAsync(sale.CustomerID);
+                var customer = await _context.Customers.FindAsync(sale.CustomerID) ?? 
+                    throw new KeyNotFoundException($"Cliente con ID {sale.CustomerID} no encontrado");
                 return BuildSaleResponse(sale, saleDetails, subtotal, tax, total, saleDto.PaymentMethod, customer);
             }
             catch (Exception)
