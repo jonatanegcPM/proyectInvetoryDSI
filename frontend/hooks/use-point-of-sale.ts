@@ -4,8 +4,12 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { toast } from "@/hooks/use-toast"
 import type { CartItem } from "@/types/point-of-sale"
 import { POSService, type Product, type Customer } from "@/services/pos-service"
+import { PreferencesService } from "@/services/preferences-service"
 
 export function usePointOfSale() {
+  // Obtener preferencias guardadas
+  const savedPreferences = PreferencesService.getPointOfSalePreferences()
+
   // Estados para el carrito y la venta
   const [cart, setCart] = useState<CartItem[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
@@ -25,7 +29,7 @@ export function usePointOfSale() {
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
-    limit: 10,
+    limit: savedPreferences.productsPerPage,
     pages: 1,
   })
 
@@ -42,7 +46,7 @@ export function usePointOfSale() {
   // Cargar productos
 
   const fetchProducts = useCallback(
-    async (page = 1, limit = 10) => {
+    async (page = 1, limit = savedPreferences.productsPerPage) => {
       const isInitialLoad = initialLoading
       if (!isInitialLoad) {
         setIsLoading(true)
@@ -66,7 +70,7 @@ export function usePointOfSale() {
         }
       }
     },
-    [searchTerm, initialLoading],
+    [searchTerm, initialLoading, savedPreferences.productsPerPage],
   )
 
   const fetchCustomers = useCallback(async () => {
@@ -92,11 +96,11 @@ export function usePointOfSale() {
   // Efecto para recargar productos cuando cambia el término de búsqueda
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchProducts(1, pagination.limit)
+      fetchProducts(1, savedPreferences.productsPerPage)
     }, 500)
 
     return () => clearTimeout(delayDebounceFn)
-  }, [searchTerm, fetchProducts, pagination.limit])
+  }, [searchTerm, fetchProducts, savedPreferences.productsPerPage])
 
   // Activar/desactivar el escáner de códigos de barras
   const toggleScanning = () => {
@@ -284,6 +288,7 @@ export function usePointOfSale() {
   const changeItemsPerPage = (value: string) => {
     const newLimit = Number.parseInt(value)
     fetchProducts(1, newLimit)
+    PreferencesService.setPointOfSalePreferences({ productsPerPage: newLimit })
   }
 
   return {

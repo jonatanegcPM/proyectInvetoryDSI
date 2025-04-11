@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { toast } from "@/hooks/use-toast"
+import { PreferencesService, type DashboardPreferences } from "@/services/preferences-service"
 
 // Definir los tipos necesarios
 interface SalesTrendData {
@@ -28,6 +29,9 @@ import {
 } from "@/services/dashboard-service"
 
 export function useDashboardApi() {
+  // Obtener preferencias guardadas
+  const savedPreferences = PreferencesService.getDashboardPreferences()
+
   // Stats state
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [isLoadingStats, setIsLoadingStats] = useState(true)
@@ -38,7 +42,7 @@ export function useDashboardApi() {
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(true)
 
   // Filtro de fecha compartido para stats y transacciones
-  const [dateFilter, setDateFilter] = useState<"day" | "week" | "month" | "year" | "all">("week")
+  const [dateFilter, setDateFilter] = useState<"day" | "week" | "month" | "year" | "all">(savedPreferences.dateFilter)
 
   // Low stock inventory state
   const [lowStockItems, setLowStockItems] = useState<InventoryItem[]>([])
@@ -59,7 +63,7 @@ export function useDashboardApi() {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [itemsPerPage, setItemsPerPage] = useState(savedPreferences.transactionsPerPage)
 
   // Error state
   const [error, setError] = useState<string | null>(null)
@@ -211,6 +215,14 @@ export function useDashboardApi() {
   const handleDateFilterChange = useCallback((filter: "day" | "week" | "month" | "year" | "all") => {
     setDateFilter(filter)
     setCurrentPage(1) // Resetear a la primera página cuando cambia el filtro
+    PreferencesService.setDashboardPreferences({ dateFilter: filter })
+  }, [])
+
+  // Función para cambiar items por página
+  const handleItemsPerPageChange = useCallback((value: number) => {
+    setItemsPerPage(value)
+    setCurrentPage(1) // Resetear a la primera página cuando cambia el número de items
+    PreferencesService.setDashboardPreferences({ transactionsPerPage: value })
   }, [])
 
   // Load data on initial component mount
@@ -252,9 +264,9 @@ export function useDashboardApi() {
 
     // Actions
     setSearchTerm,
-    setDateFilter: handleDateFilterChange, // Usar la función que resetea la paginación
+    setDateFilter: handleDateFilterChange,
     setCurrentPage,
-    setItemsPerPage,
+    setItemsPerPage: handleItemsPerPageChange,
     handleViewTransactionDetails,
     setIsTransactionDetailsOpen,
 
