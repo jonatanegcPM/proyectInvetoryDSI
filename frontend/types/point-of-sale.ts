@@ -1,31 +1,8 @@
+import type { Product, Customer } from "@/services/pos-service"
+
 // Interfaces para el punto de venta
-export interface Product {
-  id: number
-  name: string
-  price: number
-  category: string
-  barcode: string
-  stock?: number
-}
-
-export interface Customer {
-  id: number
-  name: string
-  email: string
-  phone: string
-}
-
 export interface CartItem extends Product {
   quantity: number
-}
-
-export interface Sale {
-  id: number
-  customerId: number
-  items: CartItem[]
-  total: number
-  paymentMethod: string
-  date: Date
 }
 
 export interface ProductScannerProps {
@@ -46,6 +23,7 @@ export interface ProductsTableProps {
   totalItems: number
   startIndex: number
   endIndex: number
+  isLoading: boolean
 }
 
 export interface ShoppingCartProps {
@@ -73,3 +51,19 @@ export interface PaymentMethodSelectorProps {
   onPaymentMethodChange: (method: string) => void
 }
 
+// Define the SaleItem interface
+export interface SaleItem {
+  productId: number
+  quantity: number
+  price: number
+}
+
+// Actualizar la interfaz SaleRequest para incluir subtotal y tax
+export interface SaleRequest {
+  customerId: number
+  items: SaleItem[]
+  paymentMethod: string
+  subtotal: number
+  tax: number
+  total: number
+}

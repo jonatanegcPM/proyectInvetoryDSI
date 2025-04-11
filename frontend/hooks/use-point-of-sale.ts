@@ -1,42 +1,109 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import type { Product, Customer, CartItem } from "@/types/point-of-sale"
-
-// Datos de ejemplo para productos
-const productsData: Product[] = [
-  { id: 1, name: "Amoxicilina 500mg", price: 15.99, category: "Antibióticos", barcode: "7401094602232", stock: 45 },
-  { id: 2, name: "Lisinopril 10mg", price: 12.5, category: "Presión Arterial", barcode: "7509876543210", stock: 32 },
-  { id: 3, name: "Metformina 500mg", price: 8.75, category: "Diabetes", barcode: "7501122334455", stock: 18 },
-  { id: 4, name: "Ibuprofeno 200mg", price: 5.99, category: "Analgésicos", barcode: "7506677889900", stock: 56 },
-  { id: 5, name: "Omeprazol 20mg", price: 18.25, category: "Antiácidos", barcode: "7505544332211", stock: 27 },
-]
-
-// Datos de ejemplo para clientes
-const customersData: Customer[] = [
-  { id: 1, name: "Juan Pérez", email: "juan@ejemplo.com", phone: "123-456-7890" },
-  { id: 2, name: "María García", email: "maria@ejemplo.com", phone: "098-765-4321" },
-]
+import { useState, useEffect, useRef, useCallback } from "react"
+import { toast } from "@/hooks/use-toast"
+import type { CartItem } from "@/types/point-of-sale"
+import { POSService, type Product, type Customer } from "@/services/pos-service"
 
 export function usePointOfSale() {
+  // Estados para el carrito y la venta
   const [cart, setCart] = useState<CartItem[]>([])
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<string>("")
+
+  // Estados para la búsqueda y escaneo
   const [searchTerm, setSearchTerm] = useState("")
   const [isScanning, setIsScanning] = useState(false)
   const [scanMessage, setScanMessage] = useState("")
   const [scanError, setScanError] = useState("")
+
+  // Estados para la carga de datos
+  const [isLoading, setIsLoading] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [products, setProducts] = useState<Product[]>([])
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 10,
+    pages: 1,
+  })
+
+  // Mejorar la experiencia de carga para evitar flashes de loading
+  // Añadir un estado para controlar el loading inicial vs. el loading de búsqueda
+  // Añadir después de la declaración de estados:
+
+  const [initialLoading, setInitialLoading] = useState(true)
+
+  // Referencias para el escaneo de códigos de barras
   const barcodeBuffer = useRef("")
   const lastScanTime = useRef(0)
 
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(5)
+  // Cargar productos
 
+  const fetchProducts = useCallback(
+    async (page = 1, limit = 10) => {
+      const isInitialLoad = initialLoading
+      if (!isInitialLoad) {
+        setIsLoading(true)
+      }
+
+      try {
+        const response = await POSService.getProducts(searchTerm, page, limit)
+        setProducts(response.products)
+        setPagination(response.pagination)
+      } catch (error) {
+        console.error("Error fetching products:", error)
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los productos",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoading(false)
+        if (isInitialLoad) {
+          setInitialLoading(false)
+        }
+      }
+    },
+    [searchTerm, initialLoading],
+  )
+
+  const fetchCustomers = useCallback(async () => {
+    try {
+      const response = await POSService.getCustomers()
+      setCustomers(response.customers) // Acceder a la propiedad customers del objeto response
+    } catch (error) {
+      console.error("Error fetching customers:", error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los clientes",
+        variant: "destructive",
+      })
+    }
+  }, [])
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    fetchProducts()
+    fetchCustomers()
+  }, [fetchProducts, fetchCustomers])
+
+  // Efecto para recargar productos cuando cambia el término de búsqueda
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchProducts(1, pagination.limit)
+    }, 500)
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [searchTerm, fetchProducts, pagination.limit])
+
+  // Activar/desactivar el escáner de códigos de barras
   const toggleScanning = () => {
     setIsScanning(!isScanning)
   }
 
+  // Manejar el escaneo de códigos de barras
   useEffect(() => {
     if (isScanning) {
       document.addEventListener("keydown", handleBarcodeScan)
@@ -80,27 +147,28 @@ export function usePointOfSale() {
     }
   }
 
-  const searchProducts = (term: string) => {
-    // Esta función simula una búsqueda en la API
-    // En una implementación real, aqui se hace una llamada a la API
-    return productsData.filter((product) => product.name.toLowerCase().includes(term.toLowerCase()))
-  }
+  // Buscar producto por código de barras
+  const findProductByBarcode = async (barcode: string) => {
+    try {
+      setScanMessage(`Buscando producto con código: ${barcode}...`)
+      const response = await POSService.getProductByBarcode(barcode)
 
-  const findProductByBarcode = (barcode: string) => {
-    // Simula una llamada a la API para buscar un producto por código de barras
-    // En una implementación real, aqui se hace una llamada a la API
-    const product = productsData.find((p) => p.barcode === barcode)
-    if (product) {
-      // Usar una función de actualización de estado para asegurar que tenemos el estado más reciente
-      addToCart(product)
-      setScanMessage(`Producto escaneado: ${product.name}`)
-      setScanError("")
-    } else {
-      setScanError(`No se encontró ningún producto con el código de barras: ${barcode}`)
+      if (response.product) {
+        addToCart(response.product)
+        setScanMessage(`Producto escaneado: ${response.product.name}`)
+        setScanError("")
+      } else {
+        setScanError(`No se encontró ningún producto con el código de barras: ${barcode}`)
+        setTimeout(() => setScanError(""), 3000)
+      }
+    } catch (error) {
+      console.error("Error finding product by barcode:", error)
+      setScanError(`Error al buscar el producto: ${barcode}`)
       setTimeout(() => setScanError(""), 3000)
     }
   }
 
+  // Agregar producto al carrito
   const addToCart = (product: Product) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id)
@@ -112,87 +180,110 @@ export function usePointOfSale() {
     })
   }
 
+  // Eliminar producto del carrito
   const removeFromCart = (productId: number) => {
     setCart(cart.filter((item) => item.id !== productId))
   }
 
+  // Actualizar cantidad de un producto en el carrito
   const updateQuantity = (productId: number, newQuantity: number) => {
-    if (newQuantity === 0) {
+    if (newQuantity <= 0) {
       removeFromCart(productId)
     } else {
       setCart(cart.map((item) => (item.id === productId ? { ...item, quantity: newQuantity } : item)))
     }
   }
 
+  // Calcular el total del carrito
   const calculateTotal = () => {
-    return cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)
+    const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0)
+    const tax = subtotal * 0.13 // 13% de impuesto
+    const total = subtotal + tax
+    return total.toFixed(2)
   }
 
-  const filteredProducts = searchProducts(searchTerm)
-  const indexOfLastItem = currentPage * itemsPerPage
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
-
-  const nextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1)
-    }
-  }
-
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1)
-    }
-  }
-
-  const changeItemsPerPage = (value: string) => {
-    setItemsPerPage(Number.parseInt(value))
-    setCurrentPage(1) // Volver a la primera página al cambiar los elementos por página
-  }
-
+  // Seleccionar cliente
   const handleCustomerSelect = (customerId: string) => {
-    const customer = customersData.find((c) => c.id === Number.parseInt(customerId))
+    const customer = customers.find((c) => c.id === Number.parseInt(customerId))
     setSelectedCustomer(customer || null)
   }
 
-  // Mejorar la función completeSale para asegurar que todos los estados se reseteen correctamente
-
+  // Completar la venta
   const completeSale = async () => {
-    if (cart.length === 0 || !selectedCustomer || !paymentMethod) return
+    if (cart.length === 0 || !selectedCustomer || !paymentMethod) {
+      toast({
+        title: "Error",
+        description: "Por favor complete todos los campos requeridos",
+        variant: "destructive",
+      })
+      return
+    }
 
     setIsProcessing(true)
 
     try {
-      // Simula una llamada a la API para procesar la venta
-      // En una implementación real, aqui se hace una llamada a la API
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0)
+      const tax = subtotal * 0.13 // 13% de impuesto
+      const total = subtotal + tax
 
-      const newSale = {
-        id: Math.floor(Math.random() * 10000),
+      // Preparar los datos para la API
+      const saleData = {
         customerId: selectedCustomer.id,
-        items: [...cart],
-        total: Number.parseFloat(calculateTotal()),
+        items: cart.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
+        })),
         paymentMethod,
-        date: new Date(),
+        subtotal: subtotal,
+        //tax: tax,
+        total: total,
       }
 
-      // Aquí se enviaría newSale a la API
-      console.log("Venta completada:", newSale)
+      // Agregar log para depuración
+      console.log("Enviando datos de venta:", JSON.stringify(saleData, null, 2))
 
-      // Limpiar el carrito y resetear estados de forma más explícita
+      // Enviar la venta a la API
+      const response = await POSService.createSale(saleData)
+
+      // Mostrar mensaje de éxito
+      toast({
+        title: "Venta completada",
+        description: `Venta #${response.id} registrada correctamente`,
+        variant: "success",
+      })
+
+      // Limpiar el carrito y resetear estados
       setCart([])
       setSelectedCustomer(null)
       setPaymentMethod("")
-
-      // Mostrar mensaje de éxito
-      alert("¡Venta completada con éxito!")
     } catch (error) {
       console.error("Error al procesar la venta:", error)
-      alert("Error al procesar la venta. Inténtelo de nuevo.")
+      toast({
+        title: "Error",
+        description: "No se pudo completar la venta. Inténtelo de nuevo.",
+        variant: "destructive",
+      })
     } finally {
       setIsProcessing(false)
     }
+  }
+
+  // Paginación
+  const nextPage = () => {
+    if (pagination.page < pagination.pages) {
+      fetchProducts(pagination.page + 1, pagination.limit)
+    }
+  }
+
+  const prevPage = () => {
+    if (pagination.page > 1) {
+      fetchProducts(pagination.page - 1, pagination.limit)
+    }
+  }
+
+  const changeItemsPerPage = (value: string) => {
+    const newLimit = Number.parseInt(value)
+    fetchProducts(1, newLimit)
   }
 
   return {
@@ -205,9 +296,9 @@ export function usePointOfSale() {
     scanMessage,
     scanError,
     isProcessing,
-    currentProducts,
-    filteredProducts,
-    customersData,
+    isLoading,
+    products,
+    customers,
 
     // Funciones
     setSearchTerm,
@@ -221,14 +312,14 @@ export function usePointOfSale() {
     handleCustomerSelect,
 
     // Paginación
-    currentPage,
-    itemsPerPage,
-    totalPages,
+    currentPage: pagination.page,
+    itemsPerPage: pagination.limit,
+    totalPages: pagination.pages,
+    totalItems: pagination.total,
     nextPage,
     prevPage,
     changeItemsPerPage,
-    indexOfFirstItem,
-    indexOfLastItem,
+    indexOfFirstItem: (pagination.page - 1) * pagination.limit,
+    indexOfLastItem: Math.min(pagination.page * pagination.limit, pagination.total),
   }
 }
-

@@ -23,9 +23,9 @@ export default function PointOfSale() {
     scanMessage,
     scanError,
     isProcessing,
-    currentProducts,
-    filteredProducts,
-    customersData,
+    isLoading,
+    products,
+    customers,
 
     // Funciones
     setSearchTerm,
@@ -42,6 +42,7 @@ export default function PointOfSale() {
     currentPage,
     itemsPerPage,
     totalPages,
+    totalItems,
     nextPage,
     prevPage,
     changeItemsPerPage,
@@ -59,9 +60,9 @@ export default function PointOfSale() {
         toggleScanning={toggleScanning}
       />
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Product Search and List */}
-        <Card className="flex-1">
+        <Card className="h-fit">
           <CardHeader>
             <CardTitle>Productos</CardTitle>
             <div className="relative">
@@ -77,22 +78,23 @@ export default function PointOfSale() {
           </CardHeader>
           <CardContent>
             <ProductsTable
-              products={currentProducts}
+              products={products}
               onAddToCart={addToCart}
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={(page) => (page > currentPage ? nextPage() : prevPage())}
               onItemsPerPageChange={changeItemsPerPage}
               itemsPerPage={itemsPerPage}
-              totalItems={filteredProducts.length}
+              totalItems={totalItems}
               startIndex={indexOfFirstItem}
               endIndex={indexOfLastItem}
+              isLoading={isLoading}
             />
           </CardContent>
         </Card>
 
         {/* Shopping Cart and Checkout */}
-        <Card className="flex-1">
+        <Card>
           <CardHeader>
             <CardTitle>Carrito de Compra</CardTitle>
           </CardHeader>
@@ -104,7 +106,7 @@ export default function PointOfSale() {
               total={calculateTotal()}
               selectedCustomer={selectedCustomer}
               onCustomerSelect={handleCustomerSelect}
-              customers={customersData}
+              customers={customers}
               paymentMethod={paymentMethod}
               onPaymentMethodChange={setPaymentMethod}
               onCompleteSale={completeSale}
@@ -116,4 +118,3 @@ export default function PointOfSale() {
     </div>
   )
 }
-

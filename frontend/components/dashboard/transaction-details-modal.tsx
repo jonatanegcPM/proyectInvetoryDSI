@@ -93,26 +93,28 @@ export function TransactionDetailsModal({
 
           <div>
             <h4 className="text-sm font-medium text-muted-foreground mb-2">Productos</h4>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Producto</TableHead>
-                  <TableHead>Cantidad</TableHead>
-                  <TableHead>Precio Unitario</TableHead>
-                  <TableHead>Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transaction.products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>{product.quantity}</TableCell>
-                    <TableCell>${product.unitPrice.toFixed(2)}</TableCell>
-                    <TableCell>${product.total.toFixed(2)}</TableCell>
+            <div className="max-h-[250px] overflow-auto">
+              <Table>
+                <TableHeader className="sticky top-0 bg-background z-10">
+                  <TableRow>
+                    <TableHead>Producto</TableHead>
+                    <TableHead>Cantidad</TableHead>
+                    <TableHead>Precio Unitario</TableHead>
+                    <TableHead>Total</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {transaction.products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>{product.name}</TableCell>
+                      <TableCell>{product.quantity}</TableCell>
+                      <TableCell>${product.unitPrice.toFixed(2)}</TableCell>
+                      <TableCell>${product.total.toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
 
           <div className="border-t pt-4">
@@ -141,4 +143,3 @@ export function TransactionDetailsModal({
     </Dialog>
   )
 }
-
