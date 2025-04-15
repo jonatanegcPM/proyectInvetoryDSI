@@ -77,11 +77,11 @@ export function useDashboardApi() {
       const data = await DashboardService.getStats(dateFilter)
       setStats(data)
     } catch (err) {
-      console.error("Error fetching dashboard stats:", err)
-      setError("Failed to load dashboard statistics")
+      console.error("Error al obtener las estadísticas del panel de control:", err)
+      setError("Error al cargar las estadísticas del panel de control")
       toast({
         title: "Error",
-        description: "Failed to load dashboard statistics",
+        description: "Error al cargar las estadísticas del panel de control",
         variant: "destructive",
       })
     } finally {
@@ -103,11 +103,11 @@ export function useDashboardApi() {
       setTransactions(data.transactions || [])
       setTransactionsPagination(data.pagination)
     } catch (err) {
-      console.error("Error fetching transactions:", err)
-      setError("Failed to load transactions")
+      console.error("Error al recuperar transacciones:", err)
+      setError("Error al cargar transacciones")
       toast({
         title: "Error",
-        description: "Failed to load transactions",
+        description: "Error al cargar transacciones",
         variant: "destructive",
       })
       setTransactions([])
@@ -124,11 +124,11 @@ export function useDashboardApi() {
       const data = await DashboardService.getLowStockItems(5, "critical")
       setLowStockItems(data.lowStockProducts || [])
     } catch (err) {
-      console.error("Error fetching low stock items:", err)
-      setError("Failed to load inventory data")
+      console.error("Error al buscar artículos con pocas existencias:", err)
+      setError("Error al cargar datos de inventario")
       toast({
         title: "Error",
-        description: "Failed to load inventory data",
+        description: "Error al cargar datos de inventario",
         variant: "destructive",
       })
       setLowStockItems([])
@@ -147,7 +147,7 @@ export function useDashboardApi() {
       const salesTrend = await DashboardService.getSalesTrend(dateFilter)
       setSalesTrendData(salesTrend || [])
     } catch (err) {
-      console.error("Error fetching sales trend data:", err)
+      console.error("Error en la obtención de datos de tendencias de ventas:", err)
       setSalesTrendData([])
     }
 
@@ -156,7 +156,7 @@ export function useDashboardApi() {
       const topProducts = await DashboardService.getTopSellingProducts(dateFilter, 5)
       setTopSellingProducts(topProducts || [])
     } catch (err) {
-      console.error("Error fetching top selling products:", err)
+      console.error("Error al buscar los productos más vendidos:", err)
       setTopSellingProducts([])
     }
 
@@ -179,11 +179,11 @@ export function useDashboardApi() {
       setSelectedTransaction(data)
       setIsTransactionDetailsOpen(true)
     } catch (err) {
-      console.error("Error fetching transaction details:", err)
-      setError("Failed to load transaction details")
+      console.error("Error al obtener los detalles de la transacción:", err)
+      setError("Error al cargar los detalles de la transacción")
       toast({
         title: "Error",
-        description: "Failed to load transaction details",
+        description: "Error al cargar los detalles de la transacción",
         variant: "destructive",
       })
     } finally {
