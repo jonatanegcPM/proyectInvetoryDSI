@@ -41,8 +41,27 @@ export function SalesTrendChart({ data, isLoading, dateFilter }: SalesTrendChart
     }
   }
 
-  // Asegurarse de que data no sea undefined
-  const chartData = data || []
+  // Asegurarse de que data no sea undefined y ordenar cronológicamente
+  const chartData = data ? [...data].sort((a, b) => {
+    // Mapeo de días de la semana y meses a números
+    const diasSemana: Record<string, number> = { 
+      'Lun': 1, 'Mar': 2, 'Mié': 3, 'Jue': 4, 'Vie': 5, 'Sáb': 6, 'Dom': 7,
+      'lun': 1, 'mar': 2, 'mié': 3, 'jue': 4, 'vie': 5, 'sáb': 6, 'dom': 7,
+      'LUN': 1, 'MAR': 2, 'MIÉ': 3, 'JUE': 4, 'VIE': 5, 'SÁB': 6, 'DOM': 7
+    }
+    const meses: Record<string, number> = { 'Ene': 1, 'Feb': 2, 'Mar': 3, 'Abr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Ago': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dic': 12 }
+
+    // Convertir fechas a números para comparación
+    const dateA = a.date.includes('/') 
+      ? new Date(a.date.split('/').reverse().join('-')).getTime() 
+      : diasSemana[a.date.toLowerCase()] || meses[a.date] || parseInt(a.date)
+    
+    const dateB = b.date.includes('/') 
+      ? new Date(b.date.split('/').reverse().join('-')).getTime() 
+      : diasSemana[b.date.toLowerCase()] || meses[b.date] || parseInt(b.date)
+    
+    return dateA - dateB
+  }).reverse() : []
 
   return (
     <Card>
@@ -71,7 +90,14 @@ export function SalesTrendChart({ data, isLoading, dateFilter }: SalesTrendChart
               }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-              <XAxis dataKey="date" tick={{ fontSize: 12, fill: textColor }} tickMargin={10} stroke={textColor} />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fontSize: 12, fill: textColor }} 
+                tickMargin={10} 
+                stroke={textColor}
+                reversed={true}
+                allowDataOverflow={true}
+              />
               <YAxis
                 yAxisId="left"
                 tick={{ fontSize: 12, fill: textColor }}

@@ -49,7 +49,16 @@ export function ProductsTable({
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell>${product.price.toFixed(2)}</TableCell>
                 <TableCell>
-                  <Badge variant={product.stock < 10 ? "destructive" : "outline"}>{product.stock}</Badge>
+                  <Badge 
+                    variant="outline"
+                    className={
+                      product.stock < 10
+                        ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50"
+                        : "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/50"
+                    }
+                  >
+                    {product.stock < 10 ? "Bajo Stock" : "En Stock"} ({product.stock})
+                  </Badge>
                 </TableCell>
                 <TableCell>
                   <Button size="sm" onClick={() => onAddToCart(product)}>

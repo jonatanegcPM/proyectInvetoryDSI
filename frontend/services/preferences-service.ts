@@ -15,11 +15,11 @@ const POS_PREFERENCES_KEY = "pos_preferences"
 // Valores por defecto
 const DEFAULT_DASHBOARD_PREFERENCES: DashboardPreferences = {
   dateFilter: "week",
-  transactionsPerPage: 10
+  transactionsPerPage: 5
 }
 
 const DEFAULT_POS_PREFERENCES: PointOfSalePreferences = {
-  productsPerPage: 10
+  productsPerPage: 5
 }
 
 export const PreferencesService = {

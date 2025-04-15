@@ -116,10 +116,10 @@ export function ProductsTable({
                         value={Math.min((product.stock / product.reorderLevel) * 100, 100)}
                         className={
                           product.status === "low-stock"
-                            ? "bg-red-100"
+                            ? "bg-red-900/30 dark:bg-red-900/20"
                             : product.status === "medium-stock"
-                              ? "bg-amber-100"
-                              : "bg-green-100"
+                              ? "bg-amber-900/30 dark:bg-amber-900/20"
+                              : "bg-green-900/30 dark:bg-green-900/20"
                         }
                       />
                     </div>
@@ -127,21 +127,15 @@ export function ProductsTable({
                   <TableCell>${product.price.toFixed(2)}</TableCell>
                   <TableCell>{new Date(product.expiryDate).toLocaleDateString()}</TableCell>
                   <TableCell>
-                    <Badge
+                    <Badge 
                       variant="outline"
                       className={
-                        product.status === "in-stock"
-                          ? "bg-green-50 text-green-700 border-green-200"
-                          : product.status === "low-stock"
-                            ? "bg-red-50 text-red-700 border-red-200"
-                            : "bg-amber-50 text-amber-700 border-amber-200"
+                        product.stock < 10
+                          ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50"
+                          : "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/50"
                       }
                     >
-                      {product.status === "in-stock"
-                        ? "En Stock"
-                        : product.status === "low-stock"
-                          ? "Bajo Stock"
-                          : "Stock Medio"}
+                      {product.stock < 10 ? "Bajo Stock" : "En Stock"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

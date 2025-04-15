@@ -240,6 +240,9 @@ export function usePointOfSale() {
       // Enviar la venta a la API
       const response = await POSService.createSale(saleData)
 
+      // Recargar productos para actualizar el stock
+      await fetchProducts(pagination.page, pagination.limit)
+
       // Mostrar mensaje de éxito
       toast({
         title: "Venta completada",
