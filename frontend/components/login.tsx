@@ -4,7 +4,6 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import Link from "next/link"
 import { Loader2, AlertCircle, Info, Lock, Mail, Eye, EyeOff } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -325,21 +324,13 @@ export default function Login() {
                 animateInputs ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
               )}
             >
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2"
-                >
-                  <Lock className="h-4 w-4" />
-                  Contraseña
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
-                >
-                  ¿Olvidó su contraseña?
-                </Link>
-              </div>
+              <label
+                htmlFor="password"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2"
+              >
+                <Lock className="h-4 w-4" />
+                Contraseña
+              </label>
               <div className="relative">
                 <Input
                   id="password"
