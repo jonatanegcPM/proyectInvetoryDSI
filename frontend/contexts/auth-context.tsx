@@ -23,7 +23,8 @@ interface AuthContextType {
 }
 
 // Determinar si estamos en modo simulado
-const IS_MOCK_MODE = !process.env.NEXT_PUBLIC_API_URL
+// Get mock mode from environment or configuration
+const IS_MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_MODE === "true" || false
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -122,4 +123,3 @@ export function useAuth() {
   }
   return context
 }
-

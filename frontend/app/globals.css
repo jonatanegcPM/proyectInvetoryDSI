@@ -36,32 +36,32 @@
   }
 
   .dark {
-    --background: 0 0% 1%;
+    --background: 215 50% 6%;
     --foreground: 0 0% 99%;
-    
-    --card: 0 0% 3%;
+
+    --card: 215 50% 8%;
     --card-foreground: 0 0% 99%;
-    
-    --popover: 0 0% 3%;
+
+    --popover: 215 50% 8%;
     --popover-foreground: 0 0% 99%;
-    
+
     --primary: 0 0% 100%;
     --primary-foreground: 0 0% 0%;
-    
-    --secondary: 0 0% 6%;
+
+    --secondary: 215 50% 10%;
     --secondary-foreground: 0 0% 99%;
-    
-    --muted: 0 0% 6%;
+
+    --muted: 215 50% 10%;
     --muted-foreground: 0 0% 60%;
-    
-    --accent: 0 0% 6%;
+
+    --accent: 215 50% 10%;
     --accent-foreground: 0 0% 99%;
-    
+
     --destructive: 0 70% 35%;
     --destructive-foreground: 0 0% 99%;
-    
-    --border: 0 0% 8%;
-    --input: 0 0% 8%;
+
+    --border: 215 50% 12%;
+    --input: 215 50% 12%;
     --ring: 200 80% 45%;
   }
 }
@@ -75,7 +75,7 @@
   }
 }
 
-/* Estilos mejorados para tarjetas */
+/* Estilos para tarjetas */
 .card {
   @apply shadow-md hover:shadow-lg transition-shadow duration-200;
   background-color: rgba(255, 255, 255, 0.95);
@@ -85,7 +85,72 @@
 
 /* Estilos para modo oscuro */
 .dark .card {
-  background-color: rgba(28, 28, 28, 0.95);
-  border: 1px solid rgba(45, 45, 45, 0.7);
+  background-color: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(30, 41, 59, 0.7);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+/* Añadir clases de animación */
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s ease-out forwards;
+}
+
+.animate-pulse-subtle {
+  animation: pulse 2s infinite;
+}
+
+/* Add a class for the background image transition */
+.bg-image-fade {
+  transition: opacity 1.5s ease-in-out;
 }

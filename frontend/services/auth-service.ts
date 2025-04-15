@@ -21,7 +21,7 @@ export interface ValidateResponse {
     name: string
     email: string
     role: string
-    roleName: string
+    roleName: string // Añadimos el campo roleName
   }
 }
 
@@ -42,12 +42,13 @@ const TEST_CREDENTIALS = {
     name: "Administrador",
     email: "admin@farmacia.com",
     role: "1",
-    roleName: "Administrador",
+    roleName: "Administrador", // Añadimos el roleName
   },
 }
 
 // Determinar si estamos en modo simulado (sin API real)
-const IS_MOCK_MODE = !process.env.NEXT_PUBLIC_API_URL
+// Get mock mode from environment or configuration
+const IS_MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_MODE === "true" || false
 
 /**
  * Servicio de autenticación para manejar login, logout y verificación de tokens
@@ -208,4 +209,3 @@ export const AuthService = {
     }
   },
 }
-
