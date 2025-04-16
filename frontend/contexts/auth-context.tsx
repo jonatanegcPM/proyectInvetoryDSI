@@ -38,6 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        setIsLoading(true) // Asegurarse de que isLoading sea true mientras verificamos
+
         // Verificar si hay un token válido
         const validationResult = await AuthService.validateToken()
 
