@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Loader2 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { ProductsTableProps } from "@/types/point-of-sale"
 
 export function ProductsTable({
@@ -71,23 +72,27 @@ export function ProductsTable({
         </TableBody>
       </Table>
       {totalItems > 0 && (
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
           <div className="flex items-center gap-2">
             <p className="text-sm text-muted-foreground">
               Mostrando {startIndex + 1}-{Math.min(endIndex, totalItems)} de {totalItems}
             </p>
-            <select
-              className="h-8 w-[70px] rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            <Select
               value={itemsPerPage.toString()}
-              onChange={(e) => onItemsPerPageChange(e.target.value)}
+              onValueChange={(value) => onItemsPerPageChange(Number(value))}
               disabled={isLoading}
             >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="15">15</option>
-            </select>
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue placeholder="5" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="15">15</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
