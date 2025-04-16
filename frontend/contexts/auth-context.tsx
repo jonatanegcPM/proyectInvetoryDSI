@@ -18,7 +18,7 @@ interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (credentials: LoginCredentials) => Promise<boolean>
+  login: (credentials: LoginCredentials) => Promise<{ success: boolean; user?: User }>
   logout: () => void
 }
 
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Función de login
-  const login = async (credentials: LoginCredentials): Promise<boolean> => {
+  const login = async (credentials: LoginCredentials): Promise<{ success: boolean; user?: User }> => {
     setIsLoading(true)
     try {
       // Usar el servicio de autenticación para iniciar sesión
@@ -85,14 +85,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: `Bienvenido, ${response.user.name}`,
       })
 
-      return true
+      return { success: true, user: response.user }
     } catch (error) {
       toast({
         title: "Error de autenticación",
         description: error instanceof Error ? error.message : "Error al iniciar sesión",
         variant: "destructive",
       })
-      return false
+      return { success: false }
     } finally {
       setIsLoading(false)
     }

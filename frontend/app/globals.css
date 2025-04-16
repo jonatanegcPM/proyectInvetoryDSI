@@ -90,6 +90,7 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
+/* Add these keyframes at the end of the file */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -153,4 +154,19 @@
 /* Add a class for the background image transition */
 .bg-image-fade {
   transition: opacity 1.5s ease-in-out;
+}
+
+/* Add blinking cursor animation */
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
 }

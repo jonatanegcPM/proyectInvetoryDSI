@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/auth-context"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
+import SplashScreen from "./splash-screen"
 
 // Determinar si estamos en modo simulado
 // Get mock mode from environment or configuration
@@ -35,6 +36,8 @@ export default function Login() {
   const [animateTitle, setAnimateTitle] = useState(false)
   const [animateInputs, setAnimateInputs] = useState(false)
   const [animateButton, setAnimateButton] = useState(false)
+  const [showSplash, setShowSplash] = useState(false)
+  const [userName, setUserName] = useState("Usuario")
 
   const backgroundImages = ["/images/pharmacy-counter.jpg", "/images/pharmacist-tablet.png"]
 
@@ -87,11 +90,14 @@ export default function Login() {
 
     try {
       // Usar el método login del contexto de autenticación
-      const success = await login({ email, password })
+      const result = await login({ email, password })
 
-      if (success) {
-        // Si el login es exitoso, redirigir al dashboard
-        router.push("/")
+      if (result.success) {
+        // Use the full name from the user object
+        setUserName(result.user?.name || "Usuario")
+
+        // Show splash screen instead of redirecting immediately
+        setShowSplash(true)
       } else {
         setError(
           IS_MOCK_MODE
@@ -105,6 +111,10 @@ export default function Login() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (showSplash) {
+    return <SplashScreen userName={userName} duration={4000} />
   }
 
   return (
