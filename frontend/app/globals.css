@@ -75,7 +75,7 @@
   }
 }
 
-/* Estilos para tarjetas */
+/* Estilos mejorados para tarjetas */
 .card {
   @apply shadow-md hover:shadow-lg transition-shadow duration-200;
   background-color: rgba(255, 255, 255, 0.95);
@@ -134,7 +134,7 @@
   }
 }
 
-/* Añadir clases de animación */
+/* Add animation classes */
 .animate-fade-in {
   animation: fadeIn 0.6s ease-out forwards;
 }
@@ -169,4 +169,182 @@
 
 .animate-blink {
   animation: blink 1s step-end infinite;
+}
+
+/* Animaciones para el splash screen */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    text-shadow: 0 0 5px rgba(59, 130, 246, 0.5), 0 0 15px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.5);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.text-animate {
+  display: inline-block;
+  opacity: 0;
+  animation: bounceIn 1s ease-out forwards;
+  min-width: 10px;
+}
+
+.text-animate-hover {
+  display: inline-block;
+  animation-duration: 0.3s;
+  min-width: 10px;
+}
+
+.text-animate-hover:hover {
+  animation: rubberBand 1s;
+  color: #4f46e5;
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-10px);
+  }
+  80% {
+    transform: translateY(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rubberBand {
+  0% {
+    transform: scale3d(1, 1, 1);
+  }
+  30% {
+    transform: scale3d(1.25, 0.75, 1);
+  }
+  40% {
+    transform: scale3d(0.75, 1.25, 1);
+  }
+  50% {
+    transform: scale3d(1.15, 0.85, 1);
+  }
+  65% {
+    transform: scale3d(0.95, 1.05, 1);
+  }
+  75% {
+    transform: scale3d(1.05, 0.95, 1);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* Nuevas animaciones y estilos para efectos visuales */
+.bg-grid-white {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(255 255 255 / 0.05)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
+}
+
+.bg-grid-white\/10 {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(255 255 255 / 0.1)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e");
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 1000px 100%;
+}
+
+/* Efecto de hover para tarjetas */
+.card-hover-effect {
+  transition: all 0.3s ease;
+}
+
+.card-hover-effect:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dark .card-hover-effect:hover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Efecto de brillo para botones */
+.button-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.button-glow::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg);
+  transition: transform 0.5s ease-out;
+}
+
+.button-glow:hover::after {
+  transform: rotate(30deg) translate(50%, 50%);
 }
