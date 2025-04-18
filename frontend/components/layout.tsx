@@ -17,13 +17,15 @@ import {
   ShoppingCart,
   Sun,
   Users,
-  Pill,
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/auth-context"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+// import { NotificationCenter } from "@/components/notifications/notification-center"
+import { PharmacyAssistant } from "@/components/assistant/pharmacy-assistant"
+import { UserOnboarding } from "@/components/onboarding/user-onboarding"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState<boolean | null>(null)
@@ -66,10 +68,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       >
         <div className="p-4 flex items-center justify-between border-b">
           <div className={`flex items-center ${!sidebarOpen && "justify-center w-full"}`}>
-            <img 
-              src="/farmacias-brasil-logo-bandera.png" 
-              alt="Logo Farmacias Brasil" 
-              className={`${sidebarOpen ? 'h-8 w-auto' : 'h-6 w-auto'} transition-all duration-300`}
+            <img
+              src="/farmacias-brasil-logo-bandera.png"
+              alt="Logo Farmacias Brasil"
+              className={`${sidebarOpen ? "h-8 w-auto" : "h-6 w-auto"} transition-all duration-300`}
             />
             {sidebarOpen && <span className="ml-2 font-semibold text-lg leading-none">Farmacias Brasil</span>}
           </div>
@@ -135,12 +137,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <h1 className="text-2xl font-semibold ml-4">{navItems.find((item) => item.href === pathname)?.label}</h1>
             </div>
             <div className="flex items-center gap-2">
+              {/* Selector de tema */}
               {mounted && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                >
+                <Button variant="outline" size="icon" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
                   {theme === "dark" ? (
                     <Sun className="h-[1.2rem] w-[1.2rem]" />
                   ) : (
@@ -149,6 +148,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <span className="sr-only">Cambiar tema</span>
                 </Button>
               )}
+
+              {/* Botón de cerrar sesión */}
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -170,8 +171,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <main className="flex-1 overflow-auto p-4 md:p-6 mt-16">{children}</main>
+
+        {/* Asistente virtual */}
+        <PharmacyAssistant />
+
+        {/* Onboarding para nuevos usuarios */}
+        <UserOnboarding />
       </div>
     </div>
   )
 }
-
