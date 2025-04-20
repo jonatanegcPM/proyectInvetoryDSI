@@ -225,5 +225,66 @@ namespace proyectInvetoryDSI.Controllers
                 return StatusCode(500, new { message = "Error interno del servidor" });
             }
         }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<List<ProductDTO>>> SearchProducts([FromQuery] string name)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    return BadRequest(new { message = "El nombre del producto es requerido" });
+                }
+
+                var products = await _inventoryService.SearchProductsByNameAsync(name);
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al buscar productos por nombre");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
+        [HttpGet("stock")]
+        public async Task<ActionResult<object>> GetProductStock([FromQuery] string name)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    return BadRequest(new { message = "El nombre del producto es requerido" });
+                }
+
+                var stockInfo = await _inventoryService.GetProductStockByNameAsync(name);
+                
+                if (stockInfo == null)
+                {
+                    return NotFound(new { message = "Producto no encontrado" });
+                }
+                
+                return Ok(stockInfo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener stock de producto por nombre");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
+
+        [HttpGet("low-stock")]
+        public async Task<ActionResult<List<object>>> GetLowStockProducts()
+        {
+            try
+            {
+                var lowStockProducts = await _inventoryService.GetLowStockProductsAsync();
+                return Ok(lowStockProducts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al obtener productos con bajo stock");
+                return StatusCode(500, new { message = "Error interno del servidor" });
+            }
+        }
     }
 }

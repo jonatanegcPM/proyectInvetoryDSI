@@ -275,5 +275,30 @@ namespace proyectInvetoryDSI.Services
                 PaymentMethod = paymentMethod
             };
         }
+
+        public async Task<List<object>> GetRecentSalesAsync(int limit)
+        {
+            limit = Math.Clamp(limit, 1, 10); // Limitar entre 1 y 10 ventas
+
+            var recentSales = await _context.Sales
+                .Include(s => s.SaleDetails)
+                .ThenInclude(sd => sd.Product)
+                .OrderByDescending(s => s.SaleDate)
+                .Take(limit)
+                .Select(s => new 
+                {
+                    date = s.SaleDate,
+                    total = s.TotalAmount,
+                    items = s.SaleDetails.Select(sd => new 
+                    {
+                        name = sd.Product != null ? sd.Product.Name : "Producto desconocido",
+                        quantity = sd.Quantity,
+                        price = sd.UnitPrice
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            return recentSales.Cast<object>().ToList();
+        }
     }
 }
