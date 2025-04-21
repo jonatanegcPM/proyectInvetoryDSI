@@ -214,14 +214,14 @@ export default function Dashboard() {
               <CardTitle>Transacciones Recientes</CardTitle>
               <CardDescription>
                 {dateFilter === "day"
-                  ? "Transacciones de hoy"
+                  ? "Ventas de hoy"
                   : dateFilter === "week"
-                    ? "Transacciones de esta semana"
+                    ? "Ventas de esta semana"
                     : dateFilter === "month"
-                      ? "Transacciones de este mes"
+                      ? "Ventas de este mes"
                       : dateFilter === "year"
-                        ? "Transacciones de este año"
-                        : "Todas las transacciones"}
+                        ? "Ventas de este año"
+                        : "Todas las ventas"}
               </CardDescription>
             </CardHeader>
             <CardContent>
