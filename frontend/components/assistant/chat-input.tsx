@@ -45,6 +45,9 @@ export function ChatInput({
           <Send className="h-4 w-4" />
         </Button>
       </div>
+      <div className="mt-2 text-xs text-center text-muted-foreground">
+        Powered by DeepSeek
+      </div>
     </div>
   )
 } 
