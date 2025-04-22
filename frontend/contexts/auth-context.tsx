@@ -18,12 +18,13 @@ interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (credentials: LoginCredentials) => Promise<boolean>
+  login: (credentials: LoginCredentials) => Promise<{ success: boolean; user?: User }>
   logout: () => void
 }
 
 // Determinar si estamos en modo simulado
-const IS_MOCK_MODE = !process.env.NEXT_PUBLIC_API_URL
+// Get mock mode from environment or configuration
+const IS_MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_MODE === "true" || false
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -37,12 +38,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        setIsLoading(true) // Asegurarse de que isLoading sea true mientras verificamos
+
         // Verificar si hay un token válido
         const validationResult = await AuthService.validateToken()
 
         if (validationResult && validationResult.valid) {
           setUser(validationResult.user)
           setIsAuthenticated(true)
+          
+          // Asegurarse de que el token está disponible para comandos
+          if (typeof window !== 'undefined' && AuthService.getToken()) {
+            localStorage.setItem('token', AuthService.getToken() || '');
+          }
         } else {
           // Si el token no es válido, limpiar la autenticación
           AuthService.logout()
@@ -69,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Función de login
-  const login = async (credentials: LoginCredentials): Promise<boolean> => {
+  const login = async (credentials: LoginCredentials): Promise<{ success: boolean; user?: User }> => {
     setIsLoading(true)
     try {
       // Usar el servicio de autenticación para iniciar sesión
@@ -78,20 +86,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Actualizar estado
       setUser(response.user)
       setIsAuthenticated(true)
+      
+      // Asegurarse de que el token está disponible para comandos
+      if (typeof window !== 'undefined' && AuthService.getToken()) {
+        localStorage.setItem('token', AuthService.getToken() || '');
+      }
 
       toast({
         title: "Inicio de sesión exitoso",
         description: `Bienvenido, ${response.user.name}`,
       })
 
-      return true
+      return { success: true, user: response.user }
     } catch (error) {
       toast({
         title: "Error de autenticación",
         description: error instanceof Error ? error.message : "Error al iniciar sesión",
         variant: "destructive",
       })
-      return false
+      return { success: false }
     } finally {
       setIsLoading(false)
     }
@@ -100,6 +113,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Función de logout
   const logout = () => {
     AuthService.logout()
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token'); // Eliminar también el token de compatibilidad
+    }
     setUser(null)
     setIsAuthenticated(false)
     router.push("/login")
@@ -122,4 +138,3 @@ export function useAuth() {
   }
   return context
 }
-

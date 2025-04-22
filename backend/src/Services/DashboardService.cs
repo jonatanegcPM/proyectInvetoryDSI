@@ -127,8 +127,9 @@ namespace proyectInvetoryDSI.Services
                     endDate = startDate.Value.AddDays(1).AddTicks(-1); // Fin del día
                     break;
                 case "week":
-                    startDate = DateTime.Now.Date.AddDays(-(int)DateTime.Now.DayOfWeek); // Inicio de la semana (domingo)
-                    endDate = startDate.Value.AddDays(7).AddTicks(-1); // Fin de la semana
+                    int daysToSubtract = ((int)DateTime.Now.DayOfWeek + 6) % 7; 
+                    startDate = DateTime.Now.Date.AddDays(-daysToSubtract); // Inicio de la semana (lunes)
+                    endDate = startDate.Value.AddDays(7).AddTicks(-1); // Fin de la semana (domingo)
                     break;
                 case "month":
                     startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1); // Primer día del mes
@@ -283,8 +284,9 @@ namespace proyectInvetoryDSI.Services
                     endDate = startDate.Value.AddDays(1).AddTicks(-1);
                     break;
                 case "week":
-                    startDate = currentDate.AddDays(-(int)currentDate.DayOfWeek);
-                    endDate = startDate.Value.AddDays(7).AddTicks(-1);
+                    int daysToSubtract = ((int)currentDate.DayOfWeek + 6) % 7; 
+                    startDate = currentDate.Date.AddDays(-daysToSubtract); // Inicio de la semana (lunes)
+                    endDate = startDate.Value.AddDays(7).AddTicks(-1); // Fin de la semana (domingo)
                     break;
                 case "month":
                     startDate = new DateTime(currentDate.Year, currentDate.Month, 1);

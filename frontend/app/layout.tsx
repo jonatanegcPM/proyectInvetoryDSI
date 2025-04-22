@@ -10,7 +10,12 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Farmacias Brasil - Sistema POS",
-  description: "Sistema de punto de venta para Farmacias Brasil"
+  description: "Sistema de punto de venta para Farmacias Brasil",
+  icons: {
+    icon: "/farmacias-brasil-logo-bandera.png",
+    shortcut: "/farmacias-brasil-logo-bandera.png",
+    apple: "/farmacias-brasil-logo-bandera.png"
+  }
 }
 
 export default function RootLayout({

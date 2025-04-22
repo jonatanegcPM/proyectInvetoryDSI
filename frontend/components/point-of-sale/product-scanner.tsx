@@ -24,7 +24,10 @@ export function ProductScanner({ isScanning, scanMessage, scanError, toggleScann
       <CardContent>
         {isScanning && (
           <div className="flex flex-col gap-4">
-            <Badge variant="outline" className="w-fit py-2 px-4 text-sm font-medium">
+            <Badge 
+              variant="outline" 
+              className="w-fit py-2 px-4 text-sm font-medium bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/50"
+            >
               <div className="flex items-center gap-2">
                 <div className={`h-2 w-2 rounded-full bg-green-500 ${isScanning ? "animate-pulse" : ""}`}></div>
                 {scanMessage}

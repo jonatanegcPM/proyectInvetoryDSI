@@ -22,6 +22,9 @@ namespace proyectInvetoryDSI.Services
         Task<object> GetTransactionsAsync(int page, int limit, int? productId, string? type, DateTime? startDate, DateTime? endDate);
         Task<IEnumerable<string>> GetCategoriesAsync();
         Task<InventoryStatsDTO> GetInventoryStatsAsync();
+        Task<List<ProductDTO>> SearchProductsByNameAsync(string name);
+        Task<object?> GetProductStockByNameAsync(string name);
+        Task<List<object>> GetLowStockProductsAsync();
     }
 
     public class InventoryService : IInventoryService
@@ -441,6 +444,100 @@ namespace proyectInvetoryDSI.Services
                 TotalValue = totalValue,
                 ExpiringProducts = expiringProducts
             };
+        }
+
+        public async Task<List<ProductDTO>> SearchProductsByNameAsync(string name)
+        {
+            // Normalizar el nombre de búsqueda (convertir a minúsculas y quitar acentos)
+            var normalizedName = name.ToLower().Trim();
+            
+            return await _context.Products
+                .Include(p => p.Category)
+                .Where(p => p.Status != "deleted" && 
+                           EF.Functions.Like(p.Name.ToLower(), $"%{normalizedName}%") || 
+                           // Búsqueda alternativa para manejar variaciones con/sin acentos
+                           p.Name.ToLower().Replace("á", "a")
+                                          .Replace("é", "e")
+                                          .Replace("í", "i")
+                                          .Replace("ó", "o")
+                                          .Replace("ú", "u")
+                                          .Contains(normalizedName.Replace("á", "a")
+                                                              .Replace("é", "e")
+                                                              .Replace("í", "i")
+                                                              .Replace("ó", "o")
+                                                              .Replace("ú", "u")))
+                .OrderBy(p => p.Name)
+                .Take(5) // Limitar a 5 resultados para el chatbot
+                .Select(p => new ProductDTO
+                {
+                    Id = p.ProductID,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Category = p.Category != null ? p.Category.CategoryName : null,
+                    Stock = p.StockQuantity,
+                    Price = p.Price,
+                    ReorderLevel = p.ReorderLevel
+                })
+                .ToListAsync();
+        }
+
+        public async Task<object?> GetProductStockByNameAsync(string name)
+        {
+            // Normalizar el nombre de búsqueda (convertir a minúsculas y quitar acentos)
+            var normalizedName = name.ToLower().Trim();
+            
+            var product = await _context.Products
+                .Where(p => p.Status != "deleted" && 
+                           (EF.Functions.Like(p.Name.ToLower(), $"%{normalizedName}%") || 
+                           // Búsqueda alternativa para manejar variaciones con/sin acentos
+                           p.Name.ToLower().Replace("á", "a")
+                                          .Replace("é", "e")
+                                          .Replace("í", "i")
+                                          .Replace("ó", "o")
+                                          .Replace("ú", "u")
+                                          .Contains(normalizedName.Replace("á", "a")
+                                                              .Replace("é", "e")
+                                                              .Replace("í", "i")
+                                                              .Replace("ó", "o")
+                                                              .Replace("ú", "u"))))
+                .OrderBy(p => p.Name)
+                .Select(p => new 
+                {
+                    name = p.Name,
+                    stock = p.StockQuantity,
+                    minStock = p.ReorderLevel
+                })
+                .FirstOrDefaultAsync();
+                
+            return product;
+        }
+
+        public async Task<List<object>> GetLowStockProductsAsync()
+        {
+            try
+            {
+                var lowStockProducts = await _context.Products
+                    .Where(p => p.Status != "deleted" && p.StockQuantity <= p.ReorderLevel)
+                    .OrderBy(p => p.StockQuantity)
+                    .Take(10) // Limitar a 10 productos para el chatbot
+                    .Select(p => new 
+                    {
+                        name = p.Name,
+                        stock = p.StockQuantity,
+                        minStock = p.ReorderLevel ?? 0
+                    })
+                    .ToListAsync();
+                
+                // Convertimos explícitamente a List<object>
+                return lowStockProducts.Select(p => (object)p).ToList();
+            }
+            catch (Exception ex)
+            {
+                // Registrar el error
+                Console.WriteLine($"Error al obtener productos con bajo stock: {ex.Message}");
+                // Devolver una lista vacía en caso de error
+                return new List<object>();
+            }
         }
     }
 }

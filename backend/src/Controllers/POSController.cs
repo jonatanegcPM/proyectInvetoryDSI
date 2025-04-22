@@ -105,5 +105,20 @@ namespace proyectInvetoryDSI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        // GET: api/pos/recent-sales
+        [HttpGet("recent-sales")]
+        public async Task<ActionResult<object>> GetRecentSales([FromQuery] int limit = 5)
+        {
+            try
+            {
+                var result = await _posService.GetRecentSalesAsync(limit);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }

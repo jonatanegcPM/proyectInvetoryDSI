@@ -52,7 +52,14 @@ export function InventoryTable({ inventory, isLoading, onOrderProduct }: Invento
             <TableCell>{item.reorderLevel}</TableCell>
             <TableCell>
               <Badge
-                variant={item.status === "critical" ? "destructive" : item.status === "low" ? "warning" : "success"}
+                variant="outline"
+                className={
+                  item.status === "critical"
+                    ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50"
+                    : item.status === "low"
+                      ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50"
+                      : "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/50"
+                }
               >
                 {item.status === "critical" ? "Crítico" : item.status === "low" ? "Bajo" : "Normal"}
               </Badge>

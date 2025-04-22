@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-
+import { motion } from "framer-motion"
 import { DollarSign, ShoppingCart, Users, Package } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -13,11 +13,12 @@ import { useDashboardApi } from "@/hooks/use-dashboard-api"
 import type { InventoryItem } from "@/services/dashboard-service"
 
 // Components
-import { StatsCard } from "@/components/dashboard/stats-card"
+import { DashboardHero } from "@/components/dashboard/dashboard-hero"
+import { AnimatedStatsCard } from "@/components/dashboard/animated-stats-card"
 import { SearchBar } from "@/components/dashboard/search-bar"
 import { DateFilter } from "@/components/dashboard/date-filter"
 import { Pagination } from "@/components/dashboard/pagination"
-import { TransactionsTable } from "@/components/dashboard/transactions-table"
+import { AnimatedTransactionsTable } from "@/components/dashboard/animated-transactions-table"
 import { InventoryTable } from "@/components/dashboard/inventory-table"
 import { TransactionDetailsModal } from "@/components/dashboard/transaction-details-modal"
 import { OrderProductModal } from "@/components/dashboard/order-product-modal"
@@ -117,7 +118,15 @@ export default function Dashboard() {
         </Alert>
       )}
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Hero Banner */}
+      <DashboardHero />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+      >
         <div className="flex items-center w-full sm:w-auto">
           <SearchBar
             searchTerm={searchTerm}
@@ -133,45 +142,54 @@ export default function Dashboard() {
           />
           <NewSaleButton />
         </div>
-      </div>
+      </motion.div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+      >
         <h2 className="text-lg font-semibold">{getFilterDescription()}</h2>
         <DateFilter dateFilter={dateFilter} setDateFilter={setDateFilter} />
-      </div>
+      </motion.div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
+        <AnimatedStatsCard
           title="Ventas Totales"
           value={stats ? `$${stats.sales.total.toFixed(2)}` : "$0.00"}
           icon={<DollarSign className="h-4 w-4" />}
           isLoading={isLoadingStats}
           changeValue={stats?.sales.change !== null ? stats?.sales.change : undefined}
           changePeriodText={getChangePeriodText()}
+          delay={0}
         />
-        <StatsCard
+        <AnimatedStatsCard
           title="Transacciones"
           value={stats ? stats.transactions.count.toString() : "0"}
           icon={<ShoppingCart className="h-4 w-4" />}
           isLoading={isLoadingStats}
           changeValue={stats?.transactions.change !== null ? stats?.transactions.change : undefined}
           changePeriodText={getChangePeriodText()}
+          delay={100}
         />
-        <StatsCard
+        <AnimatedStatsCard
           title="Clientes"
           value={stats ? stats.customers.count.toString() : "0"}
           icon={<Users className="h-4 w-4" />}
           isLoading={isLoadingStats}
           changeValue={stats?.customers.change !== null ? stats?.customers.change : undefined}
           changePeriodText={getChangePeriodText()}
+          delay={200}
         />
-        <StatsCard
+        <AnimatedStatsCard
           title="Productos con Bajo Stock"
           value={stats ? stats.inventory.lowStock.toString() : "0"}
           description="Requieren atención"
           icon={<Package className="h-4 w-4" />}
           isLoading={isLoadingStats}
+          delay={300}
         />
       </div>
 
@@ -196,18 +214,18 @@ export default function Dashboard() {
               <CardTitle>Transacciones Recientes</CardTitle>
               <CardDescription>
                 {dateFilter === "day"
-                  ? "Transacciones de hoy"
+                  ? "Ventas de hoy"
                   : dateFilter === "week"
-                    ? "Transacciones de esta semana"
+                    ? "Ventas de esta semana"
                     : dateFilter === "month"
-                      ? "Transacciones de este mes"
+                      ? "Ventas de este mes"
                       : dateFilter === "year"
-                        ? "Transacciones de este año"
-                        : "Todas las transacciones"}
+                        ? "Ventas de este año"
+                        : "Todas las ventas"}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <TransactionsTable
+              <AnimatedTransactionsTable
                 transactions={transactions}
                 isLoading={isLoadingTransactions}
                 onViewDetails={handleViewTransactionDetails}
@@ -278,4 +296,3 @@ export default function Dashboard() {
     </div>
   )
 }
-

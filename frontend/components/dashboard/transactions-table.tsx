@@ -3,10 +3,14 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Eye, FileText, Loader2 } from "lucide-react"
+import { Eye, FileText, Loader2, ArrowUpDown } from "lucide-react"
 import { format, isToday, isThisWeek, isThisMonth, isThisYear } from "date-fns"
 import { es } from "date-fns/locale" // Importa el locale 'es'
 import type { Transaction } from "@/services/dashboard-service"
+import { useState } from "react"
+
+// Tipo para las columnas ordenables
+type SortableColumn = "id" | "customer" | "items" | "amount" | "status" | "date"
 
 interface TransactionsTableProps {
   transactions: Transaction[]
@@ -15,6 +19,66 @@ interface TransactionsTableProps {
 }
 
 export function TransactionsTable({ transactions, isLoading, onViewDetails }: TransactionsTableProps) {
+  // Estado para el ordenamiento
+  const [sortColumn, setSortColumn] = useState<SortableColumn | null>(null)
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
+
+  // Función para cambiar el ordenamiento
+  const handleSort = (column: SortableColumn) => {
+    if (sortColumn === column) {
+      // Si ya estamos ordenando por esta columna, cambiamos la dirección
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      // Si es una nueva columna, la establecemos como columna de ordenamiento y dirección ascendente
+      setSortColumn(column)
+      setSortDirection("asc")
+    }
+  }
+
+  // Ordenar las transacciones
+  const sortedTransactions = [...transactions].sort((a, b) => {
+    if (!sortColumn) return 0
+
+    let valueA, valueB
+
+    switch (sortColumn) {
+      case "id":
+        valueA = a.id
+        valueB = b.id
+        break
+      case "customer":
+        valueA = a.customer
+        valueB = b.customer
+        break
+      case "items":
+        valueA = a.items
+        valueB = b.items
+        break
+      case "amount":
+        valueA = a.amount
+        valueB = b.amount
+        break
+      case "status":
+        valueA = a.status
+        valueB = b.status
+        break
+      case "date":
+        valueA = new Date(a.date).getTime()
+        valueB = new Date(b.date).getTime()
+        break
+      default:
+        return 0
+    }
+
+    if (valueA < valueB) {
+      return sortDirection === "asc" ? -1 : 1
+    }
+    if (valueA > valueB) {
+      return sortDirection === "asc" ? 1 : -1
+    }
+    return 0
+  })
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -37,17 +101,47 @@ export function TransactionsTable({ transactions, isLoading, onViewDetails }: Tr
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>ID Transacción</TableHead>
-          <TableHead>Cliente</TableHead>
-          <TableHead>Artículos</TableHead>
-          <TableHead>Monto</TableHead>
-          <TableHead>Estado</TableHead>
-          <TableHead>Fecha</TableHead>
+          <TableHead className="cursor-pointer" onClick={() => handleSort("id")}>
+            <div className="flex items-center">
+              ID Transacción
+              <ArrowUpDown className="ml-1 h-4 w-4" />
+            </div>
+          </TableHead>
+          <TableHead className="cursor-pointer" onClick={() => handleSort("customer")}>
+            <div className="flex items-center">
+              Cliente
+              <ArrowUpDown className="ml-1 h-4 w-4" />
+            </div>
+          </TableHead>
+          <TableHead className="cursor-pointer" onClick={() => handleSort("items")}>
+            <div className="flex items-center">
+              Artículos
+              <ArrowUpDown className="ml-1 h-4 w-4" />
+            </div>
+          </TableHead>
+          <TableHead className="cursor-pointer" onClick={() => handleSort("amount")}>
+            <div className="flex items-center">
+              Monto
+              <ArrowUpDown className="ml-1 h-4 w-4" />
+            </div>
+          </TableHead>
+          <TableHead className="cursor-pointer" onClick={() => handleSort("status")}>
+            <div className="flex items-center">
+              Estado
+              <ArrowUpDown className="ml-1 h-4 w-4" />
+            </div>
+          </TableHead>
+          <TableHead className="cursor-pointer" onClick={() => handleSort("date")}>
+            <div className="flex items-center">
+              Fecha
+              <ArrowUpDown className="ml-1 h-4 w-4" />
+            </div>
+          </TableHead>
           <TableHead className="text-right">Acciones</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {transactions.map((transaction) => (
+        {sortedTransactions.map((transaction) => (
           <TableRow key={transaction.id}>
             <TableCell className="font-medium">{transaction.id}</TableCell>
             <TableCell>{transaction.customer}</TableCell>
@@ -55,12 +149,13 @@ export function TransactionsTable({ transactions, isLoading, onViewDetails }: Tr
             <TableCell>${transaction.amount.toFixed(2)}</TableCell>
             <TableCell>
               <Badge
-                variant={
+                variant="outline"
+                className={
                   transaction.status === "completed"
-                    ? "success"
+                    ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/50"
                     : transaction.status === "pending"
-                      ? "warning"
-                      : "destructive"
+                      ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50"
+                      : "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50"
                 }
               >
                 {transaction.status === "completed"
@@ -98,4 +193,3 @@ export function TransactionsTable({ transactions, isLoading, onViewDetails }: Tr
     </Table>
   )
 }
-

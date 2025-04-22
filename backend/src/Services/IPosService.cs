@@ -9,5 +9,6 @@ namespace proyectInvetoryDSI.Services
         Task<ProductDTO?> GetProductByBarcode(string barcode);
         Task<CustomersResponse> GetCustomers();
         Task<SaleResponseDTO> CreateSale(CreateSaleDTO saleDto, int userId);
+        Task<List<object>> GetRecentSalesAsync(int limit);
     }
 }
