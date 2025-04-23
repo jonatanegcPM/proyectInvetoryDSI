@@ -32,9 +32,10 @@ CREATE TABLE Suppliers (
     Contact NVARCHAR(100) NOT NULL,
     Phone NVARCHAR(20) NOT NULL,
     Email NVARCHAR(100) NOT NULL,
-    Address NVARCHAR(255) NOT NULL
+    Address NVARCHAR(255) NOT NULL,
+    Status NVARCHAR(20) DEFAULT 'active',
+    Category NVARCHAR(100)
 );
-
 
 -- Primero, creamos la tabla Categories que necesitamos para los productos
 CREATE TABLE Categories (
@@ -78,7 +79,15 @@ CREATE TABLE Customers (
     Name NVARCHAR(100) NOT NULL,
     Phone NVARCHAR(20),
     Email NVARCHAR(100),
-    Address NVARCHAR(255)
+    Address NVARCHAR(255),
+    DateOfBirth DATE,
+    Gender NVARCHAR(20),
+    Insurance NVARCHAR(100),
+    Status NVARCHAR(20) DEFAULT 'active',
+    RegistrationDate DATETIME DEFAULT GETDATE(),
+    LastVisit DATETIME,
+    Allergies NVARCHAR(255),
+    Notes NVARCHAR(MAX)
 );
 
 -- Table: Sales

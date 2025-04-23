@@ -1,12 +1,12 @@
+// Controllers/SupplierController.cs
 using Microsoft.AspNetCore.Mvc;
 using proyectInvetoryDSI.Services;
-using proyectInvetoryDSI.Models;
-using System.Collections.Generic;
+using proyectInvetoryDSI.DTOs;
 using System.Threading.Tasks;
 
 namespace proyectInvetoryDSI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/suppliers")]
     [ApiController]
     public class SupplierController : ControllerBase
     {
@@ -17,17 +17,19 @@ namespace proyectInvetoryDSI.Controllers
             _supplierService = supplierService;
         }
 
-        // GET: api/Supplier
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Supplier>>> GetSuppliers()
+        public async Task<ActionResult<SuppliersResponse>> GetSuppliers(
+            [FromQuery] string? search,
+            [FromQuery] string? category,
+            [FromQuery] int page = 1,
+            [FromQuery] int limit = 10)
         {
-            var suppliers = await _supplierService.GetAllSuppliersAsync();
-            return Ok(suppliers);
+            var response = await _supplierService.GetAllSuppliersAsync(search, category, page, limit);
+            return Ok(response);
         }
 
-        // GET: api/Supplier/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Supplier>> GetSupplier(int id)
+        public async Task<ActionResult<SupplierDetailDTO>> GetSupplier(int id)
         {
             var supplier = await _supplierService.GetSupplierByIdAsync(id);
             if (supplier == null)
@@ -37,33 +39,67 @@ namespace proyectInvetoryDSI.Controllers
             return Ok(supplier);
         }
 
-        // POST: api/Supplier
         [HttpPost]
-        public async Task<ActionResult<Supplier>> PostSupplier(Supplier supplier)
+        public async Task<ActionResult<SupplierDTO>> CreateSupplier([FromBody] SupplierCreateDTO supplierDto)
         {
-            await _supplierService.AddSupplierAsync(supplier);
-            return CreatedAtAction(nameof(GetSupplier), new { id = supplier.SupplierID }, supplier);
+            var supplier = await _supplierService.CreateSupplierAsync(supplierDto);
+            return CreatedAtAction(nameof(GetSupplier), new { id = supplier.Id }, supplier);
         }
 
-        // PUT: api/Supplier/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSupplier(int id, Supplier supplier)
+        public async Task<ActionResult<SupplierDTO>> UpdateSupplier(int id, [FromBody] SupplierCreateDTO supplierDto)
         {
-            if (id != supplier.SupplierID)
+            var supplier = await _supplierService.UpdateSupplierAsync(id, supplierDto);
+            if (supplier == null)
             {
-                return BadRequest();
+                return NotFound();
             }
-
-            await _supplierService.UpdateSupplierAsync(supplier);
-            return NoContent();
+            return Ok(supplier);
         }
 
-        // DELETE: api/Supplier/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSupplier(int id)
         {
-            await _supplierService.DeleteSupplierAsync(id);
-            return NoContent();
+            var success = await _supplierService.DeleteSupplierAsync(id);
+            if (!success)
+            {
+                return NotFound();
+            }
+            return Ok(new { success = true, message = "Proveedor eliminado correctamente" });
+        }
+
+        [HttpGet("{id}/products")]
+        public async Task<ActionResult<SupplierProductsResponse>> GetSupplierProducts(
+            int id, 
+            [FromQuery] int page = 1, 
+            [FromQuery] int limit = 10)
+        {
+            var response = await _supplierService.GetSupplierProductsAsync(id, page, limit);
+            return Ok(response);
+        }
+
+        [HttpGet("{id}/orders")]
+        public async Task<ActionResult<SupplierOrdersResponse>> GetSupplierOrders(
+            int id, 
+            [FromQuery] int page = 1, 
+            [FromQuery] int limit = 10)
+        {
+            var response = await _supplierService.GetSupplierOrdersAsync(id, page, limit);
+            return Ok(response);
+        }
+
+        [HttpGet("categories")]
+        public async Task<ActionResult<SupplierCategoriesResponse>> GetSupplierCategories()
+        {
+            var response = await _supplierService.GetSupplierCategoriesAsync();
+            return Ok(response);
+        }
+
+        [HttpGet("stats")]
+        public async Task<ActionResult<SupplierStatsDTO>> GetSupplierStats()
+        {
+            var response = await _supplierService.GetSupplierStatsAsync();
+            return Ok(response);
         }
     }
 }

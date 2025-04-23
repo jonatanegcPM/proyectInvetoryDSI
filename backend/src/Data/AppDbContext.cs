@@ -62,6 +62,16 @@ namespace proyectInvetoryDSI.Data
                 .Property(p => p.Address)
                 .IsRequired()
                 .HasMaxLength(255);
+
+            modelBuilder.Entity<Supplier>()
+                .Property(p => p.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("active");
+
+            modelBuilder.Entity<Supplier>()
+                .Property(p => p.Category)
+                .IsRequired()
+                .HasMaxLength(50);
         }
 
         private void ConfigureRole(ModelBuilder modelBuilder)
@@ -249,7 +259,7 @@ namespace proyectInvetoryDSI.Data
 
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Supplier)
-                .WithMany()
+                .WithMany(s => s.Products) // Updated to reference the Products collection
                 .HasForeignKey(p => p.SupplierID)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -343,7 +353,7 @@ namespace proyectInvetoryDSI.Data
 
             modelBuilder.Entity<Purchase>()
                 .HasOne(p => p.Supplier)
-                .WithMany()
+                .WithMany(s => s.Purchases) // Updated to reference the Purchases collection
                 .HasForeignKey(p => p.SupplierID)
                 .OnDelete(DeleteBehavior.Restrict);
 

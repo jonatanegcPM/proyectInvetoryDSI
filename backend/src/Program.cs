@@ -69,7 +69,8 @@ builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<IPosService, PosService>(); 
 // Agregar esto con los otros servicios
 builder.Services.AddScoped<CustomerService>();
-
+// En el método ConfigureServices de Program.cs
+builder.Services.AddScoped<SupplierService>();
 // Agregar estos servicios en Program.cs
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddHttpContextAccessor();
