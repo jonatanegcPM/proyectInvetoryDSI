@@ -12,8 +12,8 @@ using proyectInvetoryDSI.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250423052809_schema")]
-    partial class schema
+    [Migration("20250423081024_Schemasql")]
+    partial class Schemasql
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -428,6 +428,11 @@ namespace backend.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("Contact")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -447,6 +452,13 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("active");
 
                     b.HasKey("SupplierID");
 
@@ -543,7 +555,7 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("proyectInvetoryDSI.Models.Supplier", "Supplier")
-                        .WithMany()
+                        .WithMany("Products")
                         .HasForeignKey("SupplierID")
                         .OnDelete(DeleteBehavior.Restrict);
 
@@ -557,7 +569,7 @@ namespace backend.Migrations
             modelBuilder.Entity("proyectInvetoryDSI.Models.Purchase", b =>
                 {
                     b.HasOne("proyectInvetoryDSI.Models.Supplier", "Supplier")
-                        .WithMany()
+                        .WithMany("Purchases")
                         .HasForeignKey("SupplierID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -664,6 +676,13 @@ namespace backend.Migrations
             modelBuilder.Entity("proyectInvetoryDSI.Models.Sale", b =>
                 {
                     b.Navigation("SaleDetails");
+                });
+
+            modelBuilder.Entity("proyectInvetoryDSI.Models.Supplier", b =>
+                {
+                    b.Navigation("Products");
+
+                    b.Navigation("Purchases");
                 });
 #pragma warning restore 612, 618
         }
