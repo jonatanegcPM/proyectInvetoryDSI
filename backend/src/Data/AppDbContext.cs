@@ -134,6 +134,27 @@ namespace proyectInvetoryDSI.Data
             modelBuilder.Entity<Customer>()
                 .Property(c => c.Address)
                 .HasMaxLength(255);
+
+            modelBuilder.Entity<Customer>()
+                .Property(c => c.Gender)
+                .HasMaxLength(20);
+
+            modelBuilder.Entity<Customer>()
+                .Property(c => c.Insurance)
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Customer>()
+                .Property(c => c.Status)
+                .HasMaxLength(20)
+                .HasDefaultValue("active");
+
+            modelBuilder.Entity<Customer>()
+                .Property(c => c.Allergies)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<Customer>()
+                .Property(c => c.Notes)
+                .HasMaxLength(1000);
         }
 
         private void ConfigureSale(ModelBuilder modelBuilder)
@@ -148,7 +169,7 @@ namespace proyectInvetoryDSI.Data
 
             modelBuilder.Entity<Sale>()
                 .HasOne(s => s.Customer)
-                .WithMany()
+                .WithMany(c => c.Sales)
                 .HasForeignKey(s => s.CustomerID)
                 .OnDelete(DeleteBehavior.Restrict);
 
