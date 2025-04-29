@@ -4,7 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Loader2 } from "lucide-react"
-import type { ProductsTableProps } from "@/types/point-of-sale"
+import type { ProductsTableProps, CartItem } from "@/types/point-of-sale"
+import type { Product } from "@/services/pos-service"
 
 export function ProductsTable({
   products,
@@ -18,9 +19,10 @@ export function ProductsTable({
   startIndex,
   endIndex,
   isLoading,
+  cart = [], // Add cart prop with default empty array
 }: ProductsTableProps) {
   // Helper function to determine badge properties
-  const getBadgeProps = (product: any) => {
+  const getBadgeProps = (product: Product) => {
     // Check if product has stock and reorderLevel properties
     const stock = product.stock ?? 0
     const reorderLevel = product.reorderLevel ?? 0
@@ -50,6 +52,17 @@ export function ProductsTable({
     }
   }
 
+  // Helper function to check if a product can be added to cart
+  const canAddToCart = (product: Product) => {
+    if (product.stock <= 0) return false
+
+    // Check if product is already in cart and at max stock
+    const cartItem = cart.find((item: CartItem) => item.id === product.id)
+    if (cartItem && cartItem.quantity >= product.stock) return false
+
+    return true
+  }
+
   return (
     <>
       <Table>
@@ -77,6 +90,8 @@ export function ProductsTable({
           ) : (
             products.map((product) => {
               const { className, status } = getBadgeProps(product)
+              const isAddDisabled = !canAddToCart(product)
+
               return (
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.name}</TableCell>
@@ -87,7 +102,12 @@ export function ProductsTable({
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Button size="sm" onClick={() => onAddToCart(product)}>
+                    <Button
+                      size="sm"
+                      onClick={() => onAddToCart(product)}
+                      disabled={isAddDisabled}
+                      title={isAddDisabled ? "Stock insuficiente" : "Añadir al carrito"}
+                    >
                       <Plus className="h-4 w-4 mr-1" /> Añadir
                     </Button>
                   </TableCell>

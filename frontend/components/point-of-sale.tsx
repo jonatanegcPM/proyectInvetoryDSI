@@ -50,9 +50,7 @@ export default function PointOfSale() {
     indexOfLastItem,
   } = usePointOfSale()
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredProducts = products.filter((product) => product.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
   return (
     <div className="flex flex-col gap-6">
@@ -93,6 +91,7 @@ export default function PointOfSale() {
               startIndex={indexOfFirstItem}
               endIndex={indexOfLastItem}
               isLoading={isLoading}
+              cart={cart} // Pass the cart to the products table
             />
           </CardContent>
         </Card>
