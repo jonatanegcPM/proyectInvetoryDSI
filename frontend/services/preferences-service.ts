@@ -8,18 +8,29 @@ export interface PointOfSalePreferences {
   productsPerPage: number
 }
 
+export interface InventoryPreferences {
+  productsPerPage: number
+  transactionsPerPage: number
+}
+
 // Claves para localStorage
 const DASHBOARD_PREFERENCES_KEY = "dashboard_preferences"
 const POS_PREFERENCES_KEY = "pos_preferences"
+const INVENTORY_PREFERENCES_KEY = "inventory_preferences"
 
 // Valores por defecto
 const DEFAULT_DASHBOARD_PREFERENCES: DashboardPreferences = {
   dateFilter: "week",
-  transactionsPerPage: 5
+  transactionsPerPage: 5,
 }
 
 const DEFAULT_POS_PREFERENCES: PointOfSalePreferences = {
-  productsPerPage: 5
+  productsPerPage: 5,
+}
+
+const DEFAULT_INVENTORY_PREFERENCES: InventoryPreferences = {
+  productsPerPage: 10,
+  transactionsPerPage: 10,
 }
 
 export const PreferencesService = {
@@ -63,5 +74,26 @@ export const PreferencesService = {
     } catch (error) {
       console.error("Error saving POS preferences:", error)
     }
-  }
-} 
+  },
+
+  // Inventory Preferences
+  getInventoryPreferences(): InventoryPreferences {
+    try {
+      const stored = localStorage.getItem(INVENTORY_PREFERENCES_KEY)
+      return stored ? JSON.parse(stored) : DEFAULT_INVENTORY_PREFERENCES
+    } catch (error) {
+      console.error("Error reading inventory preferences:", error)
+      return DEFAULT_INVENTORY_PREFERENCES
+    }
+  },
+
+  setInventoryPreferences(preferences: Partial<InventoryPreferences>) {
+    try {
+      const current = this.getInventoryPreferences()
+      const updated = { ...current, ...preferences }
+      localStorage.setItem(INVENTORY_PREFERENCES_KEY, JSON.stringify(updated))
+    } catch (error) {
+      console.error("Error saving inventory preferences:", error)
+    }
+  },
+}

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { InventoryService } from "@/services/inventory-service"
+import { PreferencesService } from "@/services/preferences-service"
 import type {
   Product,
   InventoryTransaction,
@@ -17,6 +18,9 @@ import type {
 export const transactionTypes = ["Recepción", "Venta", "Ajuste", "Devolución", "Transferencia"]
 
 export function useInventory() {
+  // Get saved preferences
+  const savedPreferences = PreferencesService.getInventoryPreferences()
+
   // Estados para la gestión de la interfaz
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("Todos")
@@ -33,7 +37,7 @@ export function useInventory() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [itemsPerPage, setItemsPerPage] = useState(savedPreferences.productsPerPage)
   const [products, setProducts] = useState<Product[]>([])
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
@@ -56,11 +60,10 @@ export function useInventory() {
     type: "Ajuste",
     notes: "",
   })
-  const [isImportExportOpen, setIsImportExportOpen] = useState(false)
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
   const [selectedProductHistory, setSelectedProductHistory] = useState<Product | null>(null)
   const [currentTransactionPage, setCurrentTransactionPage] = useState(1)
-  const [transactionsPerPage, setTransactionsPerPage] = useState(10)
+  const [transactionsPerPage, setTransactionsPerPage] = useState(savedPreferences.transactionsPerPage)
   const [transactions, setTransactions] = useState<InventoryTransaction[]>([])
   const [totalTransactions, setTotalTransactions] = useState(0)
   const [totalTransactionPages, setTotalTransactionPages] = useState(1)
@@ -166,6 +169,20 @@ export function useInventory() {
   useEffect(() => {
     fetchTransactions()
   }, [fetchTransactions])
+
+  // Actualizar preferencias cuando cambia el número de elementos por página
+  useEffect(() => {
+    PreferencesService.setInventoryPreferences({
+      productsPerPage: itemsPerPage,
+    })
+  }, [itemsPerPage])
+
+  // Actualizar preferencias cuando cambia el número de transacciones por página
+  useEffect(() => {
+    PreferencesService.setInventoryPreferences({
+      transactionsPerPage: transactionsPerPage,
+    })
+  }, [transactionsPerPage])
 
   // Función para cambiar el orden
   const requestSort = (key: string) => {
@@ -344,7 +361,6 @@ export function useInventory() {
     // Simulación de exportación
     setTimeout(() => {
       setIsSubmitting(false)
-      setIsImportExportOpen(false)
 
       toast({
         title: "Inventario exportado",
@@ -403,8 +419,6 @@ export function useInventory() {
     setNewProduct,
     adjustmentData,
     setAdjustmentData,
-    isImportExportOpen,
-    setIsImportExportOpen,
     isHistoryDialogOpen,
     setIsHistoryDialogOpen,
     selectedProductHistory,
