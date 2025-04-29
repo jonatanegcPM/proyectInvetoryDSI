@@ -52,11 +52,11 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                   {transaction.type}
                 </Badge>
               </TableCell>
-              <TableCell>{transaction.product}</TableCell>
+              <TableCell>{transaction.productName}</TableCell>
               <TableCell className={transaction.quantity < 0 ? "text-red-600" : "text-green-600"}>
                 {transaction.quantity > 0 ? `+${transaction.quantity}` : transaction.quantity}
               </TableCell>
-              <TableCell>{transaction.user}</TableCell>
+              <TableCell>{transaction.userName}</TableCell>
               <TableCell className="max-w-[200px] truncate" title={transaction.notes}>
                 {transaction.notes}
               </TableCell>
@@ -67,4 +67,3 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
     </Table>
   )
 }
-

@@ -127,15 +127,21 @@ export function ProductsTable({
                   <TableCell>${product.price.toFixed(2)}</TableCell>
                   <TableCell>{new Date(product.expiryDate).toLocaleDateString()}</TableCell>
                   <TableCell>
-                    <Badge 
+                    <Badge
                       variant="outline"
                       className={
-                        product.stock < 10
+                        product.stock < product.reorderLevel * 0.5
                           ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50"
-                          : "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/50"
+                          : product.stock < product.reorderLevel
+                            ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50"
+                            : "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/50"
                       }
                     >
-                      {product.stock < 10 ? "Bajo Stock" : "En Stock"}
+                      {product.stock < product.reorderLevel * 0.5
+                        ? "Stock Crítico"
+                        : product.stock < product.reorderLevel
+                          ? "Stock Bajo"
+                          : "En Stock"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -177,4 +183,3 @@ export function ProductsTable({
     </>
   )
 }
-

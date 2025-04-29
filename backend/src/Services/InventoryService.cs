@@ -33,7 +33,7 @@ namespace proyectInvetoryDSI.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public InventoryService(
-            AppDbContext context, 
+            AppDbContext context,
             IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
@@ -51,11 +51,11 @@ namespace proyectInvetoryDSI.Services
         }
 
         public async Task<ProductResponse> GetProductsAsync(
-            string? search, 
-            int? categoryId, 
-            int page, 
-            int limit, 
-            string? sort, 
+            string? search,
+            int? categoryId,
+            int page,
+            int limit,
+            string? sort,
             string? direction)
         {
             var query = _context.Products
@@ -67,10 +67,10 @@ namespace proyectInvetoryDSI.Services
             // Aplicar filtros
             if (!string.IsNullOrEmpty(search))
             {
-                query = query.Where(p => 
-                    p.Name.Contains(search) || 
-                    (p.Description != null && p.Description.Contains(search)) || 
-                    (p.SKU != null && p.SKU.Contains(search)) || 
+                query = query.Where(p =>
+                    p.Name.Contains(search) ||
+                    (p.Description != null && p.Description.Contains(search)) ||
+                    (p.SKU != null && p.SKU.Contains(search)) ||
                     (p.Barcode != null && p.Barcode.Contains(search)));
             }
 
@@ -82,11 +82,42 @@ namespace proyectInvetoryDSI.Services
             // Contar total antes de paginación
             var total = await query.CountAsync();
 
+            // Mapeo de nombres de propiedades del DTO a las del modelo Product
+            var propertyMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "stock", "StockQuantity" },
+                { "expiryDate", "ExpirationDate" },
+                { "name", "Name" },
+                { "sku", "SKU" },
+                { "barcode", "Barcode" },
+                { "categoryId", "CategoryID" },
+                { "description", "Description" },
+                { "reorderLevel", "ReorderLevel" },
+                { "price", "Price" },
+                { "costPrice", "CostPrice" },
+                { "supplierId", "SupplierID" },
+                { "location", "Location" },
+                { "status", "Status" },
+                { "createdAt", "CreatedAt" },
+                { "lastUpdated", "LastUpdated" }
+            };
+
             // Aplicar ordenamiento
             if (!string.IsNullOrEmpty(sort))
             {
                 var sortDirection = direction == "desc" ? "descending" : "ascending";
-                query = query.OrderBy($"{sort} {sortDirection}");
+                // Obtener el nombre de la propiedad mapeada, o usar el valor original si no está en el mapeo
+                var mappedSort = propertyMapping.TryGetValue(sort, out var mappedProperty) ? mappedProperty : sort;
+                try
+                {
+                    query = query.OrderBy($"{mappedSort} {sortDirection}");
+                }
+                catch (Exception ex)
+                {
+                    // Registrar el error y usar un ordenamiento por defecto
+                    Console.WriteLine($"Error al aplicar ordenamiento por '{sort}': {ex.Message}");
+                    query = query.OrderBy(p => p.Name);
+                }
             }
             else
             {
@@ -205,13 +236,13 @@ namespace proyectInvetoryDSI.Services
             var transaction = new InventoryTransaction
             {
                 ProductID = product.ProductID,
-                TransactionType = "Initial Stock",
+                TransactionType = "Stock Inicial",
                 Quantity = product.StockQuantity,
                 PreviousStock = 0,
                 NewStock = product.StockQuantity,
                 TransactionDate = DateTime.UtcNow,
                 UserID = currentUserId,
-                Notes = "Initial stock creation"
+                Notes = "Creación de existencias iniciales"
             };
             await _context.InventoryTransactions.AddAsync(transaction);
 
@@ -333,11 +364,11 @@ namespace proyectInvetoryDSI.Services
         }
 
         public async Task<object> GetTransactionsAsync(
-            int page, 
-            int limit, 
-            int? productId, 
-            string? type, 
-            DateTime? startDate, 
+            int page,
+            int limit,
+            int? productId,
+            string? type,
+            DateTime? startDate,
             DateTime? endDate)
         {
             var query = _context.InventoryTransactions
@@ -420,20 +451,20 @@ namespace proyectInvetoryDSI.Services
             var totalProducts = await _context.Products
                 .Where(p => p.Status != "deleted")
                 .CountAsync();
-            
+
             var lowStockProducts = await _context.Products
-                .Where(p => p.ReorderLevel.HasValue && 
-                           p.StockQuantity <= p.ReorderLevel.Value && 
+                .Where(p => p.ReorderLevel.HasValue &&
+                           p.StockQuantity <= p.ReorderLevel.Value &&
                            p.Status != "deleted")
                 .CountAsync();
-            
+
             var totalValue = await _context.Products
                 .Where(p => p.Status != "deleted")
                 .SumAsync(p => p.StockQuantity * (p.CostPrice ?? p.Price * 0.7m));
 
             var expiringProducts = await _context.Products
-                .Where(p => p.ExpirationDate.HasValue && 
-                           p.ExpirationDate.Value <= DateTime.UtcNow.AddMonths(3) && 
+                .Where(p => p.ExpirationDate.HasValue &&
+                           p.ExpirationDate.Value <= DateTime.UtcNow.AddMonths(3) &&
                            p.Status != "deleted")
                 .CountAsync();
 
@@ -450,11 +481,11 @@ namespace proyectInvetoryDSI.Services
         {
             // Normalizar el nombre de búsqueda (convertir a minúsculas y quitar acentos)
             var normalizedName = name.ToLower().Trim();
-            
+
             return await _context.Products
                 .Include(p => p.Category)
-                .Where(p => p.Status != "deleted" && 
-                           EF.Functions.Like(p.Name.ToLower(), $"%{normalizedName}%") || 
+                .Where(p => p.Status != "deleted" &&
+                           EF.Functions.Like(p.Name.ToLower(), $"%{normalizedName}%") ||
                            // Búsqueda alternativa para manejar variaciones con/sin acentos
                            p.Name.ToLower().Replace("á", "a")
                                           .Replace("é", "e")
@@ -485,10 +516,10 @@ namespace proyectInvetoryDSI.Services
         {
             // Normalizar el nombre de búsqueda (convertir a minúsculas y quitar acentos)
             var normalizedName = name.ToLower().Trim();
-            
+
             var product = await _context.Products
-                .Where(p => p.Status != "deleted" && 
-                           (EF.Functions.Like(p.Name.ToLower(), $"%{normalizedName}%") || 
+                .Where(p => p.Status != "deleted" &&
+                           (EF.Functions.Like(p.Name.ToLower(), $"%{normalizedName}%") ||
                            // Búsqueda alternativa para manejar variaciones con/sin acentos
                            p.Name.ToLower().Replace("á", "a")
                                           .Replace("é", "e")
@@ -501,14 +532,14 @@ namespace proyectInvetoryDSI.Services
                                                               .Replace("ó", "o")
                                                               .Replace("ú", "u"))))
                 .OrderBy(p => p.Name)
-                .Select(p => new 
+                .Select(p => new
                 {
                     name = p.Name,
                     stock = p.StockQuantity,
                     minStock = p.ReorderLevel
                 })
                 .FirstOrDefaultAsync();
-                
+
             return product;
         }
 
@@ -520,14 +551,14 @@ namespace proyectInvetoryDSI.Services
                     .Where(p => p.Status != "deleted" && p.StockQuantity <= p.ReorderLevel)
                     .OrderBy(p => p.StockQuantity)
                     .Take(10) // Limitar a 10 productos para el chatbot
-                    .Select(p => new 
+                    .Select(p => new
                     {
                         name = p.Name,
                         stock = p.StockQuantity,
                         minStock = p.ReorderLevel ?? 0
                     })
                     .ToListAsync();
-                
+
                 // Convertimos explícitamente a List<object>
                 return lowStockProducts.Select(p => (object)p).ToList();
             }

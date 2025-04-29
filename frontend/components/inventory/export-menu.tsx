@@ -1,0 +1,48 @@
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { FileDown, Download } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+
+interface ExportMenuProps {
+  onExport: (format: string) => void
+  isSubmitting: boolean
+  disabled?: boolean
+}
+
+export function ExportMenu({ onExport, isSubmitting, disabled = false }: ExportMenuProps) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" disabled={isSubmitting || disabled}>
+                <Download className="mr-2 h-4 w-4" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onExport("csv")} disabled={isSubmitting || disabled}>
+                <FileDown className="mr-2 h-4 w-4" />
+                CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onExport("excel")} disabled={isSubmitting || disabled}>
+                <FileDown className="mr-2 h-4 w-4" />
+                Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onExport("pdf")} disabled={isSubmitting || disabled}>
+                <FileDown className="mr-2 h-4 w-4" />
+                PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Exportar inventario</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+}

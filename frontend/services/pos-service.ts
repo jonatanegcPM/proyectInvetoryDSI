@@ -96,6 +96,8 @@ export const POSService = {
       url.searchParams.append("search", search)
       url.searchParams.append("page", page.toString())
       url.searchParams.append("limit", limit.toString())
+      // Add a parameter to filter out products with zero stock
+      url.searchParams.append("inStock", "true")
 
       const response = await fetch(url.toString(), {
         method: "GET",
@@ -109,7 +111,14 @@ export const POSService = {
         throw new Error(`Error fetching products: ${response.statusText}`)
       }
 
-      return await response.json()
+      const data = await response.json()
+
+      // Additional client-side filtering to ensure we only show products with stock > 0
+      if (data.products) {
+        data.products = data.products.filter((product) => product.stock > 0)
+      }
+
+      return data
     } catch (error) {
       console.error("Error in getProducts:", error)
       throw error
@@ -136,7 +145,14 @@ export const POSService = {
         throw new Error(`Error fetching product by barcode: ${response.statusText}`)
       }
 
-      return await response.json()
+      const data = await response.json()
+
+      // Check if the product exists and has stock
+      if (!data.product || data.product.stock <= 0) {
+        throw new Error("Producto no disponible o sin existencias")
+      }
+
+      return data
     } catch (error) {
       console.error("Error in getProductByBarcode:", error)
       throw error

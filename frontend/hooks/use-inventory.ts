@@ -1,325 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { InventoryService } from "@/services/inventory-service"
 import type {
   Product,
   InventoryTransaction,
-  NewProduct,
+  CreateProductDTO,
+  UpdateProductDTO,
   AdjustmentData,
   SortConfig,
   InventoryStats,
 } from "@/types/inventory"
-import { normalizeSearchString } from "@/lib/utils"
-
-// Datos de ejemplo para productos
-const productsData: Product[] = [
-  {
-    id: 1,
-    name: "Amoxicilina 500mg",
-    sku: "MED-1234",
-    barcode: "7501234567890",
-    category: "Antibióticos",
-    description: "Cápsulas, 30 unidades",
-    stock: 42,
-    reorderLevel: 20,
-    price: 15.99,
-    costPrice: 8.5,
-    supplier: "Distribuidora MediFarma",
-    expiryDate: "2025-06-15",
-    location: "Estante A-1",
-    lastUpdated: "2023-05-10",
-    status: "in-stock",
-  },
-  {
-    id: 2,
-    name: "Lisinopril 10mg",
-    sku: "MED-2345",
-    barcode: "7501234567891",
-    category: "Presión Arterial",
-    description: "Tabletas, 90 unidades",
-    stock: 8,
-    reorderLevel: 15,
-    price: 12.5,
-    costPrice: 6.25,
-    supplier: "Soluciones Farmacéuticas Globales",
-    expiryDate: "2024-12-20",
-    location: "Estante B-3",
-    lastUpdated: "2023-05-12",
-    status: "low-stock",
-  },
-  {
-    id: 3,
-    name: "Metformina 500mg",
-    sku: "MED-3456",
-    barcode: "7501234567892",
-    category: "Diabetes",
-    description: "Tabletas, 60 unidades",
-    stock: 35,
-    reorderLevel: 20,
-    price: 8.75,
-    costPrice: 4.3,
-    supplier: "Suministros Médicos S.A.",
-    expiryDate: "2025-03-10",
-    location: "Estante A-4",
-    lastUpdated: "2023-05-08",
-    status: "in-stock",
-  },
-  {
-    id: 4,
-    name: "Ibuprofeno 200mg",
-    sku: "MED-4567",
-    barcode: "7501234567893",
-    category: "Analgésicos",
-    description: "Tabletas, 100 unidades",
-    stock: 50,
-    reorderLevel: 25,
-    price: 5.99,
-    costPrice: 2.8,
-    supplier: "Distribuidora MediFarma",
-    expiryDate: "2025-08-22",
-    location: "Estante C-2",
-    lastUpdated: "2023-05-15",
-    status: "in-stock",
-  },
-  {
-    id: 5,
-    name: "Omeprazol 20mg",
-    sku: "MED-5678",
-    barcode: "7501234567894",
-    category: "Antiácidos",
-    description: "Cápsulas, 30 unidades",
-    stock: 12,
-    reorderLevel: 15,
-    price: 18.25,
-    costPrice: 9.15,
-    supplier: "Soluciones Farmacéuticas Globales",
-    expiryDate: "2024-09-18",
-    location: "Estante B-1",
-    lastUpdated: "2023-05-11",
-    status: "medium-stock",
-  },
-  {
-    id: 6,
-    name: "Atorvastatina 20mg",
-    sku: "MED-6789",
-    barcode: "7501234567895",
-    category: "Colesterol",
-    description: "Tabletas, 30 unidades",
-    stock: 18,
-    reorderLevel: 15,
-    price: 22.5,
-    costPrice: 11.25,
-    supplier: "Suministros Médicos S.A.",
-    expiryDate: "2025-02-28",
-    location: "Estante A-2",
-    lastUpdated: "2023-05-09",
-    status: "in-stock",
-  },
-  {
-    id: 7,
-    name: "Levotiroxina 50mcg",
-    sku: "MED-7890",
-    barcode: "7501234567896",
-    category: "Tiroides",
-    description: "Tabletas, 90 unidades",
-    stock: 5,
-    reorderLevel: 10,
-    price: 14.75,
-    costPrice: 7.35,
-    supplier: "Distribuidora MediFarma",
-    expiryDate: "2024-11-15",
-    location: "Estante D-1",
-    lastUpdated: "2023-05-14",
-    status: "low-stock",
-  },
-  {
-    id: 8,
-    name: "Inhalador de Albuterol",
-    sku: "MED-8901",
-    barcode: "7501234567897",
-    category: "Respiratorio",
-    description: "Inhalador, 200 dosis",
-    stock: 15,
-    reorderLevel: 10,
-    price: 45.99,
-    costPrice: 28.5,
-    supplier: "Soluciones Farmacéuticas Globales",
-    expiryDate: "2025-01-10",
-    location: "Estante C-3",
-    lastUpdated: "2023-05-07",
-    status: "in-stock",
-  },
-  {
-    id: 9,
-    name: "Sertralina 50mg",
-    sku: "MED-9012",
-    barcode: "7501234567898",
-    category: "Antidepresivos",
-    description: "Tabletas, 30 unidades",
-    stock: 22,
-    reorderLevel: 15,
-    price: 16.5,
-    costPrice: 8.25,
-    supplier: "Suministros Médicos S.A.",
-    expiryDate: "2025-04-20",
-    location: "Estante B-4",
-    lastUpdated: "2023-05-13",
-    status: "in-stock",
-  },
-  {
-    id: 10,
-    name: "Prednisona 10mg",
-    sku: "MED-0123",
-    barcode: "7501234567899",
-    category: "Antiinflamatorios",
-    description: "Tabletas, 30 unidades",
-    stock: 3,
-    reorderLevel: 10,
-    price: 12.99,
-    costPrice: 6.5,
-    supplier: "Distribuidora MediFarma",
-    expiryDate: "2024-10-05",
-    location: "Estante D-2",
-    lastUpdated: "2023-05-16",
-    status: "low-stock",
-  },
-  {
-    id: 11,
-    name: "Loratadina 10mg",
-    sku: "MED-1235",
-    barcode: "7501234567810",
-    category: "Antialérgicos",
-    description: "Tabletas, 20 unidades",
-    stock: 28,
-    reorderLevel: 15,
-    price: 8.99,
-    costPrice: 4.5,
-    supplier: "Distribuidora MediFarma",
-    expiryDate: "2025-07-12",
-    location: "Estante E-1",
-    lastUpdated: "2023-05-18",
-    status: "in-stock",
-  },
-  {
-    id: 12,
-    name: "Paracetamol 500mg",
-    sku: "MED-2346",
-    barcode: "7501234567811",
-    category: "Analgésicos",
-    description: "Tabletas, 50 unidades",
-    stock: 60,
-    reorderLevel: 30,
-    price: 4.99,
-    costPrice: 2.1,
-    supplier: "Suministros Médicos S.A.",
-    expiryDate: "2025-09-30",
-    location: "Estante C-1",
-    lastUpdated: "2023-05-20",
-    status: "in-stock",
-  },
-]
-
-// Datos de ejemplo para transacciones de inventario
-const inventoryTransactionsData: InventoryTransaction[] = [
-  {
-    id: 1,
-    date: "2023-05-16",
-    type: "Recepción",
-    product: "Amoxicilina 500mg",
-    quantity: 50,
-    user: "Dra. Laura Sánchez",
-    notes: "Entrega programada del proveedor",
-  },
-  {
-    id: 2,
-    date: "2023-05-15",
-    type: "Venta",
-    product: "Lisinopril 10mg",
-    quantity: -2,
-    user: "Dra. Laura Sánchez",
-    notes: "Venta en punto de venta",
-  },
-  {
-    id: 3,
-    date: "2023-05-15",
-    type: "Venta",
-    product: "Metformina 500mg",
-    quantity: -1,
-    user: "Dra. Laura Sánchez",
-    notes: "Venta en punto de venta",
-  },
-  {
-    id: 4,
-    date: "2023-05-14",
-    type: "Ajuste",
-    product: "Ibuprofeno 200mg",
-    quantity: -5,
-    user: "Dra. Laura Sánchez",
-    notes: "Ajuste por inventario físico",
-  },
-  {
-    id: 5,
-    date: "2023-05-13",
-    type: "Recepción",
-    product: "Omeprazol 20mg",
-    quantity: 25,
-    user: "Dra. Laura Sánchez",
-    notes: "Entrega de emergencia",
-  },
-  {
-    id: 6,
-    date: "2023-05-12",
-    type: "Ajuste",
-    product: "Atorvastatina 20mg",
-    quantity: -2,
-    user: "Dr. Carlos Rodríguez",
-    notes: "Producto dañado",
-  },
-  {
-    id: 7,
-    date: "2023-05-11",
-    type: "Venta",
-    product: "Levotiroxina 50mcg",
-    quantity: -3,
-    user: "Dra. Laura Sánchez",
-    notes: "Venta en punto de venta",
-  },
-  {
-    id: 8,
-    date: "2023-05-10",
-    type: "Recepción",
-    product: "Inhalador de Albuterol",
-    quantity: 10,
-    user: "Dr. Carlos Rodríguez",
-    notes: "Entrega programada del proveedor",
-  },
-]
-
-// Categorías de productos
-export const categories = [
-  "Todos",
-  "Antibióticos",
-  "Presión Arterial",
-  "Diabetes",
-  "Analgésicos",
-  "Antiácidos",
-  "Colesterol",
-  "Tiroides",
-  "Respiratorio",
-  "Antidepresivos",
-  "Antiinflamatorios",
-  "Antialérgicos",
-]
-
-// Lista de proveedores
-export const suppliers = [
-  "Distribuidora MediFarma",
-  "Suministros Médicos S.A.",
-  "Soluciones Farmacéuticas Globales",
-  "Farmacéutica Nacional",
-  "Importadora Médica Internacional",
-]
 
 // Tipos de transacciones
 export const transactionTypes = ["Recepción", "Venta", "Ajuste", "Devolución", "Transferencia"]
@@ -328,6 +20,7 @@ export function useInventory() {
   // Estados para la gestión de la interfaz
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("Todos")
+  const [categories, setCategories] = useState<string[]>([])
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [productToEdit, setProductToEdit] = useState<Product | null>(null)
   const [productToDelete, setProductToDelete] = useState<Product | null>(null)
@@ -336,24 +29,27 @@ export function useInventory() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: "ascending" })
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "name", direction: "ascending" })
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
-  const [newProduct, setNewProduct] = useState<NewProduct>({
+  const [products, setProducts] = useState<Product[]>([])
+  const [totalItems, setTotalItems] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [newProduct, setNewProduct] = useState<CreateProductDTO>({
     name: "",
-    sku: "",
-    barcode: "",
-    category: "",
-    description: "",
+    sku: null,
+    barcode: null,
+    categoryId: null,
+    description: null,
     stock: 0,
-    reorderLevel: 0,
+    reorderLevel: null,
     price: 0,
-    costPrice: 0,
-    supplier: "",
-    expiryDate: "",
-    location: "",
+    costPrice: null,
+    supplierId: null,
+    expiryDate: null,
+    location: null,
   })
   const [adjustmentData, setAdjustmentData] = useState<AdjustmentData>({
     quantity: 0,
@@ -365,47 +61,111 @@ export function useInventory() {
   const [selectedProductHistory, setSelectedProductHistory] = useState<Product | null>(null)
   const [currentTransactionPage, setCurrentTransactionPage] = useState(1)
   const [transactionsPerPage, setTransactionsPerPage] = useState(10)
+  const [transactions, setTransactions] = useState<InventoryTransaction[]>([])
+  const [totalTransactions, setTotalTransactions] = useState(0)
+  const [totalTransactionPages, setTotalTransactionPages] = useState(1)
+  const [stats, setStats] = useState<InventoryStats | null>(null)
 
   // Hook para mostrar notificaciones
   const { toast } = useToast()
 
-  // Filtrar productos por búsqueda y categoría
-  const filteredProducts = productsData.filter((product) => {
-    const matchesSearch =
-      normalizeSearchString(product.name).includes(normalizeSearchString(searchTerm)) ||
-      normalizeSearchString(product.sku).includes(normalizeSearchString(searchTerm)) ||
-      normalizeSearchString(product.supplier).includes(normalizeSearchString(searchTerm)) ||
-      (product.barcode && product.barcode.includes(searchTerm))
-
-    const matchesCategory = selectedCategory === "Todos" || product.category === selectedCategory
-
-    return matchesSearch && matchesCategory
-  })
-
-  // Ordenar productos
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (!sortConfig.key) return 0
-
-    if (a[sortConfig.key as keyof Product] < b[sortConfig.key as keyof Product]) {
-      return sortConfig.direction === "ascending" ? -1 : 1
+  // Cargar categorías
+  const fetchCategories = useCallback(async () => {
+    try {
+      const categoriesData = await InventoryService.getCategories()
+      setCategories(categoriesData)
+    } catch (error) {
+      console.error("Error fetching categories:", error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar las categorías",
+        variant: "destructive",
+      })
     }
-    if (a[sortConfig.key as keyof Product] > b[sortConfig.key as keyof Product]) {
-      return sortConfig.direction === "ascending" ? 1 : -1
+  }, [toast])
+
+  // Cargar estadísticas
+  const fetchStats = useCallback(async () => {
+    try {
+      const statsData = await InventoryService.getInventoryStats()
+      setStats(statsData)
+    } catch (error) {
+      console.error("Error fetching stats:", error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar las estadísticas",
+        variant: "destructive",
+      })
     }
-    return 0
-  })
+  }, [toast])
 
-  // Paginación
-  const indexOfLastItem = currentPage * itemsPerPage
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentItems = sortedProducts.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage)
+  // Cargar productos
+  const fetchProducts = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      // Determinar el ID de categoría si no es "Todos"
+      const categoryId = selectedCategory !== "Todos" ? categories.indexOf(selectedCategory) : null
 
-  // Paginación para transacciones
-  const indexOfLastTransaction = currentTransactionPage * transactionsPerPage
-  const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage
-  const currentTransactions = inventoryTransactionsData.slice(indexOfFirstTransaction, indexOfLastTransaction)
-  const totalTransactionPages = Math.ceil(inventoryTransactionsData.length / transactionsPerPage)
+      // Convertir la dirección de ordenamiento
+      const direction = sortConfig.direction === "ascending" ? "asc" : "desc"
+
+      const response = await InventoryService.getProducts(
+        searchTerm,
+        categoryId,
+        currentPage,
+        itemsPerPage,
+        sortConfig.key,
+        direction,
+      )
+
+      setProducts(response.products)
+      setTotalItems(response.pagination.total)
+      setTotalPages(response.pagination.pages)
+    } catch (error) {
+      console.error("Error fetching products:", error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los productos",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }, [searchTerm, selectedCategory, categories, currentPage, itemsPerPage, sortConfig, toast])
+
+  // Cargar transacciones
+  const fetchTransactions = useCallback(async () => {
+    try {
+      const response = await InventoryService.getTransactions(currentTransactionPage, transactionsPerPage)
+
+      setTransactions(response.transactions)
+      setTotalTransactions(response.pagination.total)
+      setTotalTransactionPages(response.pagination.pages)
+    } catch (error) {
+      console.error("Error fetching transactions:", error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar las transacciones",
+        variant: "destructive",
+      })
+    }
+  }, [currentTransactionPage, transactionsPerPage, toast])
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    fetchCategories()
+    fetchStats()
+  }, [fetchCategories, fetchStats])
+
+  // Cargar productos cuando cambian los filtros
+  useEffect(() => {
+    fetchProducts()
+  }, [fetchProducts])
+
+  // Cargar transacciones cuando cambia la paginación
+  useEffect(() => {
+    fetchTransactions()
+  }, [fetchTransactions])
 
   // Función para cambiar el orden
   const requestSort = (key: string) => {
@@ -416,120 +176,136 @@ export function useInventory() {
     setSortConfig({ key, direction })
   }
 
-  // Estadísticas de inventario
-  const stats: InventoryStats = {
-    totalProducts: productsData.length,
-    lowStockProducts: productsData.filter((p) => p.status === "low-stock").length,
-    totalValue: productsData.reduce((sum, product) => sum + product.price * product.stock, 0),
-    expiringProducts: productsData.filter((p) => {
-      const expiryDate = new Date(p.expiryDate)
-      const threeMonthsFromNow = new Date()
-      threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3)
-      return expiryDate <= threeMonthsFromNow
-    }).length,
-  }
-
   // Funciones para gestionar productos
-  const handleAddProduct = () => {
+  const handleAddProduct = async () => {
     setIsSubmitting(true)
 
-    // Simulación de llamada a API
-    setTimeout(() => {
-      // En producción, aquí iría la llamada a la API
-      // const response = await fetch('/api/products', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(newProduct)
-      // });
+    try {
+      await InventoryService.createProduct(newProduct)
 
-      setIsSubmitting(false)
       setIsAddDialogOpen(false)
 
       // Resetear el formulario
       setNewProduct({
         name: "",
-        sku: "",
-        barcode: "",
-        category: "",
-        description: "",
+        sku: null,
+        barcode: null,
+        categoryId: null,
+        description: null,
         stock: 0,
-        reorderLevel: 0,
+        reorderLevel: null,
         price: 0,
-        costPrice: 0,
-        supplier: "",
-        expiryDate: "",
-        location: "",
+        costPrice: null,
+        supplierId: null,
+        expiryDate: null,
+        location: null,
       })
+
+      // Recargar productos
+      fetchProducts()
+      fetchStats()
 
       toast({
         title: "Producto agregado",
         description: "El producto ha sido agregado correctamente.",
         variant: "success",
       })
-    }, 1000)
+    } catch (error) {
+      console.error("Error adding product:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo agregar el producto",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  const handleEditProduct = () => {
+  const handleEditProduct = async () => {
+    if (!productToEdit) return
+
     setIsSubmitting(true)
 
-    // Simulación de llamada a API
-    setTimeout(() => {
-      // En producción, aquí iría la llamada a la API
-      // const response = await fetch(`/api/products/${productToEdit.id}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(productToEdit)
-      // });
+    try {
+      const updateData: UpdateProductDTO = {
+        name: productToEdit.name,
+        sku: productToEdit.sku,
+        barcode: productToEdit.barcode,
+        categoryId: productToEdit.categoryId,
+        description: productToEdit.description,
+        reorderLevel: productToEdit.reorderLevel,
+        price: productToEdit.price,
+        costPrice: productToEdit.costPrice,
+        supplierId: productToEdit.supplierId,
+        expiryDate: productToEdit.expiryDate,
+        location: productToEdit.location,
+      }
 
-      setIsSubmitting(false)
+      await InventoryService.updateProduct(productToEdit.id, updateData)
+
       setIsEditDialogOpen(false)
+
+      // Recargar productos
+      fetchProducts()
 
       toast({
         title: "Producto actualizado",
         description: "El producto ha sido actualizado correctamente.",
         variant: "success",
       })
-    }, 1000)
+    } catch (error) {
+      console.error("Error updating product:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el producto",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  const handleDeleteProduct = () => {
+  const handleDeleteProduct = async () => {
+    if (!productToDelete) return
+
     setIsSubmitting(true)
 
-    // Simulación de llamada a API
-    setTimeout(() => {
-      // En producción, aquí iría la llamada a la API
-      // const response = await fetch(`/api/products/${productToDelete.id}`, {
-      //   method: 'DELETE'
-      // });
+    try {
+      await InventoryService.deleteProduct(productToDelete.id)
 
-      setIsSubmitting(false)
       setIsDeleteDialogOpen(false)
-      setProductToDelete(null) // Asegurar que se limpie el estado
+      setProductToDelete(null)
+
+      // Recargar productos
+      fetchProducts()
+      fetchStats()
 
       toast({
         title: "Producto eliminado",
         description: "El producto ha sido eliminado correctamente.",
         variant: "success",
       })
-    }, 1000)
+    } catch (error) {
+      console.error("Error deleting product:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el producto",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  const handleAdjustStock = () => {
+  const handleAdjustStock = async () => {
+    if (!productToAdjust) return
+
     setIsSubmitting(true)
 
-    // Simulación de llamada a API
-    setTimeout(() => {
-      // En producción, aquí iría la llamada a la API
-      // const response = await fetch(`/api/inventory/adjust`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     productId: productToAdjust.id,
-      //     ...adjustmentData
-      //   })
-      // });
+    try {
+      await InventoryService.adjustStock(productToAdjust.id, adjustmentData)
 
-      setIsSubmitting(false)
       setIsAdjustDialogOpen(false)
 
       // Resetear el formulario
@@ -539,33 +315,27 @@ export function useInventory() {
         notes: "",
       })
 
+      // Recargar productos y transacciones
+      fetchProducts()
+      fetchTransactions()
+      fetchStats()
+
       toast({
         title: "Stock ajustado",
         description: "El stock del producto ha sido ajustado correctamente.",
         variant: "success",
       })
-    }, 1000)
+    } catch (error) {
+      console.error("Error adjusting stock:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo ajustar el stock del producto",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
-
-  // Función para cargar datos (simulación)
-  const loadData = () => {
-    setIsLoading(true)
-
-    // Simulación de carga de datos
-    setTimeout(() => {
-      // En producción, aquí iría la llamada a la API
-      // const response = await fetch('/api/products');
-      // const data = await response.json();
-      // setProducts(data);
-
-      setIsLoading(false)
-    }, 1000)
-  }
-
-  // Cargar datos al montar el componente
-  useEffect(() => {
-    loadData()
-  }, [])
 
   // Función para exportar inventario
   const handleExportInventory = (format: string) => {
@@ -584,26 +354,20 @@ export function useInventory() {
     }, 1000)
   }
 
-  // Función para importar inventario
-  const handleImportInventory = () => {
-    setIsSubmitting(true)
-
-    // Simulación de importación
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setIsImportExportOpen(false)
-
-      toast({
-        title: "Inventario importado",
-        description: "El inventario ha sido importado correctamente.",
-        variant: "success",
-      })
-    }, 1000)
-  }
-
   // Función para obtener el historial de un producto
-  const getProductHistory = (product: Product) => {
-    return inventoryTransactionsData.filter((transaction) => transaction.product === product.name)
+  const getProductHistory = async (product: Product) => {
+    try {
+      const response = await InventoryService.getTransactions(1, 100, product.id)
+      return response.transactions
+    } catch (error) {
+      console.error("Error fetching product history:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo obtener el historial del producto",
+        variant: "destructive",
+      })
+      return []
+    }
   }
 
   return {
@@ -612,6 +376,7 @@ export function useInventory() {
     setSearchTerm,
     selectedCategory,
     setSelectedCategory,
+    categories,
     selectedProduct,
     setSelectedProduct,
     productToEdit,
@@ -650,16 +415,16 @@ export function useInventory() {
     setTransactionsPerPage,
 
     // Datos procesados
-    filteredProducts,
-    sortedProducts,
-    currentItems,
+    products,
+    totalItems,
     totalPages,
-    indexOfFirstItem,
-    indexOfLastItem,
-    currentTransactions,
+    indexOfFirstItem: (currentPage - 1) * itemsPerPage,
+    indexOfLastItem: Math.min(currentPage * itemsPerPage, totalItems),
+    transactions,
+    totalTransactions,
     totalTransactionPages,
-    indexOfFirstTransaction,
-    indexOfLastTransaction,
+    indexOfFirstTransaction: (currentTransactionPage - 1) * transactionsPerPage,
+    indexOfLastTransaction: Math.min(currentTransactionPage * transactionsPerPage, totalTransactions),
     stats,
 
     // Funciones
@@ -669,8 +434,6 @@ export function useInventory() {
     handleDeleteProduct,
     handleAdjustStock,
     handleExportInventory,
-    handleImportInventory,
     getProductHistory,
   }
 }
-
