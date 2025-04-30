@@ -65,10 +65,7 @@ export default function Inventory() {
                   inventory.setProductToAdjust(product)
                   inventory.setIsAdjustDialogOpen(true)
                 }}
-                onViewHistory={(product) => {
-                  inventory.setSelectedProductHistory(product)
-                  inventory.setIsHistoryDialogOpen(true)
-                }}
+                onViewHistory={inventory.handleViewProductHistory}
                 onDelete={(product) => {
                   inventory.setProductToDelete(product)
                   inventory.setIsDeleteDialogOpen(true)
@@ -166,9 +163,10 @@ export default function Inventory() {
           product={inventory.selectedProduct}
           onOpenChange={(open) => !open && inventory.setSelectedProduct(null)}
           onViewHistory={() => {
-            inventory.setSelectedProductHistory(inventory.selectedProduct)
-            inventory.setIsHistoryDialogOpen(true)
-            inventory.setSelectedProduct(null)
+            if (inventory.selectedProduct) {
+              inventory.handleViewProductHistory(inventory.selectedProduct)
+              inventory.setSelectedProduct(null)
+            }
           }}
           onAdjustStock={() => {
             inventory.setProductToAdjust(inventory.selectedProduct)
@@ -182,9 +180,8 @@ export default function Inventory() {
         open={inventory.isHistoryDialogOpen}
         onOpenChange={inventory.setIsHistoryDialogOpen}
         product={inventory.selectedProductHistory}
-        transactions={
-          inventory.selectedProductHistory ? inventory.getProductHistory(inventory.selectedProductHistory) : []
-        }
+        transactions={inventory.productHistoryTransactions}
+        isLoading={inventory.isLoadingHistory}
       />
     </div>
   )

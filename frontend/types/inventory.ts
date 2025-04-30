@@ -40,10 +40,10 @@ export interface InventoryTransaction {
   date: string
   type: string
   productId: number
-  productName: string // Asegurarse de que sea productName, no product
+  productName: string
   quantity: number
   notes: string | null
-  userName: string // Asegurarse de que sea userName, no user
+  userName: string
 }
 
 export interface InventoryTransactionResponse {

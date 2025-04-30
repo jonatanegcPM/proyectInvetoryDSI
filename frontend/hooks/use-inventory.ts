@@ -62,6 +62,8 @@ export function useInventory() {
   })
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
   const [selectedProductHistory, setSelectedProductHistory] = useState<Product | null>(null)
+  const [productHistoryTransactions, setProductHistoryTransactions] = useState<InventoryTransaction[]>([])
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const [currentTransactionPage, setCurrentTransactionPage] = useState(1)
   const [transactionsPerPage, setTransactionsPerPage] = useState(savedPreferences.transactionsPerPage)
   const [transactions, setTransactions] = useState<InventoryTransaction[]>([])
@@ -371,9 +373,18 @@ export function useInventory() {
   }
 
   // Función para obtener el historial de un producto
-  const getProductHistory = async (product: Product) => {
+  const fetchProductHistory = async (product: Product) => {
+    if (!product) return
+
+    setIsLoadingHistory(true)
+    setProductHistoryTransactions([])
+
     try {
+      console.log("Fetching history for product:", product.id, product.name)
       const response = await InventoryService.getTransactions(1, 100, product.id)
+      console.log("Transaction response:", response)
+
+      setProductHistoryTransactions(response.transactions)
       return response.transactions
     } catch (error) {
       console.error("Error fetching product history:", error)
@@ -382,8 +393,17 @@ export function useInventory() {
         description: "No se pudo obtener el historial del producto",
         variant: "destructive",
       })
-      return []
+      setProductHistoryTransactions([])
+    } finally {
+      setIsLoadingHistory(false)
     }
+  }
+
+  // Función para ver el historial de un producto
+  const handleViewProductHistory = async (product: Product) => {
+    setSelectedProductHistory(product)
+    await fetchProductHistory(product)
+    setIsHistoryDialogOpen(true)
   }
 
   return {
@@ -423,6 +443,8 @@ export function useInventory() {
     setIsHistoryDialogOpen,
     selectedProductHistory,
     setSelectedProductHistory,
+    productHistoryTransactions,
+    isLoadingHistory,
     currentTransactionPage,
     setCurrentTransactionPage,
     transactionsPerPage,
@@ -448,6 +470,7 @@ export function useInventory() {
     handleDeleteProduct,
     handleAdjustStock,
     handleExportInventory,
-    getProductHistory,
+    fetchProductHistory,
+    handleViewProductHistory,
   }
 }
