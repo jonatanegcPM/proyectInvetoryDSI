@@ -8,6 +8,8 @@ import type {
   CreateProductDTO,
   UpdateProductDTO,
   Category,
+  Supplier,
+  SuppliersResponse,
 } from "@/types/inventory"
 
 // URL base de la API
@@ -276,6 +278,34 @@ export const InventoryService = {
   },
 
   /**
+   * Obtener proveedores
+   */
+  async getSuppliers(): Promise<Supplier[]> {
+    try {
+      const token = AuthService.getToken()
+      if (!token) throw new Error("No authentication token")
+
+      const response = await fetch(`${API_URL}/suppliers`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`Error fetching suppliers: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      return data.suppliers || []
+    } catch (error) {
+      console.error("Error in getSuppliers:", error)
+      throw error
+    }
+  },
+
+  /**
    * Obtener estadísticas de inventario
    */
   async getInventoryStats(): Promise<InventoryStats> {
@@ -301,4 +331,20 @@ export const InventoryService = {
       throw error
     }
   },
+}
+
+// Añadir la función getSuppliers
+export async function getSuppliers(): Promise<SuppliersResponse> {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/suppliers`)
+
+    if (!response.ok) {
+      throw new Error(`Error al obtener proveedores: ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error("Error al obtener proveedores:", error)
+    return { suppliers: [], pagination: { total: 0, page: 1, limit: 10, pages: 0 } }
+  }
 }

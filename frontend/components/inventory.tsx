@@ -2,6 +2,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog } from "@/components/ui/dialog"
+import { useState, useEffect } from "react"
 
 import { useInventory } from "@/hooks/use-inventory"
 import { StatsCards } from "@/components/inventory/stats-cards"
@@ -16,8 +17,26 @@ import { DeleteProductDialog } from "@/components/inventory/delete-product-dialo
 import { ProductDetailsDialog } from "@/components/inventory/product-details-dialog"
 import { ProductHistoryDialog } from "@/components/inventory/product-history-dialog"
 
+import { getSuppliers } from "@/services/inventory-service"
+import type { Supplier } from "@/types/inventory"
+
 export default function Inventory() {
   const inventory = useInventory()
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
+
+  useEffect(() => {
+    const loadSuppliers = async () => {
+      try {
+        const response = await getSuppliers()
+        setSuppliers(response.suppliers)
+      } catch (error) {
+        console.error("Error al cargar los proveedores:", error)
+        setSuppliers([])
+      }
+    }
+
+    loadSuppliers()
+  }, [])
 
   return (
     <div className="flex flex-col gap-6">
@@ -128,6 +147,7 @@ export default function Inventory() {
         onSave={inventory.handleAddProduct}
         isSubmitting={inventory.isSubmitting}
         categories={inventory.categories}
+        suppliers={suppliers}
       />
 
       <EditProductDialog
@@ -138,6 +158,7 @@ export default function Inventory() {
         onSave={inventory.handleEditProduct}
         isSubmitting={inventory.isSubmitting}
         categories={inventory.categories}
+        suppliers={suppliers}
       />
 
       <AdjustStockDialog

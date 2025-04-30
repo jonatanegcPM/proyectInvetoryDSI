@@ -16,9 +16,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Save, Loader2, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-// Actualizar la interfaz para usar Category
-import type { CreateProductDTO, Category } from "@/types/inventory"
+import type { CreateProductDTO, Category, Supplier } from "@/types/inventory"
 
+// Define the ValidationErrors type
+interface ValidationErrors {
+  [key: string]: string | undefined
+}
+
+// interfaz de props 
 interface AddProductDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -27,12 +32,10 @@ interface AddProductDialogProps {
   onSave: () => void
   isSubmitting: boolean
   categories: Category[]
+  suppliers: Supplier[] 
 }
 
-interface ValidationErrors {
-  [key: string]: string
-}
-
+// desestructuración de props
 export function AddProductDialog({
   open,
   onOpenChange,
@@ -41,6 +44,7 @@ export function AddProductDialog({
   onSave,
   isSubmitting,
   categories,
+  suppliers, 
 }: AddProductDialogProps) {
   const [errors, setErrors] = useState<ValidationErrors>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
@@ -241,13 +245,30 @@ export function AddProductDialog({
               <Label htmlFor="supplier" className="flex items-center">
                 Proveedor <span className="text-red-500 ml-1">*</span>
               </Label>
-              <Input
-                id="supplier"
+              <Select
                 value={newProduct.supplierId?.toString() || ""}
-                onChange={(e) => handleFieldChange("supplierId", e.target.value ? Number(e.target.value) : null)}
-                placeholder="ID del proveedor"
-                className={touched.supplierId && errors.supplierId ? "border-red-500" : ""}
-              />
+                onValueChange={(value) => handleFieldChange("supplierId", value ? Number(value) : null)}
+              >
+                <SelectTrigger
+                  id="supplier"
+                  className={touched.supplierId && errors.supplierId ? "border-red-500" : ""}
+                >
+                  <SelectValue placeholder="Seleccionar proveedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers && suppliers.length > 0 ? (
+                    suppliers.map((supplier) => (
+                      <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                        {supplier.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="loading" disabled>
+                      Cargando proveedores...
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
               {touched.supplierId && errors.supplierId && (
                 <p className="text-red-500 text-xs mt-1">{errors.supplierId}</p>
               )}

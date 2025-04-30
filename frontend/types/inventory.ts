@@ -105,3 +105,22 @@ export interface Category {
   id: number | null
   name: string
 }
+
+// Añadir esta interfaz después de las interfaces existentes
+export interface Supplier {
+  id: number
+  name: string
+  contact: string
+  email: string
+  phone: string
+  address: string
+  status: string
+  products: number
+  lastOrder: string | null
+  category: string
+}
+
+export interface SuppliersResponse {
+  suppliers: Supplier[]
+  pagination: Pagination
+}

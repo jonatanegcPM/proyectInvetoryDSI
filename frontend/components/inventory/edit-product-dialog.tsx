@@ -14,11 +14,11 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Save, Loader2 } from "lucide-react"
-// Actualizar la interfaz para usar Category
-import type { Product, Category } from "@/types/inventory"
+import type { Product, Category, Supplier } from "@/types/inventory"
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 
+// interfaz de props 
 interface EditProductDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -27,8 +27,10 @@ interface EditProductDialogProps {
   onSave: () => void
   isSubmitting: boolean
   categories: Category[]
+  suppliers: Supplier[]
 }
 
+// desestructuración de props
 export function EditProductDialog({
   open,
   onOpenChange,
@@ -37,6 +39,7 @@ export function EditProductDialog({
   onSave,
   isSubmitting,
   categories,
+  suppliers,
 }: EditProductDialogProps) {
   const { toast } = useToast()
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -217,22 +220,38 @@ export function EditProductDialog({
               />
               {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
             </div>
+            {/* Reemplazar el input de proveedor por un select */}
             <div className="space-y-2">
               <Label htmlFor="edit-supplier" className={errors.supplier ? "text-destructive" : ""}>
                 Proveedor*
               </Label>
-              <Input
-                id="edit-supplier"
+              <Select
                 value={product.supplierId?.toString() || ""}
-                onChange={(e) =>
+                onValueChange={(value) =>
                   setProduct({
                     ...product,
-                    supplierId: e.target.value ? Number(e.target.value) : null,
+                    supplierId: value ? Number(value) : null,
+                    supplier: value ? suppliers?.find((s) => s.id === Number(value))?.name || null : null,
                   })
                 }
-                placeholder="ID del proveedor"
-                className={errors.supplier ? "border-destructive" : ""}
-              />
+              >
+                <SelectTrigger id="edit-supplier" className={errors.supplier ? "border-destructive" : ""}>
+                  <SelectValue placeholder="Seleccionar proveedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers && suppliers.length > 0 ? (
+                    suppliers.map((supplier) => (
+                      <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                        {supplier.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="loading" disabled>
+                      Cargando proveedores...
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
               {errors.supplier && <p className="text-xs text-destructive">{errors.supplier}</p>}
             </div>
             <div className="space-y-2">
