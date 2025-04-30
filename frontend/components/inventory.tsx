@@ -38,6 +38,27 @@ export default function Inventory() {
     loadSuppliers()
   }, [])
 
+  const handleAddProductDialogOpenChange = (open: boolean) => {
+    inventory.setIsAddDialogOpen(open)
+    if (!open) {
+      // Limpiar el formulario cuando se cierra
+      inventory.setNewProduct({
+        name: "",
+        sku: "",
+        barcode: "",
+        categoryId: null,
+        description: "",
+        stock: 0,
+        reorderLevel: 0,
+        price: 0,
+        costPrice: 0,
+        supplierId: null,
+        expiryDate: "",
+        location: "",
+      })
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {/* Header with search and actions */}
@@ -141,7 +162,7 @@ export default function Inventory() {
       {/* Modals */}
       <AddProductDialog
         open={inventory.isAddDialogOpen}
-        onOpenChange={inventory.setIsAddDialogOpen}
+        onOpenChange={handleAddProductDialogOpenChange}
         newProduct={inventory.newProduct}
         setNewProduct={inventory.setNewProduct}
         onSave={inventory.handleAddProduct}

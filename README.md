@@ -103,7 +103,7 @@ cd frontend
 2. Instala las dependencias:
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 ```
 
 3. Ejecutar el entorno de desarrollo:

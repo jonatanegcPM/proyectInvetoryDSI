@@ -13,12 +13,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Save, Loader2 } from "lucide-react"
+import { Save, Loader2, RefreshCw } from "lucide-react"
 import type { Product, Category, Supplier } from "@/types/inventory"
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 
-// interfaz de props 
+// interfaz de props
 interface EditProductDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -52,6 +52,37 @@ export function EditProductDialog({
   }, [open, product])
 
   if (!product) return null
+
+  // Añadir la función para generar un código de barras EAN-13 después de la declaración del componente
+  // Añadir antes de la función validateForm
+
+  const generateBarcode = () => {
+    // Generar un código EAN-13 aleatorio
+    // Los primeros dígitos pueden ser un código de país (ej. 503 para El Salvador)
+    const prefix = "503" // Prefijo para El Salvador
+
+    // Generar 9 dígitos aleatorios para el cuerpo del código
+    let body = ""
+    for (let i = 0; i < 9; i++) {
+      body += Math.floor(Math.random() * 10).toString()
+    }
+
+    // El código sin el dígito de verificación
+    const codeWithoutCheckDigit = prefix + body
+
+    // Calcular el dígito de verificación
+    let sum = 0
+    for (let i = 0; i < 12; i++) {
+      sum += Number.parseInt(codeWithoutCheckDigit[i]) * (i % 2 === 0 ? 1 : 3)
+    }
+    const checkDigit = (10 - (sum % 10)) % 10
+
+    // Código EAN-13 completo
+    const ean13 = codeWithoutCheckDigit + checkDigit.toString()
+
+    // Actualizar el producto con el nuevo código de barras
+    setProduct({ ...product, barcode: ean13 })
+  }
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -166,16 +197,28 @@ export function EditProductDialog({
               />
               {errors.sku && <p className="text-xs text-destructive">{errors.sku}</p>}
             </div>
+            {/* Modificar la sección del input de código de barras para añadir el botón */}
+            {/* Buscar el div que contiene el input de barcode y reemplazarlo con: */}
             <div className="space-y-2">
               <Label htmlFor="edit-barcode" className={errors.barcode ? "text-destructive" : ""}>
                 Código de Barras*
               </Label>
-              <Input
-                id="edit-barcode"
-                value={product.barcode || ""}
-                onChange={(e) => setProduct({ ...product, barcode: e.target.value || null })}
-                className={errors.barcode ? "border-destructive" : ""}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="edit-barcode"
+                  value={product.barcode || ""}
+                  onChange={(e) => setProduct({ ...product, barcode: e.target.value || null })}
+                  className={`flex-1 ${errors.barcode ? "border-destructive" : ""}`}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={generateBarcode}
+                  title="Generar código de barras automáticamente"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
               {errors.barcode && <p className="text-xs text-destructive">{errors.barcode}</p>}
             </div>
             <div className="space-y-2">

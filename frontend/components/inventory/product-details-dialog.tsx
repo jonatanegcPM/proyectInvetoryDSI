@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FileText, Plus } from "lucide-react"
 import type { Product } from "@/types/inventory"
+import Barcode from "react-barcode"
 
 interface ProductDetailsDialogProps {
   product: Product | null
@@ -34,7 +35,14 @@ export function ProductDetailsDialog({
           </div>
           <div>
             <h4 className="text-sm font-semibold mb-1">Código de Barras</h4>
-            <p className="text-sm">{product.barcode || "No disponible"}</p>
+            {product.barcode ? (
+              <div className="mt-2 flex flex-col items-center">
+                <Barcode value={product.barcode} width={1.5} height={50} fontSize={12} margin={5} />
+                <p className="text-sm mt-1">{product.barcode}</p>
+              </div>
+            ) : (
+              <p className="text-sm">No disponible</p>
+            )}
           </div>
           <div>
             <h4 className="text-sm font-semibold mb-1">Categoría</h4>

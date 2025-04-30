@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Save, Loader2, AlertCircle } from "lucide-react"
+import { Save, Loader2, AlertCircle, RefreshCw } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import type { CreateProductDTO, Category, Supplier } from "@/types/inventory"
 
@@ -23,7 +23,7 @@ interface ValidationErrors {
   [key: string]: string | undefined
 }
 
-// interfaz de props 
+// interfaz de props
 interface AddProductDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -32,7 +32,7 @@ interface AddProductDialogProps {
   onSave: () => void
   isSubmitting: boolean
   categories: Category[]
-  suppliers: Supplier[] 
+  suppliers: Supplier[]
 }
 
 // desestructuración de props
@@ -44,7 +44,7 @@ export function AddProductDialog({
   onSave,
   isSubmitting,
   categories,
-  suppliers, 
+  suppliers,
 }: AddProductDialogProps) {
   const [errors, setErrors] = useState<ValidationErrors>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
@@ -75,6 +75,37 @@ export function AddProductDialog({
     }
 
     return ""
+  }
+
+  // Añadir la función para generar un código de barras EAN-13 después de la función validateField
+  // Añadir antes de la función validateForm
+
+  const generateBarcode = () => {
+    // Generar un código EAN-13 aleatorio
+    // Los primeros dígitos pueden ser un código de país (ej. 503 para El Salvador)
+    const prefix = "503" // Prefijo para El Salvador
+
+    // Generar 9 dígitos aleatorios para el cuerpo del código
+    let body = ""
+    for (let i = 0; i < 9; i++) {
+      body += Math.floor(Math.random() * 10).toString()
+    }
+
+    // El código sin el dígito de verificación
+    const codeWithoutCheckDigit = prefix + body
+
+    // Calcular el dígito de verificación
+    let sum = 0
+    for (let i = 0; i < 12; i++) {
+      sum += Number.parseInt(codeWithoutCheckDigit[i]) * (i % 2 === 0 ? 1 : 3)
+    }
+    const checkDigit = (10 - (sum % 10)) % 10
+
+    // Código EAN-13 completo
+    const ean13 = codeWithoutCheckDigit + checkDigit.toString()
+
+    // Actualizar el producto con el nuevo código de barras
+    handleFieldChange("barcode", ean13)
   }
 
   const handleFieldChange = (name: string, value: any) => {
@@ -134,8 +165,32 @@ export function AddProductDialog({
     }
   }
 
+  // Modificar la función onOpenChange para limpiar el formulario cuando se cierra
+  // Buscar la línea donde se define el prop onOpenChange y reemplazarla con:
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      // Si se está cerrando el diálogo, limpiar el formulario
+      setNewProduct({
+        name: "",
+        sku: "",
+        barcode: "",
+        categoryId: null,
+        description: "",
+        stock: 0,
+        reorderLevel: 0,
+        price: 0,
+        costPrice: 0,
+        supplierId: null,
+        expiryDate: "",
+        location: "",
+      })
+    }
+    onOpenChange(open)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Agregar Nuevo Producto</DialogTitle>
@@ -181,17 +236,29 @@ export function AddProductDialog({
               {touched.sku && errors.sku && <p className="text-red-500 text-xs mt-1">{errors.sku}</p>}
             </div>
 
+            {/* Modificar la sección del input de código de barras para añadir el botón */}
+            {/* Buscar el div que contiene el input de barcode y reemplazarlo con: */}
             <div className="space-y-2">
               <Label htmlFor="barcode" className="flex items-center">
                 Código de Barras <span className="text-red-500 ml-1">*</span>
               </Label>
-              <Input
-                id="barcode"
-                value={newProduct.barcode || ""}
-                onChange={(e) => handleFieldChange("barcode", e.target.value)}
-                placeholder="Código de barras"
-                className={touched.barcode && errors.barcode ? "border-red-500" : ""}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="barcode"
+                  value={newProduct.barcode || ""}
+                  onChange={(e) => handleFieldChange("barcode", e.target.value)}
+                  placeholder="Código de barras"
+                  className={`flex-1 ${touched.barcode && errors.barcode ? "border-red-500" : ""}`}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={generateBarcode}
+                  title="Generar código de barras automáticamente"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
               {touched.barcode && errors.barcode && <p className="text-red-500 text-xs mt-1">{errors.barcode}</p>}
             </div>
 
@@ -371,7 +438,7 @@ export function AddProductDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Cancelar
           </Button>
           <Button type="submit" onClick={handleSave} disabled={isSubmitting}>
