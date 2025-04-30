@@ -463,7 +463,7 @@ namespace proyectInvetoryDSI.Services
 
             var lowStockProducts = await _context.Products
                 .Where(p => p.ReorderLevel.HasValue &&
-                           p.StockQuantity <= p.ReorderLevel.Value &&
+                           p.StockQuantity < p.ReorderLevel.Value &&
                            p.Status != "deleted")
                 .CountAsync();
 
@@ -557,7 +557,7 @@ namespace proyectInvetoryDSI.Services
             try
             {
                 var lowStockProducts = await _context.Products
-                    .Where(p => p.Status != "deleted" && p.StockQuantity <= p.ReorderLevel)
+                    .Where(p => p.Status != "deleted" && p.StockQuantity < p.ReorderLevel)
                     .OrderBy(p => p.StockQuantity)
                     .Take(10) // Limitar a 10 productos para el chatbot
                     .Select(p => new

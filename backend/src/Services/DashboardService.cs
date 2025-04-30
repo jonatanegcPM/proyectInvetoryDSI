@@ -105,7 +105,7 @@ namespace proyectInvetoryDSI.Services
             var customerStats = await _context.Customers.CountAsync();
             int lowStockCount = await _context.Products
                 .Where(p => p.ReorderLevel.HasValue &&
-                           p.StockQuantity <= p.ReorderLevel.Value &&
+                           p.StockQuantity < p.ReorderLevel.Value &&
                            p.Status != "deleted")
                 .CountAsync();
 
@@ -242,12 +242,12 @@ namespace proyectInvetoryDSI.Services
             if (threshold.ToLower() == "in-stock")
             {
                 query = query.Where(p => p.ReorderLevel.HasValue &&
-                                       p.StockQuantity <= p.ReorderLevel.Value * 0.5); // Stock menor o igual al 50% del nivel de reorden
+                                       p.StockQuantity < p.ReorderLevel.Value * 0.5); // Stock menor al 50% del nivel de reorden
             }
             else
             {
                 query = query.Where(p => p.ReorderLevel.HasValue &&
-                                       p.StockQuantity <= p.ReorderLevel.Value); // Stock menor o igual al nivel de reorden
+                                       p.StockQuantity < p.ReorderLevel.Value); // Stock menor al nivel de reorden
             }
 
             int totalCount = await query.CountAsync();
