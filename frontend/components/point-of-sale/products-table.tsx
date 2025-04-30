@@ -4,8 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Loader2 } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { ProductsTableProps } from "@/types/point-of-sale"
+import type { ProductsTableProps, CartItem } from "@/types/point-of-sale"
+import type { Product } from "@/services/pos-service"
 
 export function ProductsTable({
   products,
@@ -19,7 +19,50 @@ export function ProductsTable({
   startIndex,
   endIndex,
   isLoading,
+  cart = [], // Add cart prop with default empty array
 }: ProductsTableProps) {
+  // Helper function to determine badge properties
+  const getBadgeProps = (product: Product) => {
+    // Check if product has stock and reorderLevel properties
+    const stock = product.stock ?? 0
+    const reorderLevel = product.reorderLevel ?? 0
+
+    // Critical stock (less than 50% of reorder level)
+    if (stock < reorderLevel * 0.5) {
+      return {
+        className: "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50",
+        status: "Stock Crítico",
+      }
+    }
+
+    // Low stock (less than reorder level)
+    if (stock < reorderLevel) {
+      return {
+        className:
+          "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50",
+        status: "Stock Bajo",
+      }
+    }
+
+    // In stock (default)
+    return {
+      className:
+        "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/50",
+      status: "En Stock",
+    }
+  }
+
+  // Helper function to check if a product can be added to cart
+  const canAddToCart = (product: Product) => {
+    if (product.stock <= 0) return false
+
+    // Check if product is already in cart and at max stock
+    const cartItem = cart.find((item: CartItem) => item.id === product.id)
+    if (cartItem && cartItem.quantity >= product.stock) return false
+
+    return true
+  }
+
   return (
     <>
       <Table>
@@ -45,54 +88,53 @@ export function ProductsTable({
               </TableCell>
             </TableRow>
           ) : (
-            products.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell>${product.price.toFixed(2)}</TableCell>
-                <TableCell>
-                  <Badge 
-                    variant="outline"
-                    className={
-                      product.stock < 10
-                        ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50"
-                        : "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/50"
-                    }
-                  >
-                    {product.stock < 10 ? "Bajo Stock" : "En Stock"} ({product.stock})
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Button size="sm" onClick={() => onAddToCart(product)}>
-                    <Plus className="h-4 w-4 mr-1" /> Añadir
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))
+            products.map((product) => {
+              const { className, status } = getBadgeProps(product)
+              const isAddDisabled = !canAddToCart(product)
+
+              return (
+                <TableRow key={product.id}>
+                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell>${product.price.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={className}>
+                      {status} ({product.stock})
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="sm"
+                      onClick={() => onAddToCart(product)}
+                      disabled={isAddDisabled}
+                      title={isAddDisabled ? "Stock insuficiente" : "Añadir al carrito"}
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Añadir
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )
+            })
           )}
         </TableBody>
       </Table>
       {totalItems > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
+        <div className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-2">
             <p className="text-sm text-muted-foreground">
               Mostrando {startIndex + 1}-{Math.min(endIndex, totalItems)} de {totalItems}
             </p>
-            <Select
+            <select
+              className="h-8 w-[70px] rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               value={itemsPerPage.toString()}
-              onValueChange={(value) => onItemsPerPageChange(Number(value))}
+              onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
               disabled={isLoading}
             >
-              <SelectTrigger className="h-8 w-[70px]">
-                <SelectValue placeholder="5" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="15">15</SelectItem>
-              </SelectContent>
-            </Select>
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+            </select>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2">
             <Button
               variant="outline"
               size="sm"

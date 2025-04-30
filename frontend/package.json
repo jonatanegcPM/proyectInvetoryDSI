@@ -52,6 +52,7 @@
     "next": "15.1.0",
     "next-themes": "latest",
     "react": "^19",
+    "react-barcode": "^1.6.1",
     "react-day-picker": "latest",
     "react-dom": "^19",
     "react-hook-form": "^7.54.1",

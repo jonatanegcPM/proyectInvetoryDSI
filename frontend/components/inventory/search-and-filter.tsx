@@ -1,18 +1,22 @@
 "use client"
 
-import { Search, Download, Plus } from "lucide-react"
+import { Search, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { categories } from "@/hooks/use-inventory"
+import { ExportMenu } from "./export-menu"
+import type { Category } from "@/types/inventory"
 
 interface SearchAndFilterProps {
   searchTerm: string
   setSearchTerm: (term: string) => void
-  selectedCategory: string
-  setSelectedCategory: (category: string) => void
-  onExportClick: () => void
+  selectedCategory: string | null
+  setSelectedCategory: (category: string | null) => void
+  categories: Category[]
+  onExportClick: (format: string) => void
   onAddProductClick: () => void
+  isSubmitting: boolean
+  noData?: boolean
 }
 
 export function SearchAndFilter({
@@ -20,8 +24,11 @@ export function SearchAndFilter({
   setSearchTerm,
   selectedCategory,
   setSelectedCategory,
+  categories,
   onExportClick,
   onAddProductClick,
+  isSubmitting,
+  noData = false,
 }: SearchAndFilterProps) {
   return (
     <div className="flex flex-col sm:flex-row justify-between gap-4">
@@ -36,24 +43,21 @@ export function SearchAndFilter({
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+        <Select value={selectedCategory || ""} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Categoría" />
           </SelectTrigger>
           <SelectContent>
             {categories.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
+              <SelectItem key={category.id || "all"} value={category.name}>
+                {category.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
       <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={onExportClick}>
-          <Download className="mr-2 h-4 w-4" />
-          Exportar
-        </Button>
+        <ExportMenu onExport={onExportClick} isSubmitting={isSubmitting} disabled={noData} />
         <Button size="sm" onClick={onAddProductClick}>
           <Plus className="mr-2 h-4 w-4" />
           Nuevo Producto
@@ -62,4 +66,3 @@ export function SearchAndFilter({
     </div>
   )
 }
-

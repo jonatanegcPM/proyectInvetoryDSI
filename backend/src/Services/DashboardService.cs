@@ -103,7 +103,11 @@ namespace proyectInvetoryDSI.Services
             decimal? transactionChange = dateFilter.ToLower() != "all" && previousCount != 0 ? (decimal?)Math.Round(((currentCount - previousCount) / (decimal)previousCount) * 100, 1) : null;
 
             var customerStats = await _context.Customers.CountAsync();
-            int lowStockCount = await _context.Products.Where(p => p.StockQuantity < 10).CountAsync();
+            int lowStockCount = await _context.Products
+                .Where(p => p.ReorderLevel.HasValue &&
+                           p.StockQuantity < p.ReorderLevel.Value &&
+                           p.Status != "deleted")
+                .CountAsync();
 
             return new
             {
@@ -127,7 +131,7 @@ namespace proyectInvetoryDSI.Services
                     endDate = startDate.Value.AddDays(1).AddTicks(-1); // Fin del día
                     break;
                 case "week":
-                    int daysToSubtract = ((int)DateTime.Now.DayOfWeek + 6) % 7; 
+                    int daysToSubtract = ((int)DateTime.Now.DayOfWeek + 6) % 7;
                     startDate = DateTime.Now.Date.AddDays(-daysToSubtract); // Inicio de la semana (lunes)
                     endDate = startDate.Value.AddDays(7).AddTicks(-1); // Fin de la semana (domingo)
                     break;
@@ -228,34 +232,40 @@ namespace proyectInvetoryDSI.Services
             };
         }
 
-        public async Task<object> GetLowStockProducts(int limit = 5, string threshold = "critical")
+        public async Task<object> GetLowStockProducts(int limit = 5, string threshold = "in-stock")
         {
-            IQueryable<Product> query = _context.Products;
+            IQueryable<Product> query = _context.Products
+                .Include(p => p.Category) // Incluir la relación con Category
+                .Where(p => p.Status != "deleted"); // Excluir productos eliminados
 
-            if (threshold.ToLower() == "critical")
+            // Filtrar productos con stock bajo o crítico basado en ReorderLevel
+            if (threshold.ToLower() == "in-stock")
             {
-                query = query.Where(p => p.StockQuantity < 10); // Nivel crítico
+                query = query.Where(p => p.ReorderLevel.HasValue &&
+                                       p.StockQuantity < p.ReorderLevel.Value * 0.5); // Stock menor al 50% del nivel de reorden
             }
             else
             {
-                query = query.Where(p => p.StockQuantity < 20); // Nivel de reorden
+                query = query.Where(p => p.ReorderLevel.HasValue &&
+                                       p.StockQuantity < p.ReorderLevel.Value); // Stock menor al nivel de reorden
             }
 
             int totalCount = await query.CountAsync();
 
             var products = await query
-                .OrderBy(p => p.StockQuantity)
+                .OrderBy(p => p.StockQuantity) // Ordenar por stock ascendente para priorizar los más bajos
                 .Take(limit)
                 .Select(p => new
                 {
                     id = $"P{p.ProductID.ToString().PadLeft(3, '0')}",
                     name = p.Name,
                     sku = $"MED-{p.ProductID.ToString().PadLeft(4, '0')}",
-                    category = "Medicamentos",
+                    category = p.Category != null ? p.Category.CategoryName : "Sin categoría", // Usar la categoría del producto
                     currentStock = p.StockQuantity,
-                    reorderLevel = 20,
-                    criticalLevel = 10,
-                    status = p.StockQuantity < 10 ? "critical" : "low"
+                    reorderLevel = p.ReorderLevel ?? 0, // Usar el nivel de reorden del producto
+                    criticalLevel = p.ReorderLevel.HasValue ? p.ReorderLevel.Value * 0.5 : 0, // 50% del nivel de reorden
+                    status = p.ReorderLevel.HasValue && p.StockQuantity <= p.ReorderLevel.Value * 0.5 ? "critical" :
+                             p.ReorderLevel.HasValue && p.StockQuantity <= p.ReorderLevel.Value ? "low" : "normal"
                 })
                 .ToListAsync();
 
@@ -284,7 +294,7 @@ namespace proyectInvetoryDSI.Services
                     endDate = startDate.Value.AddDays(1).AddTicks(-1);
                     break;
                 case "week":
-                    int daysToSubtract = ((int)currentDate.DayOfWeek + 6) % 7; 
+                    int daysToSubtract = ((int)currentDate.DayOfWeek + 6) % 7;
                     startDate = currentDate.Date.AddDays(-daysToSubtract); // Inicio de la semana (lunes)
                     endDate = startDate.Value.AddDays(7).AddTicks(-1); // Fin de la semana (domingo)
                     break;

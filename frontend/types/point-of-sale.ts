@@ -24,6 +24,7 @@ export interface ProductsTableProps {
   startIndex: number
   endIndex: number
   isLoading: boolean
+  cart?: CartItem[] // Add cart property as optional
 }
 
 export interface ShoppingCartProps {

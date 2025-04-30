@@ -163,8 +163,32 @@ export function usePointOfSale() {
     }
   }
 
+  // Verificar si se puede agregar más cantidad de un producto
+  const canAddMoreToCart = (product: Product, quantityToAdd = 1): boolean => {
+    const existingItem = cart.find((item) => item.id === product.id)
+    const currentQuantity = existingItem ? existingItem.quantity : 0
+    const totalQuantity = currentQuantity + quantityToAdd
+
+    // Verificar si hay suficiente stock
+    if (totalQuantity > product.stock) {
+      toast({
+        title: "Stock insuficiente",
+        description: `Solo hay ${product.stock} unidades disponibles de ${product.name}`,
+        variant: "destructive",
+      })
+      return false
+    }
+
+    return true
+  }
+
   // Agregar producto al carrito
   const addToCart = (product: Product) => {
+    // Verificar si hay suficiente stock antes de agregar
+    if (!canAddMoreToCart(product)) {
+      return
+    }
+
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id)
       if (existingItem) {
@@ -185,6 +209,17 @@ export function usePointOfSale() {
     if (newQuantity <= 0) {
       removeFromCart(productId)
     } else {
+      // Verificar si hay suficiente stock antes de actualizar
+      const product = products.find((p) => p.id === productId)
+      if (product && newQuantity > product.stock) {
+        toast({
+          title: "Stock insuficiente",
+          description: `Solo hay ${product.stock} unidades disponibles de ${product.name}`,
+          variant: "destructive",
+        })
+        return
+      }
+
       setCart(cart.map((item) => (item.id === productId ? { ...item, quantity: newQuantity } : item)))
     }
   }
@@ -209,6 +244,21 @@ export function usePointOfSale() {
       toast({
         title: "Error",
         description: "Por favor complete todos los campos requeridos",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Verificar stock antes de completar la venta
+    const stockError = cart.some((item) => {
+      const product = products.find((p) => p.id === item.id)
+      return product && item.quantity > product.stock
+    })
+
+    if (stockError) {
+      toast({
+        title: "Error de stock",
+        description: "Algunos productos no tienen suficiente stock disponible",
         variant: "destructive",
       })
       return
@@ -323,6 +373,7 @@ export function usePointOfSale() {
     setPaymentMethod,
     completeSale,
     handleCustomerSelect,
+    canAddMoreToCart,
 
     // Paginación
     currentPage: pagination.page,

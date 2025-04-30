@@ -28,15 +28,18 @@ namespace proyectInvetoryDSI.Services
                 page = Math.Max(1, page);
                 limit = Math.Clamp(limit, 1, 100);
 
-                var query = _context.Products.AsNoTracking().AsQueryable();
+                var query = _context.Products
+                    .Where(p => p.Status != "deleted") // Excluir productos eliminados
+                    .AsNoTracking()
+                    .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(search))
                 {
                     search = search.Trim().ToLower();
-                    query = query.Where(p => 
-                    p.Name.ToLower().Contains(search) || 
-                    (p.Description != null && p.Description.ToLower().Contains(search)) ||
-                    (p.Barcode != null && p.Barcode.ToLower().Contains(search)));
+                    query = query.Where(p =>
+                        p.Name.ToLower().Contains(search) ||
+                        (p.Description != null && p.Description.ToLower().Contains(search)) ||
+                        (p.Barcode != null && p.Barcode.ToLower().Contains(search)));
                 }
 
                 var totalItems = await query.CountAsync();
@@ -53,7 +56,8 @@ namespace proyectInvetoryDSI.Services
                         Price = Math.Round(p.Price, 2),
                         Description = p.Description,
                         Barcode = p.Barcode,
-                        Stock = p.StockQuantity
+                        Stock = p.StockQuantity,
+                        ReorderLevel = p.ReorderLevel
                     })
                     .ToListAsync();
 
@@ -84,7 +88,7 @@ namespace proyectInvetoryDSI.Services
             {
                 var product = await _context.Products
                     .AsNoTracking()
-                    .Where(p => p.Barcode == barcode)
+                    .Where(p => p.Barcode == barcode && p.Status != "deleted") // Excluir productos eliminados
                     .Select(p => new ProductDTO
                     {
                         Id = p.ProductID,
@@ -92,7 +96,8 @@ namespace proyectInvetoryDSI.Services
                         Price = Math.Round(p.Price, 2),
                         Description = p.Description,
                         Barcode = p.Barcode,
-                        Stock = p.StockQuantity
+                        Stock = p.StockQuantity,
+                        ReorderLevel = p.ReorderLevel
                     })
                     .FirstOrDefaultAsync();
 
@@ -141,10 +146,10 @@ namespace proyectInvetoryDSI.Services
                     throw new KeyNotFoundException($"Cliente con ID {saleDto.CustomerId} no encontrado");
 
                 var sale = await ProcessSale(saleDto, userId);
-                var saleDetails = await ProcessSaleItems(saleDto, sale.SaleID);
-                
+                var saleDetails = await ProcessSaleItems(saleDto, sale.SaleID, userId);
+
                 var (subtotal, tax, total) = CalculateTotals(saleDto, saleDetails);
-                
+
                 ValidateTotals(saleDto, subtotal, tax, total);
 
                 // Actualizar el total de la venta
@@ -154,7 +159,7 @@ namespace proyectInvetoryDSI.Services
 
                 await transaction.CommitAsync();
 
-                var customer = await _context.Customers.FindAsync(sale.CustomerID) ?? 
+                var customer = await _context.Customers.FindAsync(sale.CustomerID) ??
                     throw new KeyNotFoundException($"Cliente con ID {sale.CustomerID} no encontrado");
                 return BuildSaleResponse(sale, saleDetails, subtotal, tax, total, saleDto.PaymentMethod, customer);
             }
@@ -192,21 +197,36 @@ namespace proyectInvetoryDSI.Services
             return sale;
         }
 
-        private async Task<List<SaleDetail>> ProcessSaleItems(CreateSaleDTO saleDto, int saleId)
+        private async Task<List<SaleDetail>> ProcessSaleItems(CreateSaleDTO saleDto, int saleId, int userId)
         {
             var saleDetails = new List<SaleDetail>();
 
             foreach (var item in saleDto.Items)
             {
-                var product = await _context.Products.FindAsync(item.ProductId) ?? 
+                var product = await _context.Products.FindAsync(item.ProductId) ??
                     throw new KeyNotFoundException($"Producto con ID {item.ProductId} no encontrado");
 
                 if (product.StockQuantity < item.Quantity)
                     throw new InvalidOperationException($"Stock insuficiente para el producto {product.Name}");
 
+                var previousStock = product.StockQuantity;
                 // Actualizar stock
                 product.StockQuantity -= item.Quantity;
                 _context.Products.Update(product);
+
+                // Registrar transacción de inventario
+                var transaction = new InventoryTransaction
+                {
+                    ProductID = item.ProductId,
+                    TransactionType = "Venta",
+                    Quantity = -item.Quantity, // Negativo porque es una salida de inventario
+                    PreviousStock = previousStock,
+                    NewStock = product.StockQuantity,
+                    TransactionDate = DateTime.UtcNow,
+                    UserID = userId, // Usar el userId que viene del parámetro del método CreateSale
+                    Notes = $"Venta #{saleId}"
+                };
+                await _context.InventoryTransactions.AddAsync(transaction);
 
                 // Crear detalle de venta usando el precio de la base de datos
                 var itemSubtotal = Math.Round(product.Price * item.Quantity, 2);
@@ -244,7 +264,7 @@ namespace proyectInvetoryDSI.Services
                     $"El total calculado ({total}) no coincide con el total enviado ({saleDto.Total})");
         }
 
-        private SaleResponseDTO BuildSaleResponse(Sale sale, List<SaleDetail> saleDetails, 
+        private SaleResponseDTO BuildSaleResponse(Sale sale, List<SaleDetail> saleDetails,
             decimal subtotal, decimal tax, decimal total, string paymentMethod, Customer customer)
         {
             var saleIdFormatted = $"S-{sale.SaleID:D5}";
@@ -285,11 +305,11 @@ namespace proyectInvetoryDSI.Services
                 .ThenInclude(sd => sd.Product)
                 .OrderByDescending(s => s.SaleDate)
                 .Take(limit)
-                .Select(s => new 
+                .Select(s => new
                 {
                     date = s.SaleDate,
                     total = s.TotalAmount,
-                    items = s.SaleDetails.Select(sd => new 
+                    items = s.SaleDetails.Select(sd => new
                     {
                         name = sd.Product != null ? sd.Product.Name : "Producto desconocido",
                         quantity = sd.Quantity,

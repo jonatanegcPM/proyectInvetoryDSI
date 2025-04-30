@@ -2,6 +2,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog } from "@/components/ui/dialog"
+import { useState, useEffect } from "react"
 
 import { useInventory } from "@/hooks/use-inventory"
 import { StatsCards } from "@/components/inventory/stats-cards"
@@ -15,10 +16,48 @@ import { AdjustStockDialog } from "@/components/inventory/adjust-stock-dialog"
 import { DeleteProductDialog } from "@/components/inventory/delete-product-dialog"
 import { ProductDetailsDialog } from "@/components/inventory/product-details-dialog"
 import { ProductHistoryDialog } from "@/components/inventory/product-history-dialog"
-import { ExportDialog } from "@/components/inventory/export-dialog"
+
+import { getSuppliers } from "@/services/inventory-service"
+import type { Supplier } from "@/types/inventory"
 
 export default function Inventory() {
   const inventory = useInventory()
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
+
+  useEffect(() => {
+    const loadSuppliers = async () => {
+      try {
+        const response = await getSuppliers()
+        setSuppliers(response.suppliers)
+      } catch (error) {
+        console.error("Error al cargar los proveedores:", error)
+        setSuppliers([])
+      }
+    }
+
+    loadSuppliers()
+  }, [])
+
+  const handleAddProductDialogOpenChange = (open: boolean) => {
+    inventory.setIsAddDialogOpen(open)
+    if (!open) {
+      // Limpiar el formulario cuando se cierra
+      inventory.setNewProduct({
+        name: "",
+        sku: "",
+        barcode: "",
+        categoryId: null,
+        description: "",
+        stock: 0,
+        reorderLevel: 0,
+        price: 0,
+        costPrice: 0,
+        supplierId: null,
+        expiryDate: "",
+        location: "",
+      })
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -28,8 +67,11 @@ export default function Inventory() {
         setSearchTerm={inventory.setSearchTerm}
         selectedCategory={inventory.selectedCategory}
         setSelectedCategory={inventory.setSelectedCategory}
-        onExportClick={() => inventory.setIsImportExportOpen(true)}
+        categories={inventory.categories}
+        onExportClick={inventory.handleExportInventory}
         onAddProductClick={() => inventory.setIsAddDialogOpen(true)}
+        isSubmitting={inventory.isSubmitting}
+        noData={inventory.products.length === 0}
       />
 
       {/* Inventory Overview Cards */}
@@ -51,7 +93,7 @@ export default function Inventory() {
             </CardHeader>
             <CardContent>
               <ProductsTable
-                products={inventory.currentItems}
+                products={inventory.products}
                 isLoading={inventory.isLoading}
                 onSort={inventory.requestSort}
                 onViewDetails={(product) => inventory.setSelectedProduct(product)}
@@ -63,10 +105,7 @@ export default function Inventory() {
                   inventory.setProductToAdjust(product)
                   inventory.setIsAdjustDialogOpen(true)
                 }}
-                onViewHistory={(product) => {
-                  inventory.setSelectedProductHistory(product)
-                  inventory.setIsHistoryDialogOpen(true)
-                }}
+                onViewHistory={inventory.handleViewProductHistory}
                 onDelete={(product) => {
                   inventory.setProductToDelete(product)
                   inventory.setIsDeleteDialogOpen(true)
@@ -78,12 +117,12 @@ export default function Inventory() {
                 currentPage={inventory.currentPage}
                 totalPages={inventory.totalPages}
                 itemsPerPage={inventory.itemsPerPage}
-                totalItems={inventory.sortedProducts.length}
+                totalItems={inventory.totalItems}
                 startIndex={inventory.indexOfFirstItem}
                 endIndex={inventory.indexOfLastItem}
                 onPageChange={inventory.setCurrentPage}
                 onItemsPerPageChange={(items) => {
-                  inventory.setItemsPerPage(items)
+                  inventory.setItemsPerPage(Number(items))
                   inventory.setCurrentPage(1)
                 }}
               />
@@ -99,19 +138,19 @@ export default function Inventory() {
               <CardDescription>Historial de movimientos de inventario.</CardDescription>
             </CardHeader>
             <CardContent>
-              <TransactionsTable transactions={inventory.currentTransactions} />
+              <TransactionsTable transactions={inventory.transactions} />
             </CardContent>
             <CardFooter>
               <TablePagination
                 currentPage={inventory.currentTransactionPage}
                 totalPages={inventory.totalTransactionPages}
                 itemsPerPage={inventory.transactionsPerPage}
-                totalItems={inventory.currentTransactions.length}
+                totalItems={inventory.totalTransactions}
                 startIndex={inventory.indexOfFirstTransaction}
                 endIndex={inventory.indexOfLastTransaction}
                 onPageChange={inventory.setCurrentTransactionPage}
                 onItemsPerPageChange={(items) => {
-                  inventory.setTransactionsPerPage(items)
+                  inventory.setTransactionsPerPage(Number(items))
                   inventory.setCurrentTransactionPage(1)
                 }}
               />
@@ -123,11 +162,13 @@ export default function Inventory() {
       {/* Modals */}
       <AddProductDialog
         open={inventory.isAddDialogOpen}
-        onOpenChange={inventory.setIsAddDialogOpen}
+        onOpenChange={handleAddProductDialogOpenChange}
         newProduct={inventory.newProduct}
         setNewProduct={inventory.setNewProduct}
         onSave={inventory.handleAddProduct}
         isSubmitting={inventory.isSubmitting}
+        categories={inventory.categories}
+        suppliers={suppliers}
       />
 
       <EditProductDialog
@@ -137,6 +178,8 @@ export default function Inventory() {
         setProduct={inventory.setProductToEdit}
         onSave={inventory.handleEditProduct}
         isSubmitting={inventory.isSubmitting}
+        categories={inventory.categories}
+        suppliers={suppliers}
       />
 
       <AdjustStockDialog
@@ -157,21 +200,15 @@ export default function Inventory() {
         isSubmitting={inventory.isSubmitting}
       />
 
-      <ExportDialog
-        open={inventory.isImportExportOpen}
-        onOpenChange={inventory.setIsImportExportOpen}
-        onExport={inventory.handleExportInventory}
-        isSubmitting={inventory.isSubmitting}
-      />
-
       <Dialog open={!!inventory.selectedProduct} onOpenChange={(open) => !open && inventory.setSelectedProduct(null)}>
         <ProductDetailsDialog
           product={inventory.selectedProduct}
           onOpenChange={(open) => !open && inventory.setSelectedProduct(null)}
           onViewHistory={() => {
-            inventory.setSelectedProductHistory(inventory.selectedProduct)
-            inventory.setIsHistoryDialogOpen(true)
-            inventory.setSelectedProduct(null)
+            if (inventory.selectedProduct) {
+              inventory.handleViewProductHistory(inventory.selectedProduct)
+              inventory.setSelectedProduct(null)
+            }
           }}
           onAdjustStock={() => {
             inventory.setProductToAdjust(inventory.selectedProduct)
@@ -185,11 +222,9 @@ export default function Inventory() {
         open={inventory.isHistoryDialogOpen}
         onOpenChange={inventory.setIsHistoryDialogOpen}
         product={inventory.selectedProductHistory}
-        transactions={
-          inventory.selectedProductHistory ? inventory.getProductHistory(inventory.selectedProductHistory) : []
-        }
+        transactions={inventory.productHistoryTransactions}
+        isLoading={inventory.isLoadingHistory}
       />
     </div>
   )
 }
-

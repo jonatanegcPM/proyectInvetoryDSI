@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { FileText, Plus } from "lucide-react"
 import type { Product } from "@/types/inventory"
+import Barcode from "react-barcode"
 
 interface ProductDetailsDialogProps {
   product: Product | null
@@ -34,7 +35,14 @@ export function ProductDetailsDialog({
           </div>
           <div>
             <h4 className="text-sm font-semibold mb-1">Código de Barras</h4>
-            <p className="text-sm">{product.barcode || "No disponible"}</p>
+            {product.barcode ? (
+              <div className="mt-2 flex flex-col items-center">
+                <Barcode value={product.barcode} width={1.5} height={50} fontSize={12} margin={5} />
+                <p className="text-sm mt-1">{product.barcode}</p>
+              </div>
+            ) : (
+              <p className="text-sm">No disponible</p>
+            )}
           </div>
           <div>
             <h4 className="text-sm font-semibold mb-1">Categoría</h4>
@@ -94,13 +102,21 @@ export function ProductDetailsDialog({
                     : "bg-amber-500"
               }`}
               style={{
-                width: `${Math.min((product.stock / product.reorderLevel) * 100, 100)}%`,
+                width: `${product.reorderLevel ? Math.min((product.stock / (product.reorderLevel * 2)) * 100, 100) : 50}%`,
               }}
             ></div>
           </div>
           <div className="flex justify-between mt-1">
             <span className="text-xs text-muted-foreground">0</span>
-            <span className="text-xs text-muted-foreground">{product.reorderLevel * 2}</span>
+            <span className="text-xs text-muted-foreground">{product.reorderLevel ? product.reorderLevel : "N/A"}</span>
+            <span className="text-xs text-muted-foreground">
+              {product.reorderLevel ? product.reorderLevel * 2 : "N/A"}
+            </span>
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+            <span>Crítico</span>
+            <span>Reorden</span>
+            <span>Óptimo</span>
           </div>
         </div>
       </div>
@@ -117,4 +133,3 @@ export function ProductDetailsDialog({
     </DialogContent>
   )
 }
-
