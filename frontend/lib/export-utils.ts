@@ -161,8 +161,12 @@ export function exportToCSV(transactions: Transaction[], dateFilter: string): vo
   // Combinar encabezados y filas
   const csvContent = [headers.join(","), ...rows].join("\n")
 
+  // Añadir BOM (Byte Order Mark) para UTF-8
+  const BOM = "\uFEFF"
+  const csvContentWithBOM = BOM + csvContent
+
   // Crear blob y descargar
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+  const blob = new Blob([csvContentWithBOM], { type: "text/csv;charset=utf-8;" })
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")
   link.setAttribute("href", url)
@@ -215,8 +219,12 @@ export function exportToExcel(transactions: Transaction[], dateFilter: string): 
   // Combinar encabezados y filas
   const csvContent = [headers.join(","), ...rows].join("\n")
 
+  // Añadir BOM (Byte Order Mark) para UTF-8
+  const BOM = "\uFEFF"
+  const csvContentWithBOM = BOM + csvContent
+
   // Crear blob y descargar
-  const blob = new Blob([csvContent], {
+  const blob = new Blob([csvContentWithBOM], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;",
   })
   const url = URL.createObjectURL(blob)
@@ -1442,8 +1450,12 @@ export function exportInventoryToCSV(products: Product[]): void {
   // Combinar encabezados y filas
   const csvContent = [headers.join(","), ...rows].join("\n")
 
+  // Añadir BOM (Byte Order Mark) para UTF-8
+  const BOM = "\uFEFF"
+  const csvContentWithBOM = BOM + csvContent
+
   // Crear blob y descargar
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+  const blob = new Blob([csvContentWithBOM], { type: "text/csv;charset=utf-8;" })
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")
   link.setAttribute("href", url)
@@ -1501,8 +1513,12 @@ export function exportInventoryToExcel(products: Product[]): void {
   // Combinar encabezados y filas
   const csvContent = [headers.join(","), ...rows].join("\n")
 
+  // Añadir BOM (Byte Order Mark) para UTF-8
+  const BOM = "\uFEFF"
+  const csvContentWithBOM = BOM + csvContent
+
   // Crear blob y descargar
-  const blob = new Blob([csvContent], {
+  const blob = new Blob([csvContentWithBOM], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;",
   })
   const url = URL.createObjectURL(blob)
