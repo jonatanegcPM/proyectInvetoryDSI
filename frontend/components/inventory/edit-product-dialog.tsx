@@ -14,7 +14,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Save, Loader2 } from "lucide-react"
-import type { Product } from "@/types/inventory"
+// Actualizar la interfaz para usar Category
+import type { Product, Category } from "@/types/inventory"
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -25,7 +26,7 @@ interface EditProductDialogProps {
   setProduct: (product: Product) => void
   onSave: () => void
   isSubmitting: boolean
-  categories: string[]
+  categories: Category[]
 }
 
 export function EditProductDialog({
@@ -178,13 +179,14 @@ export function EditProductDialog({
               <Label htmlFor="edit-category" className={errors.category ? "text-destructive" : ""}>
                 Categoría*
               </Label>
+              {/* Actualizar el componente Select para usar el nuevo formato de categorías */}
               <Select
                 value={product.categoryId?.toString() || ""}
                 onValueChange={(value) =>
                   setProduct({
                     ...product,
                     categoryId: value ? Number(value) : null,
-                    category: value ? categories[Number(value)] : null,
+                    category: value ? categories.find((cat) => cat.id === Number(value))?.name || null : null,
                   })
                 }
               >
@@ -193,10 +195,10 @@ export function EditProductDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {categories
-                    .filter((c) => c !== "Todos")
-                    .map((category, index) => (
-                      <SelectItem key={category} value={index.toString()}>
-                        {category}
+                    .filter((c) => c.name !== "Todos")
+                    .map((category) => (
+                      <SelectItem key={category.id} value={category.id?.toString() || ""}>
+                        {category.name}
                       </SelectItem>
                     ))}
                 </SelectContent>

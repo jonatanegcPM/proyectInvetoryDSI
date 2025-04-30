@@ -12,7 +12,11 @@ import type {
   AdjustmentData,
   SortConfig,
   InventoryStats,
+  Category,
 } from "@/types/inventory"
+
+// First, add the import for the export functions at the top of the file
+import { exportInventoryToPDF, exportInventoryToCSV, exportInventoryToExcel } from "@/lib/export-utils"
 
 // Tipos de transacciones
 export const transactionTypes = ["Recepción", "Venta", "Ajuste", "Devolución", "Transferencia"]
@@ -23,8 +27,8 @@ export function useInventory() {
 
   // Estados para la gestión de la interfaz
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("Todos")
-  const [categories, setCategories] = useState<string[]>([])
+  const [_selectedCategory, setSelectedCategory] = useState<string | null>("Todos")
+  const [categories, setCategories] = useState<Category[]>([])
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [productToEdit, setProductToEdit] = useState<Product | null>(null)
   const [productToDelete, setProductToDelete] = useState<Product | null>(null)
@@ -105,11 +109,13 @@ export function useInventory() {
   }, [toast])
 
   // Cargar productos
+  // Actualizar la función fetchProducts para usar el ID de categoría correctamente
   const fetchProducts = useCallback(async () => {
     setIsLoading(true)
     try {
       // Determinar el ID de categoría si no es "Todos"
-      const categoryId = selectedCategory !== "Todos" ? categories.indexOf(selectedCategory) : null
+      const categoryId =
+        _selectedCategory !== "Todos" ? categories.find((cat) => cat.name === _selectedCategory)?.id : null
 
       // Convertir la dirección de ordenamiento
       const direction = sortConfig.direction === "ascending" ? "asc" : "desc"
@@ -136,7 +142,24 @@ export function useInventory() {
     } finally {
       setIsLoading(false)
     }
-  }, [searchTerm, selectedCategory, categories, currentPage, itemsPerPage, sortConfig, toast])
+  }, [searchTerm, _selectedCategory, categories, currentPage, itemsPerPage, sortConfig, toast])
+
+  // New function to fetch all products (not paginated)
+  const fetchAllProducts = useCallback(async () => {
+    try {
+      // Use a large page size to get all products in one request
+      const response = await InventoryService.getProducts("", null, 1, 1000, "name", "asc")
+      return response.products
+    } catch (error) {
+      console.error("Error fetching all products:", error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar todos los productos para exportar",
+        variant: "destructive",
+      })
+      return []
+    }
+  }, [toast])
 
   // Cargar transacciones
   const fetchTransactions = useCallback(async () => {
@@ -356,20 +379,46 @@ export function useInventory() {
     }
   }
 
-  // Función para exportar inventario
-  const handleExportInventory = (format: string) => {
+  // Updated function to export inventory - now fetches all products first
+  const handleExportInventory = async (format: string) => {
     setIsSubmitting(true)
 
-    // Simulación de exportación
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      // Fetch all products before exporting
+      console.log("Fetching all products for export...")
+      const allProducts = await fetchAllProducts()
+      console.log(`Got ${allProducts.length} products for export`)
+
+      // Exportar según el formato seleccionado
+      switch (format) {
+        case "pdf":
+          exportInventoryToPDF(allProducts)
+          break
+        case "csv":
+          exportInventoryToCSV(allProducts)
+          break
+        case "excel":
+          exportInventoryToExcel(allProducts)
+          break
+        default:
+          throw new Error(`Formato no soportado: ${format}`)
+      }
 
       toast({
         title: "Inventario exportado",
         description: `El inventario ha sido exportado en formato ${format.toUpperCase()}.`,
         variant: "success",
       })
-    }, 1000)
+    } catch (error) {
+      console.error(`Error exporting inventory to ${format}:`, error)
+      toast({
+        title: "Error",
+        description: `No se pudo exportar el inventario en formato ${format.toUpperCase()}.`,
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // Función para obtener el historial de un producto
@@ -410,7 +459,7 @@ export function useInventory() {
     // Estado
     searchTerm,
     setSearchTerm,
-    selectedCategory,
+    selectedCategory: _selectedCategory,
     setSelectedCategory,
     categories,
     selectedProduct,

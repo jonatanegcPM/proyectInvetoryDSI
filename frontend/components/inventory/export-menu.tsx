@@ -11,6 +11,10 @@ interface ExportMenuProps {
   disabled?: boolean
 }
 
+// This component is used to export inventory data in different formats (PDF, CSV, Excel)
+// It receives an onExport function that handles the export logic
+// The isSubmitting prop is used to disable the buttons while exporting
+// The disabled prop is used to disable the export functionality when needed
 export function ExportMenu({ onExport, isSubmitting, disabled = false }: ExportMenuProps) {
   return (
     <TooltipProvider>

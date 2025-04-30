@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { BarChart4, Pill, Loader2 } from "lucide-react"
 import type { Product, InventoryTransaction } from "@/types/inventory"
+import { showProductHistoryReport } from "@/services/report-service"
 
 interface ProductHistoryDialogProps {
   open: boolean
@@ -52,7 +53,7 @@ export function ProductHistoryDialog({
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h4 className="text-sm font-semibold">Transacciones Recientes</h4>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => showProductHistoryReport(product, transactions)}>
                 <BarChart4 className="h-4 w-4 mr-2" />
                 Ver Reporte
               </Button>

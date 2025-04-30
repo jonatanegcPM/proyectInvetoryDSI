@@ -20,7 +20,7 @@ namespace proyectInvetoryDSI.Services
         Task DeleteProductAsync(int id);
         Task<object> AdjustStockAsync(int id, AdjustStockDTO adjustStockDto);
         Task<object> GetTransactionsAsync(int page, int limit, int? productId, string? type, DateTime? startDate, DateTime? endDate);
-        Task<IEnumerable<string>> GetCategoriesAsync();
+        Task<IEnumerable<CategoryDTO>> GetCategoriesAsync();
         Task<InventoryStatsDTO> GetInventoryStatsAsync();
         Task<List<ProductDTO>> SearchProductsByNameAsync(string name);
         Task<object?> GetProductStockByNameAsync(string name);
@@ -432,16 +432,25 @@ namespace proyectInvetoryDSI.Services
             };
         }
 
-        public async Task<IEnumerable<string>> GetCategoriesAsync()
+        public async Task<IEnumerable<CategoryDTO>> GetCategoriesAsync()
         {
             var categories = await _context.Categories
                 .Where(c => c.IsActive)
                 .OrderBy(c => c.CategoryName)
-                .Select(c => c.CategoryName)
+                .Select(c => new CategoryDTO
+                {
+                    Id = c.CategoryID,
+                    Name = c.CategoryName
+                })
                 .AsNoTracking()
                 .ToListAsync();
 
-            categories.Insert(0, "Todos");
+            // Agregar la opción "Todos" al inicio
+            categories.Insert(0, new CategoryDTO
+            {
+                Id = null, // null indica "sin filtro de categoría"
+                Name = "Todos"
+            });
 
             return categories;
         }

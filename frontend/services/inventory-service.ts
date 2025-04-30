@@ -7,6 +7,7 @@ import type {
   AdjustmentData,
   CreateProductDTO,
   UpdateProductDTO,
+  Category,
 } from "@/types/inventory"
 
 // URL base de la API
@@ -249,7 +250,7 @@ export const InventoryService = {
   /**
    * Obtener categorías
    */
-  async getCategories(): Promise<string[]> {
+  async getCategories(): Promise<Category[]> {
     try {
       const token = AuthService.getToken()
       if (!token) throw new Error("No authentication token")

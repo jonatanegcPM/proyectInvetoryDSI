@@ -33,8 +33,6 @@ export interface ProductsResponse {
 }
 
 // Tipos para transacciones de inventario
-// Asegurémonos de que la interfaz InventoryTransaction tenga los nombres de propiedades correctos
-
 export interface InventoryTransaction {
   id: number
   date: string
@@ -100,4 +98,10 @@ export interface AdjustmentData {
 export interface SortConfig {
   key: string
   direction: "ascending" | "descending"
+}
+
+// Añadir esta interfaz después de las interfaces existentes
+export interface Category {
+  id: number | null
+  name: string
 }

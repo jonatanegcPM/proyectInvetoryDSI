@@ -16,7 +16,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Save, Loader2, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import type { CreateProductDTO } from "@/types/inventory"
+// Actualizar la interfaz para usar Category
+import type { CreateProductDTO, Category } from "@/types/inventory"
 
 interface AddProductDialogProps {
   open: boolean
@@ -25,7 +26,7 @@ interface AddProductDialogProps {
   setNewProduct: (product: CreateProductDTO) => void
   onSave: () => void
   isSubmitting: boolean
-  categories: string[]
+  categories: Category[]
 }
 
 interface ValidationErrors {
@@ -194,6 +195,7 @@ export function AddProductDialog({
               <Label htmlFor="category" className="flex items-center">
                 Categoría <span className="text-red-500 ml-1">*</span>
               </Label>
+              {/* Actualizar el componente Select para usar el nuevo formato de categorías */}
               <Select
                 value={newProduct.categoryId?.toString() || ""}
                 onValueChange={(value) => handleFieldChange("categoryId", value ? Number(value) : null)}
@@ -206,10 +208,10 @@ export function AddProductDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {categories
-                    .filter((c) => c !== "Todos")
-                    .map((category, index) => (
-                      <SelectItem key={category} value={index.toString()}>
-                        {category}
+                    .filter((c) => c.name !== "Todos")
+                    .map((category) => (
+                      <SelectItem key={category.id} value={category.id?.toString() || ""}>
+                        {category.name}
                       </SelectItem>
                     ))}
                 </SelectContent>

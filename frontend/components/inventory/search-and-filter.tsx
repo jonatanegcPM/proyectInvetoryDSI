@@ -5,13 +5,14 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ExportMenu } from "./export-menu"
+import type { Category } from "@/types/inventory"
 
 interface SearchAndFilterProps {
   searchTerm: string
   setSearchTerm: (term: string) => void
-  selectedCategory: string
-  setSelectedCategory: (category: string) => void
-  categories: string[]
+  selectedCategory: string | null
+  setSelectedCategory: (category: string | null) => void
+  categories: Category[]
   onExportClick: (format: string) => void
   onAddProductClick: () => void
   isSubmitting: boolean
@@ -42,14 +43,14 @@ export function SearchAndFilter({
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+        <Select value={selectedCategory || ""} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Categoría" />
           </SelectTrigger>
           <SelectContent>
             {categories.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
+              <SelectItem key={category.id || "all"} value={category.name}>
+                {category.name}
               </SelectItem>
             ))}
           </SelectContent>
