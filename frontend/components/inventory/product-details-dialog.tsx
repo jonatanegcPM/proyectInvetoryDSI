@@ -94,13 +94,21 @@ export function ProductDetailsDialog({
                     : "bg-amber-500"
               }`}
               style={{
-                width: `${Math.min((product.stock / product.reorderLevel) * 100, 100)}%`,
+                width: `${product.reorderLevel ? Math.min((product.stock / (product.reorderLevel * 2)) * 100, 100) : 50}%`,
               }}
             ></div>
           </div>
           <div className="flex justify-between mt-1">
             <span className="text-xs text-muted-foreground">0</span>
-            <span className="text-xs text-muted-foreground">{product.reorderLevel * 2}</span>
+            <span className="text-xs text-muted-foreground">{product.reorderLevel ? product.reorderLevel : "N/A"}</span>
+            <span className="text-xs text-muted-foreground">
+              {product.reorderLevel ? product.reorderLevel * 2 : "N/A"}
+            </span>
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+            <span>Crítico</span>
+            <span>Reorden</span>
+            <span>Óptimo</span>
           </div>
         </div>
       </div>
@@ -117,4 +125,3 @@ export function ProductDetailsDialog({
     </DialogContent>
   )
 }
-
