@@ -9,6 +9,7 @@ import type { Customer, CustomerForm, CustomerStats, SortConfig } from "@/types/
 import { CustomerService } from "@/services/customer-service"
 import { differenceInYears, isAfter, parseISO } from "date-fns"
 import { PreferencesService } from "@/services/preferences-service"
+import { exportCustomers } from "@/lib/customer-export-utils"
 
 // Añadir esta interfaz para los errores de validación después de las interfaces existentes
 interface ValidationErrors {
@@ -436,59 +437,39 @@ export function useCustomers() {
   }
 
   // Función para exportar datos de clientes en diferentes formatos
-  const exportCustomersData = (format: "csv" | "excel" | "pdf") => {
+  const exportCustomersData = async (format: "csv" | "excel" | "pdf") => {
     setIsExporting(true)
 
-    // Simular procesamiento de exportación
-    setTimeout(() => {
-      // En una implementación real, esto sería una llamada a la API
-      // o procesamiento en el cliente para generar el archivo correspondiente
+    try {
+      // Obtener todos los clientes para la exportación
+      // En una implementación real, esto podría ser una llamada API específica para exportación
+      const result = await CustomerService.getCustomers(
+        "", // Sin filtro de búsqueda
+        "all", // Todos los estados
+        1, // Primera página
+        1000, // Límite alto para obtener la mayoría de los clientes
+        "name", // Ordenar por nombre
+        "asc", // Orden ascendente
+      )
 
-      // Preparar los datos para exportación
-      const headers = ["ID", "Nombre", "Email", "Teléfono", "Dirección", "Estado", "Última Visita"]
-
-      // Simular diferentes comportamientos según el formato
-      if (format === "csv") {
-        // Convertir los datos a formato CSV
-        const csvContent = [
-          headers.join(","),
-          ...customers.map((customer) =>
-            [
-              customer.id,
-              customer.name,
-              customer.email,
-              customer.phone,
-              customer.address.replace(/,/g, " "), // Evitar problemas con comas en direcciones
-              customer.status === "active" ? "Activo" : "Inactivo",
-              formatDate(customer.lastVisit),
-            ].join(","),
-          ),
-        ].join("\n")
-
-        // Crear un blob y un enlace de descarga
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.setAttribute("href", url)
-        link.setAttribute("download", `clientes_${format(new Date(), "yyyy-MM-dd")}.csv`)
-        link.style.visibility = "hidden"
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-      } else {
-        // Para Excel y PDF, en una implementación real se usarían bibliotecas específicas
-        // Aquí solo simulamos la acción
-        console.log(`Exportando en formato ${format}...`)
-      }
+      // Exportar los datos usando la utilidad de exportación
+      exportCustomers(result.customers, format)
 
       // Mostrar notificación de éxito
       toast({
         title: "Exportación completada",
         description: `Los datos de clientes han sido exportados en formato ${format.toUpperCase()}.`,
       })
-
+    } catch (error) {
+      console.error(`Error al exportar clientes en formato ${format}:`, error)
+      toast({
+        title: "Error de exportación",
+        description: `No se pudieron exportar los datos en formato ${format}. Intente nuevamente.`,
+        variant: "destructive",
+      })
+    } finally {
       setIsExporting(false)
-    }, 1500)
+    }
   }
 
   // Función para manejar el cierre del diálogo de añadir cliente
