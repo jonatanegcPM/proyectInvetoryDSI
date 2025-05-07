@@ -1,4 +1,5 @@
 // Controllers/SupplierController.cs
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using proyectInvetoryDSI.Services;
 using proyectInvetoryDSI.DTOs;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace proyectInvetoryDSI.Controllers
 {
+    [Authorize]
     [Route("api/suppliers")]
     [ApiController]
     public class SupplierController : ControllerBase

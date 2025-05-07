@@ -38,7 +38,7 @@ export function ProductDetailsDialog({
             {product.barcode ? (
               <div className="mt-2 flex flex-col items-center">
                 <Barcode value={product.barcode} width={1.5} height={50} fontSize={12} margin={5} />
-                <p className="text-sm mt-1">{product.barcode}</p>
+                {/*<p className="text-sm mt-1">{product.barcode}</p>*/}
               </div>
             ) : (
               <p className="text-sm">No disponible</p>

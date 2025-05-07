@@ -14,19 +14,25 @@ export function PaymentMethodSelector({ paymentMethod, onPaymentMethodChange }: 
           <SelectValue placeholder="Seleccionar método de pago" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="cash">
+          <SelectItem value="Efectivo">
             <div className="flex items-center">
               <DollarSign className="h-4 w-4 mr-2" />
               Efectivo
             </div>
           </SelectItem>
-          <SelectItem value="credit-card">
+          <SelectItem value="Tarjeta de Crédito">
             <div className="flex items-center">
               <CreditCard className="h-4 w-4 mr-2" />
               Tarjeta de Crédito
             </div>
           </SelectItem>
-          <SelectItem value="insurance">
+          <SelectItem value="Tarjeta de Débito">
+            <div className="flex items-center">
+              <CreditCard className="h-4 w-4 mr-2" />
+              Tarjeta de Débito
+            </div>
+          </SelectItem>
+          <SelectItem value="Seguro">
             <div className="flex items-center">
               <ShoppingCart className="h-4 w-4 mr-2" />
               Seguro

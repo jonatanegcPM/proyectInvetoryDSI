@@ -1,16 +1,11 @@
 "use client"
 
+import { DialogFooter } from "@/components/ui/dialog"
+
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Loader2, Printer } from "lucide-react"
 import type { TransactionDetails } from "@/services/dashboard-service"
@@ -89,6 +84,10 @@ export function TransactionDetailsModal({
                     ? "Pendiente"
                     : "Cancelado"}
               </Badge>
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground">Método de Pago</h4>
+              <p className="text-base">{transaction.paymentMethod || "No especificado"}</p>
             </div>
           </div>
 

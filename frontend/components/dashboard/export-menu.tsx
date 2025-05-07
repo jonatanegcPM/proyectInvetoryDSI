@@ -17,6 +17,8 @@ interface ExportMenuProps {
 export function ExportMenu({ transactions = [], dateFilter = "all", isLoading = false }: ExportMenuProps) {
   const [isExporting, setIsExporting] = useState(false)
 
+  // Asegurarse de que estamos obteniendo transacciones completas con todos los detalles
+
   const handleExport = async (format: "pdf" | "csv" | "excel") => {
     if (isLoading || isExporting) return
 
@@ -29,17 +31,36 @@ export function ExportMenu({ transactions = [], dateFilter = "all", isLoading = 
       const response = await DashboardService.getTransactions(dateFilter as any, 1, 1000)
       const allTransactions = response.transactions || []
 
-      //console.log(`Exporting ${allTransactions.length} transactions in format ${format} for the period ${dateFilter}`)
+      // Para cada transacción, obtener sus detalles completos incluyendo el método de pago
+      const detailedTransactions = await Promise.all(
+        allTransactions.map(async (transaction) => {
+          try {
+            // Obtener detalles completos de la transacción
+            const details = await DashboardService.getTransactionDetails(transaction.id)
+            return {
+              ...transaction,
+              paymentMethod: details.paymentMethod,
+            }
+          } catch (error) {
+            console.error(`Error fetching details for transaction ${transaction.id}:`, error)
+            return transaction
+          }
+        }),
+      )
+
+      console.log(
+        `Exporting ${detailedTransactions.length} transactions in format ${format} for the period ${dateFilter}`,
+      )
 
       switch (format) {
         case "pdf":
-          exportToPDF(allTransactions, dateFilter)
+          exportToPDF(detailedTransactions, dateFilter)
           break
         case "csv":
-          exportToCSV(allTransactions, dateFilter)
+          exportToCSV(detailedTransactions, dateFilter)
           break
         case "excel":
-          exportToExcel(allTransactions, dateFilter)
+          exportToExcel(detailedTransactions, dateFilter)
           break
       }
     } catch (error) {
@@ -92,4 +113,3 @@ export function ExportMenu({ transactions = [], dateFilter = "all", isLoading = 
     </DropdownMenu>
   )
 }
-

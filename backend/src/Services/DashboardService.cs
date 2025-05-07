@@ -176,7 +176,8 @@ namespace proyectInvetoryDSI.Services
                     items = s.SaleDetails.Count,
                     amount = s.TotalAmount,
                     status = "completed",
-                    date = s.SaleDate
+                    date = s.SaleDate,
+                    paymentMethod = s.PaymentMethod
                 })
                 .ToListAsync();
 
@@ -228,7 +229,8 @@ namespace proyectInvetoryDSI.Services
                     total = sd.UnitPrice * sd.Quantity
                 }),
                 subtotal,
-                tax
+                tax,
+                paymentMethod = sale.PaymentMethod
             };
         }
 

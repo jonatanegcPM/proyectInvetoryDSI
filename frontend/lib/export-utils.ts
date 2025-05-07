@@ -55,7 +55,7 @@ export function exportToPDF(transactions: Transaction[], dateFilter: string): vo
   })
 
   // Preparar datos para la tabla
-  const tableColumn = ["ID", "Cliente", "Artículos", "Monto", "Estado", "Fecha"]
+  const tableColumn = ["ID", "Cliente", "Artículos", "Monto", "Estado", "Método de Pago", "Fecha"]
   const tableRows = transactions.map((transaction) => {
     const date = new Date(transaction.date)
     const formattedDate = format(date, "dd/MM/yyyy", { locale: es })
@@ -80,6 +80,7 @@ export function exportToPDF(transactions: Transaction[], dateFilter: string): vo
       transaction.items.toString(),
       `$${transaction.amount.toFixed(2)}`,
       estado,
+      transaction.paymentMethod || "No especificado",
       formattedDate,
     ]
   })
@@ -127,7 +128,7 @@ export function exportToCSV(transactions: Transaction[], dateFilter: string): vo
   // Add logging
   console.log(`Exportando a CSV: ${transactions.length} transacciones para el filtro ${dateFilter}`)
   // Encabezados CSV
-  const headers = ["ID", "Cliente", "Artículos", "Monto", "Estado", "Fecha"]
+  const headers = ["ID", "Cliente", "Artículos", "Monto", "Estado", "Método de Pago", "Fecha"]
 
   // Convertir datos a filas CSV
   const rows = transactions.map((transaction) => {
@@ -154,6 +155,7 @@ export function exportToCSV(transactions: Transaction[], dateFilter: string): vo
       transaction.items.toString(),
       transaction.amount.toFixed(2),
       estado,
+      (transaction.paymentMethod || "No especificado").replace(/,/g, " "), // Evitar problemas con comas
       formattedDate,
     ].join(",")
   })
@@ -185,7 +187,7 @@ export function exportToExcel(transactions: Transaction[], dateFilter: string): 
   // Para simplificar, usaremos el mismo enfoque CSV pero con extensión .xlsx
 
   // Encabezados
-  const headers = ["ID", "Cliente", "Artículos", "Monto", "Estado", "Fecha"]
+  const headers = ["ID", "Cliente", "Artículos", "Monto", "Estado", "Método de Pago", "Fecha"]
 
   // Convertir datos a filas
   const rows = transactions.map((transaction) => {
@@ -212,6 +214,7 @@ export function exportToExcel(transactions: Transaction[], dateFilter: string): 
       transaction.items.toString(),
       transaction.amount.toFixed(2),
       estado,
+      (transaction.paymentMethod || "No especificado").replace(/,/g, " "), // Evitar problemas con comas
       formattedDate,
     ].join(",")
   })

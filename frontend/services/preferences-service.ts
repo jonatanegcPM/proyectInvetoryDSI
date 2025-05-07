@@ -13,10 +13,18 @@ export interface InventoryPreferences {
   transactionsPerPage: number
 }
 
+// Añadir esta interfaz para las preferencias de clientes
+export interface CustomersPreferences {
+  customersPerPage: number
+  defaultSortKey: string
+  defaultSortDirection: "asc" | "desc"
+}
+
 // Claves para localStorage
 const DASHBOARD_PREFERENCES_KEY = "dashboard_preferences"
 const POS_PREFERENCES_KEY = "pos_preferences"
 const INVENTORY_PREFERENCES_KEY = "inventory_preferences"
+const CUSTOMERS_PREFERENCES_KEY = "customers_preferences"
 
 // Valores por defecto
 const DEFAULT_DASHBOARD_PREFERENCES: DashboardPreferences = {
@@ -31,6 +39,13 @@ const DEFAULT_POS_PREFERENCES: PointOfSalePreferences = {
 const DEFAULT_INVENTORY_PREFERENCES: InventoryPreferences = {
   productsPerPage: 10,
   transactionsPerPage: 10,
+}
+
+// Valores por defecto para preferencias de clientes
+const DEFAULT_CUSTOMERS_PREFERENCES: CustomersPreferences = {
+  customersPerPage: 5,
+  defaultSortKey: "CustomerID",
+  defaultSortDirection: "desc",
 }
 
 export const PreferencesService = {
@@ -94,6 +109,27 @@ export const PreferencesService = {
       localStorage.setItem(INVENTORY_PREFERENCES_KEY, JSON.stringify(updated))
     } catch (error) {
       console.error("Error saving inventory preferences:", error)
+    }
+  },
+
+  // Customers Preferences - Nuevos métodos
+  getCustomersPreferences(): CustomersPreferences {
+    try {
+      const stored = localStorage.getItem(CUSTOMERS_PREFERENCES_KEY)
+      return stored ? JSON.parse(stored) : DEFAULT_CUSTOMERS_PREFERENCES
+    } catch (error) {
+      console.error("Error reading customers preferences:", error)
+      return DEFAULT_CUSTOMERS_PREFERENCES
+    }
+  },
+
+  setCustomersPreferences(preferences: Partial<CustomersPreferences>) {
+    try {
+      const current = this.getCustomersPreferences()
+      const updated = { ...current, ...preferences }
+      localStorage.setItem(CUSTOMERS_PREFERENCES_KEY, JSON.stringify(updated))
+    } catch (error) {
+      console.error("Error saving customers preferences:", error)
     }
   },
 }
