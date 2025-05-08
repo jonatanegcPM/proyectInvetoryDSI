@@ -30,15 +30,15 @@ export function ExportMenu({ onExport, isSubmitting, disabled = false }: ExportM
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onExport("csv")} disabled={isSubmitting || disabled}>
                 <FileDown className="mr-2 h-4 w-4" />
-                CSV
+                Exportar como CSV
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onExport("excel")} disabled={isSubmitting || disabled}>
+              <DropdownMenuItem onClick={() => onExport("json")} disabled={isSubmitting || disabled}>
                 <FileDown className="mr-2 h-4 w-4" />
-                Excel
+                Exportar como JSON
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onExport("pdf")} disabled={isSubmitting || disabled}>
                 <FileDown className="mr-2 h-4 w-4" />
-                PDF
+                Exportar como PDF
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

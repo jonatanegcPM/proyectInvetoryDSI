@@ -3,7 +3,7 @@
 import { Download, FileText, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { exportToPDF, exportToCSV, exportToExcel } from "@/lib/export-utils"
+import { exportToPDF, exportToCSV, exportToJSON } from "@/lib/export-utils"
 import { useState } from "react"
 import { DashboardService } from "@/services/dashboard-service"
 import type { Transaction } from "@/services/dashboard-service"
@@ -18,8 +18,9 @@ export function ExportMenu({ transactions = [], dateFilter = "all", isLoading = 
   const [isExporting, setIsExporting] = useState(false)
 
   // Asegurarse de que estamos obteniendo transacciones completas con todos los detalles
+  // Modificar la función handleExport para obtener los detalles completos de cada transacción
 
-  const handleExport = async (format: "pdf" | "csv" | "excel") => {
+  const handleExport = async (format: "pdf" | "csv" | "json") => {
     if (isLoading || isExporting) return
 
     try {
@@ -59,8 +60,8 @@ export function ExportMenu({ transactions = [], dateFilter = "all", isLoading = 
         case "csv":
           exportToCSV(detailedTransactions, dateFilter)
           break
-        case "excel":
-          exportToExcel(detailedTransactions, dateFilter)
+        case "json":
+          exportToJSON(detailedTransactions, dateFilter)
           break
       }
     } catch (error) {
@@ -96,11 +97,11 @@ export function ExportMenu({ transactions = [], dateFilter = "all", isLoading = 
           PDF
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => handleExport("excel")}
+          onClick={() => handleExport("json")}
           disabled={isLoading || isExporting || transactions.length === 0}
         >
           <FileText className="mr-2 h-4 w-4" />
-          Excel
+          JSON
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handleExport("csv")}
