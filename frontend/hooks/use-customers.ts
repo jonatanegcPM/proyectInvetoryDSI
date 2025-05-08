@@ -437,7 +437,7 @@ export function useCustomers() {
   }
 
   // Función para exportar datos de clientes en diferentes formatos
-  const exportCustomersData = async (format: "csv" | "excel" | "pdf") => {
+  const exportCustomersData = async (format: "csv" | "json" | "pdf") => {
     setIsExporting(true)
 
     try {
@@ -453,7 +453,7 @@ export function useCustomers() {
       )
 
       // Exportar los datos usando la utilidad de exportación
-      exportCustomers(result.customers, format)
+      await exportCustomers(result.customers, format)
 
       // Mostrar notificación de éxito
       toast({

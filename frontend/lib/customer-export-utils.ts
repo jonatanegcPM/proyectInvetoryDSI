@@ -188,7 +188,8 @@ const addSummary = (doc: jsPDF, customers: Customer[], startY: number): number =
     MARGINS.left + 96,
     startY + 15,
   )
-  
+  doc.text(`Total de compras: ${totalPurchases}`, MARGINS.left + 96, startY + 25)
+  doc.text(`Total gastado: $${totalSpent.toFixed(2)}`, MARGINS.left + 96, startY + 35)
 
   return startY + summaryHeight
 }
@@ -334,65 +335,44 @@ export const exportToCSV = (customers: Customer[]): void => {
 }
 
 /**
- * Genera un archivo Excel con los datos de clientes
+ * Genera un archivo JSON con los datos de clientes
  * @param customers - Lista de clientes a exportar
  */
-export const exportToExcel = (customers: Customer[]): void => {
-  // En una implementación real, usaríamos una biblioteca como ExcelJS
-  // Para este ejemplo, generaremos un CSV que Excel puede abrir
+export const exportToJSON = (customers: Customer[]): void => {
+  // Preparar los datos para JSON
+  // Podemos formatear o transformar los datos si es necesario
+  const jsonData = customers.map((customer) => ({
+    id: customer.id,
+    name: customer.name,
+    email: customer.email,
+    phone: customer.phone,
+    address: customer.address,
+    dateOfBirth: customer.dateOfBirth,
+    gender: customer.gender,
+    status: customer.status,
+    insurance: customer.insurance,
+    lastVisit: customer.lastVisit,
+    registrationDate: customer.registrationDate,
+    totalPurchases: customer.totalPurchases,
+    totalSpent: customer.totalSpent,
+    allergies: customer.allergies,
+    notes: customer.notes,
+  }))
 
-  // Definir encabezados con formato para Excel
-  const headers = [
-    "ID",
-    "Nombre",
-    "Email",
-    "Teléfono",
-    "Dirección",
-    "Fecha de Nacimiento",
-    "Género",
-    "Estado",
-    "Seguro",
-    "Última Visita",
-    "Fecha de Registro",
-    "Total de Compras",
-    "Total Gastado",
-  ]
+  // Convertir a string JSON con formato legible (indentación de 2 espacios)
+  const jsonString = JSON.stringify(jsonData, null, 2)
 
-  // Preparar datos
-  const rows = customers.map((customer) => [
-    customer.id,
-    customer.name,
-    customer.email,
-    customer.phone,
-    customer.address,
-    format(new Date(customer.dateOfBirth), "yyyy-MM-dd"),
-    customer.gender,
-    customer.status === "active" ? "Activo" : "Inactivo",
-    customer.insurance ? "Sí" : "No",
-    format(new Date(customer.lastVisit), "yyyy-MM-dd"),
-    format(new Date(customer.registrationDate), "yyyy-MM-dd"),
-    customer.totalPurchases,
-    customer.totalSpent.toFixed(2),
-  ])
-
-  // Unir filas y columnas con tabulaciones
-  const excelContent = [headers.join("\t"), ...rows.map((row) => row.join("\t"))].join("\n")
-
-  // Añadir BOM para compatibilidad con Excel y caracteres especiales
-  const BOM = "\uFEFF"
-  const excelWithBOM = BOM + excelContent
-
-  // Crear blob con codificación UTF-8
-  const blob = new Blob([excelWithBOM], { type: "application/vnd.ms-excel;charset=utf-8" })
-  downloadBlob(blob, `clientes_${format(new Date(), "yyyy-MM-dd")}.xlsx`)
+  // Crear blob con el contenido JSON
+  const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" })
+  downloadBlob(blob, `clientes_${format(new Date(), "yyyy-MM-dd")}.json`)
 }
 
 /**
  * Función principal para exportar datos de clientes en diferentes formatos
  * @param customers - Lista de clientes a exportar
- * @param format - Formato de exportación (pdf, csv, excel)
+ * @param format - Formato de exportación (pdf, csv, json)
  */
-export const exportCustomers = async (customers: Customer[], format: "pdf" | "csv" | "excel"): Promise<void> => {
+export const exportCustomers = async (customers: Customer[], format: "pdf" | "csv" | "json"): Promise<void> => {
   switch (format) {
     case "pdf":
       await exportToPDF(customers)
@@ -400,8 +380,8 @@ export const exportCustomers = async (customers: Customer[], format: "pdf" | "cs
     case "csv":
       exportToCSV(customers)
       break
-    case "excel":
-      exportToExcel(customers)
+    case "json":
+      exportToJSON(customers)
       break
     default:
       console.error("Formato de exportación no soportado")
