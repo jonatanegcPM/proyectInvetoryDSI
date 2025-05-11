@@ -71,20 +71,34 @@ namespace proyectInvetoryDSI.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<PurchaseResponseDTO>> GetPurchaseById(int id)
+        public async Task<ActionResult<PurchaseResponseDTO>> GetPurchase(int id)
+        {
+            var purchase = await _purchaseService.GetPurchaseByIdAsync(id);
+            if (purchase == null)
+                return NotFound(new { message = $"Pedido con ID {id} no encontrado" });
+
+            return Ok(purchase);
+        }
+
+        [HttpPatch("{id}/status")]
+        public async Task<ActionResult<PurchaseResponseDTO>> UpdatePurchaseStatus(int id, [FromBody] UpdatePurchaseStatusDTO statusDto)
         {
             try
             {
-                var purchase = await _purchaseService.GetPurchaseByIdAsync(id);
-                if (purchase == null)
-                {
-                    return NotFound(new { message = $"Pedido con ID {id} no encontrado" });
-                }
-                return Ok(purchase);
+                var updatedPurchase = await _purchaseService.UpdatePurchaseStatusAsync(id, statusDto.Status);
+                return Ok(updatedPurchase);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return StatusCode(500, new { message = "Error al actualizar el estado del pedido", error = ex.Message });
             }
         }
     }

@@ -54,4 +54,10 @@ namespace proyectInvetoryDSI.DTOs
         public decimal UnitPrice { get; set; }
         public decimal Total { get; set; }
     }
+
+    public class UpdatePurchaseStatusDTO
+    {
+        [Required]
+        public string Status { get; set; } = string.Empty;
+    }
 } 

@@ -220,5 +220,75 @@ namespace proyectInvetoryDSI.Services
                 Notes = purchase.Notes
             };
         }
+
+        public async Task<PurchaseResponseDTO> UpdatePurchaseStatusAsync(int id, string newStatus)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var purchase = await _context.Purchases
+                    .Include(p => p.PurchaseDetails)
+                    .Include(p => p.Supplier)
+                    .FirstOrDefaultAsync(p => p.PurchaseID == id);
+
+                if (purchase == null)
+                    throw new KeyNotFoundException($"Pedido con ID {id} no encontrado");
+
+                if (purchase.Status == newStatus)
+                    throw new InvalidOperationException($"El pedido ya está en estado {newStatus}");
+
+                // Validar que el nuevo estado sea válido
+                if (newStatus != "received" && newStatus != "cancelled")
+                    throw new InvalidOperationException("Estado no válido. Debe ser 'received' o 'cancelled'");
+
+                // Si el pedido ya está cancelado o recibido, no se puede cambiar
+                if (purchase.Status == "cancelled" || purchase.Status == "received")
+                    throw new InvalidOperationException($"No se puede cambiar el estado de un pedido {purchase.Status}");
+
+                // Si el nuevo estado es "received", actualizar el inventario
+                if (newStatus == "received")
+                {
+                    foreach (var detail in purchase.PurchaseDetails)
+                    {
+                        var product = await _context.Products.FindAsync(detail.ProductID);
+                        if (product == null)
+                            throw new KeyNotFoundException($"Producto con ID {detail.ProductID} no encontrado");
+
+                        // Actualizar el stock del producto
+                        product.StockQuantity += detail.Quantity;
+
+                        // Registrar la transacción
+                        var inventoryTransaction = new InventoryTransaction
+                        {
+                            ProductID = detail.ProductID,
+                            TransactionType = "Compra",
+                            Quantity = detail.Quantity,
+                            PreviousStock = product.StockQuantity - detail.Quantity,
+                            NewStock = product.StockQuantity,
+                            TransactionDate = DateTime.UtcNow,
+                            UserID = GetCurrentUserId(),
+                            Notes = $"Recepción de pedido PUR-{purchase.PurchaseID:D5}"
+                        };
+
+                        _context.InventoryTransactions.Add(inventoryTransaction);
+                    }
+                }
+
+                // Actualizar el estado del pedido
+                purchase.Status = newStatus;
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                // Retornar el pedido actualizado
+                return await GetPurchaseByIdAsync(id) ?? 
+                    throw new InvalidOperationException("Error al recuperar el pedido actualizado");
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
     }
 } 
