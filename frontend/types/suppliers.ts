@@ -199,7 +199,7 @@ export interface PaginationProps {
 }
 
 export interface ExportMenuProps {
-  onExport: (format: "csv" | "excel" | "pdf") => void
+  onExport: (format: "csv" | "json" | "pdf") => void
   isExporting: boolean
   disabled: boolean
 }

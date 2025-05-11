@@ -85,7 +85,7 @@ export default function Suppliers() {
     handleAddSupplier,
     handleDeleteSupplier,
     confirmDelete,
-    exportSuppliersData,
+    exportData,
     setIsAddDialogOpen,
     setIsEditDialogOpen,
     setIsDeleteDialogOpen,
@@ -107,7 +107,11 @@ export default function Suppliers() {
           categories={categories}
         />
         <div className="flex gap-2">
-          <ExportMenu onExport={exportSuppliersData} isExporting={isExporting} disabled={suppliers.length === 0} />
+          <ExportMenu 
+            onExport={(format, type) => exportData(format, type)} 
+            isExporting={isExporting} 
+            disabled={suppliers.length === 0} 
+          />
           <AddSupplierDialog
             isOpen={isAddDialogOpen}
             onOpenChange={setIsAddDialogOpen}

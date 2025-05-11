@@ -7,6 +7,15 @@ import { toast } from "@/hooks/use-toast"
 import { SupplierService } from "@/services/supplier-service"
 import { PurchaseService } from "@/services/purchase-service"
 import { PreferencesService } from "@/services/preferences-service"
+import {
+  exportSuppliersToCSV,
+  exportSuppliersToJSON,
+  downloadBlob,
+  generateFilename,
+} from "@/lib/supplier-export-utils"
+import { exportOrdersToCSV, exportOrdersToJSON } from "@/lib/order-export-utils"
+import { generateSuppliersPDF } from "@/lib/supplier-pdf-generator"
+import { generateOrdersPDF } from "@/lib/order-pdf-generator"
 import type {
   Supplier,
   SupplierForm,
@@ -574,85 +583,128 @@ export function useSuppliers() {
     setIsDeleteDialogOpen(true)
   }
 
-  // Función para exportar datos de proveedores en diferentes formatos
-  const exportSuppliersData = (format: "csv" | "json" | "pdf") => {
+  // Función para exportar datos de proveedores y pedidos en diferentes formatos
+  const exportData = async (format: "csv" | "json" | "pdf", type: "suppliers" | "orders") => {
     setIsExporting(true)
 
-    // Simular procesamiento de exportación
-    setTimeout(() => {
-      // En una implementación real, esto sería una llamada a la API
-      // o procesamiento en el cliente para generar el archivo correspondiente
+    try {
+      let blob: Blob
+      let filename: string
 
-      if (format === "csv") {
-        // Preparar los datos para exportación CSV
-        const headers = ["ID", "Nombre", "Contacto", "Email", "Teléfono", "Categoría", "Estado"]
+      // Exportar según el tipo (proveedores o pedidos)
+      if (type === "suppliers") {
+        // Obtener todos los proveedores para la exportación
+        let allSuppliers = suppliers
 
-        // Convertir los datos a formato CSV
-        const csvContent = [
-          headers.join(","),
-          ...suppliers.map((supplier) =>
-            [
-              supplier.id,
-              supplier.name,
-              supplier.contact,
-              supplier.email,
-              supplier.phone,
-              supplier.category,
-              supplier.status === "active" ? "Activo" : supplier.status === "inactive" ? "Inactivo" : "Pendiente",
-            ].join(","),
-          ),
-        ].join("\n")
+        // Si hay filtros aplicados o paginación, podríamos querer exportar todos los proveedores
+        if (searchTerm || categoryFilter !== "Todos" || totalItems > suppliers.length) {
+          try {
+            // Obtener todos los proveedores sin filtros ni paginación
+            const response = await SupplierService.getSuppliers("", "Todos", 1, totalItems)
+            allSuppliers = response.suppliers
+          } catch (error) {
+            console.error("Error loading all suppliers for export:", error)
+            // Si falla, usamos los proveedores que ya tenemos cargados
+          }
+        }
 
-        // Crear un blob y un enlace de descarga
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.setAttribute("href", url)
-        link.setAttribute("download", `proveedores_${new Date().toISOString().slice(0, 10)}.csv`)
-        link.style.visibility = "hidden"
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-      } else if (format === "json") {
-        // Preparar los datos para exportación JSON
-        const jsonData = suppliers.map((supplier) => ({
-          id: supplier.id,
-          name: supplier.name,
-          contact: supplier.contact,
-          email: supplier.email,
-          phone: supplier.phone,
-          address: supplier.address,
-          category: supplier.category,
-          status: supplier.status === "active" ? "Activo" : supplier.status === "inactive" ? "Inactivo" : "Pendiente",
-        }))
-
-        // Convertir a string JSON con formato
-        const jsonContent = JSON.stringify(jsonData, null, 2)
-
-        // Crear un blob y un enlace de descarga
-        const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" })
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.setAttribute("href", url)
-        link.setAttribute("download", `proveedores_${new Date().toISOString().slice(0, 10)}.json`)
-        link.style.visibility = "hidden"
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+        // Exportar proveedores según el formato
+        switch (format) {
+          case "csv":
+            blob = exportSuppliersToCSV(allSuppliers)
+            filename = generateFilename("proveedores", "csv")
+            break
+          case "json":
+            blob = exportSuppliersToJSON(allSuppliers)
+            filename = generateFilename("proveedores", "json")
+            break
+          case "pdf":
+            blob = await generateSuppliersPDF(allSuppliers)
+            filename = generateFilename("proveedores", "pdf")
+            break
+          default:
+            throw new Error(`Formato de exportación no soportado: ${format}`)
+        }
       } else {
-        // Para PDF, en una implementación real se usaría una biblioteca específica
-        // Aquí solo simulamos la acción
-        console.log(`Exportando en formato ${format}...`)
+        // Obtener todos los pedidos para la exportación
+        let allOrders = orders
+
+        // Si hay paginación, podríamos querer exportar todos los pedidos
+        if (ordersTotalItems > orders.length) {
+          try {
+            // Obtener todos los pedidos sin paginación
+            const response = await PurchaseService.getPurchases(1, ordersTotalItems)
+
+            // Mapear la respuesta al formato que espera nuestro componente
+            allOrders = response.purchases.map((purchase) => ({
+              id: purchase.id,
+              date: purchase.purchaseDate,
+              expectedDate: purchase.expectedDeliveryDate,
+              items: purchase.items.length,
+              total: purchase.total,
+              status:
+                purchase.status === "pending"
+                  ? "Pendiente"
+                  : purchase.status === "received"
+                    ? "Recibido"
+                    : purchase.status === "cancelled"
+                      ? "Cancelado"
+                      : purchase.status,
+              supplierName: purchase.supplierName,
+              supplierId: purchase.supplierId,
+              orderItems: purchase.items.map((item) => ({
+                productId: item.productId.toString(),
+                productName: item.productName,
+                quantity: item.quantity,
+                price: item.unitPrice,
+              })),
+              notes: purchase.notes,
+            }))
+          } catch (error) {
+            console.error("Error loading all orders for export:", error)
+            // Si falla, usamos los pedidos que ya tenemos cargados
+          }
+        }
+
+        // Exportar pedidos según el formato
+        switch (format) {
+          case "csv":
+            blob = exportOrdersToCSV(allOrders)
+            filename = generateFilename("pedidos", "csv")
+            break
+          case "json":
+            blob = exportOrdersToJSON(allOrders)
+            filename = generateFilename("pedidos", "json")
+            break
+          case "pdf":
+            blob = await generateOrdersPDF(allOrders)
+            filename = generateFilename("pedidos", "pdf")
+            break
+          default:
+            throw new Error(`Formato de exportación no soportado: ${format}`)
+        }
       }
+
+      // Descargar el archivo
+      downloadBlob(blob, filename)
 
       // Mostrar notificación de éxito
       toast({
         title: "Exportación completada",
-        description: `Los datos de proveedores han sido exportados en formato ${format.toUpperCase()}.`,
+        description: `Los datos de ${type === "suppliers" ? "proveedores" : "pedidos"} han sido exportados en formato ${format.toUpperCase()}.`,
       })
-
+    } catch (error) {
+      console.error(`Error exporting ${type} to ${format}:`, error)
+      toast({
+        title: "Error de exportación",
+        description: `No se pudieron exportar los datos de ${
+          type === "suppliers" ? "proveedores" : "pedidos"
+        } en formato ${format.toUpperCase()}.`,
+        variant: "destructive",
+      })
+    } finally {
       setIsExporting(false)
-    }, 1500)
+    }
   }
 
   // Calcular índices para paginación de proveedores
@@ -726,7 +778,7 @@ export function useSuppliers() {
     handleAddSupplier,
     handleDeleteSupplier,
     confirmDelete,
-    exportSuppliersData,
+    exportData, // Nueva función unificada para exportar
     setIsAddDialogOpen,
     setIsEditDialogOpen,
     setIsDeleteDialogOpen,
