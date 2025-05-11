@@ -18,7 +18,6 @@ import { AlertCircle, CalendarIcon, Check, ChevronsUpDown, Plus, Trash2 } from "
 import { format, isAfter, isBefore, addMonths, addDays } from "date-fns"
 import { es } from "date-fns/locale"
 import { cn } from "@/lib/utils"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Textarea } from "@/components/ui/textarea"
 import type { NewOrderDialogProps, SupplierProduct } from "@/types/suppliers"
 import type { CreatePurchaseDTO, PurchaseItemDTO } from "@/types/purchases"
@@ -57,6 +56,7 @@ export function NewOrderDialog({ isOpen, onOpenChange, supplier, onSubmit, isPro
 
     try {
       const response = await SupplierService.getSupplierProducts(supplier.id)
+      console.log("Loaded supplier products:", response.products)
       setSupplierProducts(response.products)
     } catch (err) {
       console.error("Error loading supplier products:", err)
@@ -159,9 +159,13 @@ export function NewOrderDialog({ isOpen, onOpenChange, supplier, onSubmit, isPro
 
   // Función para manejar la búsqueda de productos
   const handleSearch = (value: string, index: number) => {
+    console.log(`Searching for: "${value}" at index ${index}`)
     const newSearchTerms = [...searchTerms]
     newSearchTerms[index] = value
     setSearchTerms(newSearchTerms)
+
+    // Forzar actualización del estado para asegurar que la UI se actualice
+    setItems([...items])
   }
 
   // Verificar si un producto ya está en la lista
@@ -441,69 +445,85 @@ export function NewOrderDialog({ isOpen, onOpenChange, supplier, onSubmit, isPro
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[300px] p-0">
-                          <Command>
-                            <CommandInput
+                          <div className="p-2">
+                            <Input
                               placeholder="Buscar producto..."
-                              className="h-9"
                               value={searchTerms[index] || ""}
-                              onValueChange={(value) => handleSearch(value, index)}
+                              onChange={(e) => {
+                                console.log("Search input changed:", e.target.value)
+                                handleSearch(e.target.value, index)
+                              }}
+                              className="mb-2"
                             />
-                            {isLoading ? (
-                              <div className="py-6 text-center text-sm">Cargando productos...</div>
-                            ) : (
-                              <CommandList>
-                                <CommandEmpty>No se encontraron productos</CommandEmpty>
-                                <CommandGroup>
-                                  {supplierProducts
-                                    .filter(
-                                      (product) =>
-                                        !searchTerms[index] ||
-                                        product.name.toLowerCase().includes((searchTerms[index] || "").toLowerCase()) ||
-                                        product.category
-                                          .toLowerCase()
-                                          .includes((searchTerms[index] || "").toLowerCase()),
-                                    )
-                                    .map((product) => {
-                                      // Verificar si el producto ya está en la lista (excepto en la posición actual)
-                                      const isDuplicate = items.some(
-                                        (item, idx) => idx !== index && item.productId === product.id,
-                                      )
+                          </div>
 
-                                      return (
-                                        <CommandItem
-                                          key={product.id}
-                                          value={product.id.toString()}
-                                          onSelect={() => handleProductSelect(index, product)}
-                                          disabled={isDuplicate}
-                                          className={cn(isDuplicate && "opacity-50 cursor-not-allowed")}
-                                        >
-                                          <div className="flex flex-1 items-start flex-col">
-                                            <div className="flex items-center w-full">
-                                              <span className={isDuplicate ? "line-through" : ""}>{product.name}</span>
-                                              {isDuplicate && (
-                                                <Badge variant="outline" className="ml-2 text-xs">
-                                                  Ya agregado
-                                                </Badge>
-                                              )}
-                                            </div>
-                                            <div className="flex items-center text-xs text-muted-foreground gap-2 mt-1">
-                                              <Badge variant="outline" className="rounded-sm">
-                                                {product.category}
+                          {isLoading ? (
+                            <div className="py-6 text-center text-sm">Cargando productos...</div>
+                          ) : (
+                            <div className="max-h-[300px] overflow-auto p-2">
+                              {supplierProducts.length === 0 ? (
+                                <div className="py-6 text-center text-sm">No hay productos disponibles</div>
+                              ) : (
+                                supplierProducts
+                                  .filter((product) => {
+                                    // Si no hay término de búsqueda, mostrar todos
+                                    if (!searchTerms[index] || searchTerms[index].trim() === "") return true
+
+                                    const searchTerm = searchTerms[index].toLowerCase().trim()
+                                    const productName = product.name.toLowerCase()
+                                    const productCategory = product.category.toLowerCase()
+
+                                    console.log(
+                                      `Filtering product: ${product.name}, search: ${searchTerm}, match: ${productName.includes(searchTerm)}`,
+                                    )
+
+                                    return productName.includes(searchTerm) || productCategory.includes(searchTerm)
+                                  })
+                                  .map((product) => {
+                                    // Verificar si el producto ya está en la lista (excepto en la posición actual)
+                                    const isDuplicate = items.some(
+                                      (item, idx) => idx !== index && item.productId === product.id,
+                                    )
+
+                                    return (
+                                      <div
+                                        key={product.id}
+                                        className={cn(
+                                          "flex items-start justify-between rounded-md p-2 cursor-pointer hover:bg-accent",
+                                          isDuplicate && "opacity-50 cursor-not-allowed",
+                                        )}
+                                        onClick={() => {
+                                          if (!isDuplicate) {
+                                            handleProductSelect(index, product)
+                                          }
+                                        }}
+                                      >
+                                        <div className="flex flex-1 items-start flex-col">
+                                          <div className="flex items-center w-full">
+                                            <span className={isDuplicate ? "line-through" : ""}>{product.name}</span>
+                                            {isDuplicate && (
+                                              <Badge variant="outline" className="ml-2 text-xs">
+                                                Ya agregado
                                               </Badge>
-                                              <span>Stock: {product.stock}</span>
-                                              <span className="font-medium">${product.price.toFixed(2)}</span>
-                                            </div>
+                                            )}
                                           </div>
-                                          {item.productId === product.id && (
-                                            <Check className="ml-auto h-4 w-4 text-primary" />
-                                          )}
-                                        </CommandItem>
-                                      )
-                                    })}
-                                </CommandGroup>
-                              </CommandList>
-                            )}
-                          </Command>
+                                          <div className="flex items-center text-xs text-muted-foreground gap-2 mt-1">
+                                            <Badge variant="outline" className="rounded-sm">
+                                              {product.category}
+                                            </Badge>
+                                            <span>Stock: {product.stock}</span>
+                                            <span className="font-medium">${product.price.toFixed(2)}</span>
+                                          </div>
+                                        </div>
+                                        {item.productId === product.id && (
+                                          <Check className="ml-auto h-4 w-4 text-primary" />
+                                        )}
+                                      </div>
+                                    )
+                                  })
+                              )}
+                            </div>
+                          )}
                         </PopoverContent>
                       </Popover>
                     </div>
