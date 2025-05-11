@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DialogFooter } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import type { SupplierDetailsProps } from "@/types/suppliers"
 import { formatDate } from "@/hooks/use-suppliers"
 
@@ -127,56 +128,68 @@ export function SupplierDetails({ supplier, products, orders, onNewOrder }: Supp
           </TabsList>
           <TabsContent value="products">
             <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Producto</TableHead>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Precio</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{product.category}</TableCell>
-                      <TableCell>{product.stock}</TableCell>
-                      <TableCell>${product.price.toFixed(2)}</TableCell>
+              <div className="relative">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead>Producto</TableHead>
+                      <TableHead>Categoría</TableHead>
+                      <TableHead>Stock</TableHead>
+                      <TableHead>Precio</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                </Table>
+                <ScrollArea className="h-[200px]">
+                  <Table>
+                    <TableBody>
+                      {products.map((product) => (
+                        <TableRow key={product.id}>
+                          <TableCell className="font-medium">{product.name}</TableCell>
+                          <TableCell>{product.category}</TableCell>
+                          <TableCell>{product.stock}</TableCell>
+                          <TableCell>${product.price.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </div>
             </div>
           </TabsContent>
           <TabsContent value="orders">
             <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID Pedido</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Productos</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Estado</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium">{order.id}</TableCell>
-                      <TableCell>{formatDate(order.date)}</TableCell>
-                      <TableCell>{order.items}</TableCell>
-                      <TableCell>${order.total.toFixed(2)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={getStatusBadgeStyles(order.status).className}>
-                          {getStatusBadgeStyles(order.status).text}
-                        </Badge>
-                      </TableCell>
+              <div className="relative">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead>ID Pedido</TableHead>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Productos</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Estado</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                </Table>
+                <ScrollArea className="h-[200px]">
+                  <Table>
+                    <TableBody>
+                      {orders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">{order.id}</TableCell>
+                          <TableCell>{formatDate(order.date)}</TableCell>
+                          <TableCell>{order.items}</TableCell>
+                          <TableCell>${order.total.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={getStatusBadgeStyles(order.status).className}>
+                              {getStatusBadgeStyles(order.status).text}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </div>
             </div>
           </TabsContent>
         </Tabs>

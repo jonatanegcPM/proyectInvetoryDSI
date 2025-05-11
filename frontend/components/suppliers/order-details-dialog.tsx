@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { format } from "date-fns"
 import { AlertCircle, CalendarIcon, Loader2, PackageCheck, XCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -68,82 +69,90 @@ export function OrderDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="sm:max-w-[625px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Detalles del Pedido</DialogTitle>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h4 className="text-sm font-medium mb-1">Fecha del Pedido</h4>
-              <p className="text-sm flex items-center gap-1">
-                <CalendarIcon className="h-3 w-3" />
-                {format(new Date(order.date), "dd/MM/yyyy")}
-              </p>
-            </div>
-            {order.expectedDate && (
+        <ScrollArea className="flex-1 pr-4">
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <h4 className="text-sm font-medium mb-1">Fecha Esperada de Entrega</h4>
+                <h4 className="text-sm font-medium mb-1">Fecha del Pedido</h4>
                 <p className="text-sm flex items-center gap-1">
                   <CalendarIcon className="h-3 w-3" />
-                  {format(new Date(order.expectedDate), "dd/MM/yyyy")}
+                  {format(new Date(order.date), "dd/MM/yyyy")}
                 </p>
               </div>
-            )}
-            <div>
-              <h4 className="text-sm font-medium mb-1">Estado</h4>
-              <Badge variant="outline" className={cn(statusBadge.className)}>
-                {statusBadge.text}
-              </Badge>
+              {order.expectedDate && (
+                <div>
+                  <h4 className="text-sm font-medium mb-1">Fecha Esperada de Entrega</h4>
+                  <p className="text-sm flex items-center gap-1">
+                    <CalendarIcon className="h-3 w-3" />
+                    {format(new Date(order.expectedDate), "dd/MM/yyyy")}
+                  </p>
+                </div>
+              )}
+              <div>
+                <h4 className="text-sm font-medium mb-1">Estado</h4>
+                <Badge variant="outline" className={cn(statusBadge.className)}>
+                  {statusBadge.text}
+                </Badge>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium mb-1">Total</h4>
+                <p className="text-sm font-semibold">${order.total?.toFixed(2) || "0.00"}</p>
+              </div>
             </div>
-            <div>
-              <h4 className="text-sm font-medium mb-1">Total</h4>
-              <p className="text-sm font-semibold">${order.total?.toFixed(2) || "0.00"}</p>
-            </div>
-          </div>
 
-          <div>
-            <h4 className="text-sm font-medium mb-2">Productos</h4>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Producto</TableHead>
-                    <TableHead className="text-right">Cantidad</TableHead>
-                    <TableHead className="text-right">Precio Unitario</TableHead>
-                    <TableHead className="text-right">Subtotal</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {order.orderItems && order.orderItems.length > 0 ? (
-                    order.orderItems.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{item.productName}</TableCell>
-                        <TableCell className="text-right">{item.quantity}</TableCell>
-                        <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">${(item.price * item.quantity).toFixed(2)}</TableCell>
+            <div>
+              <h4 className="text-sm font-medium mb-2">Productos</h4>
+              <div className="rounded-md border">
+                <div className="relative">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-background z-10">
+                      <TableRow>
+                        <TableHead>Producto</TableHead>
+                        <TableHead className="text-right">Cantidad</TableHead>
+                        <TableHead className="text-right">Precio Unitario</TableHead>
+                        <TableHead className="text-right">Subtotal</TableHead>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center">
-                        No hay detalles disponibles para este pedido
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    </TableHeader>
+                  </Table>
+                  <div className="max-h-[200px] overflow-auto">
+                    <Table>
+                      <TableBody>
+                        {order.orderItems && order.orderItems.length > 0 ? (
+                          order.orderItems.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell className="font-medium">{item.productName}</TableCell>
+                              <TableCell className="text-right">{item.quantity}</TableCell>
+                              <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                              <TableCell className="text-right">${(item.price * item.quantity).toFixed(2)}</TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={4} className="text-center">
+                              No hay detalles disponibles para este pedido
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {order.notes && (
-            <div>
-              <h4 className="text-sm font-medium mb-1">Notas</h4>
-              <p className="text-sm">{order.notes}</p>
-            </div>
-          )}
-        </div>
+            {order.notes && (
+              <div>
+                <h4 className="text-sm font-medium mb-1">Notas</h4>
+                <p className="text-sm">{order.notes}</p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
 
         {isPending && onUpdateStatus && (
           <>
@@ -165,6 +174,7 @@ export function OrderDetailsDialog({
                       <span className="text-xs font-medium">Cancelar</span>
                     </div>
                   </Button>
+                  <span className="text-[10px] text-center mt-1 text-muted-foreground">No actualiza inventario</span>
                 </div>
 
                 <div className="flex flex-col">
@@ -179,6 +189,7 @@ export function OrderDetailsDialog({
                       <span className="text-xs font-medium">Recibido</span>
                     </div>
                   </Button>
+                  <span className="text-[10px] text-center mt-1 text-muted-foreground">Actualiza inventario</span>
                 </div>
               </div>
             </div>

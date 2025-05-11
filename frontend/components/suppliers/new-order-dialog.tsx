@@ -19,6 +19,7 @@ import { format, isAfter, isBefore, addMonths, addDays } from "date-fns"
 import { es } from "date-fns/locale"
 import { cn } from "@/lib/utils"
 import { Textarea } from "@/components/ui/textarea"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import type { NewOrderDialogProps, SupplierProduct } from "@/types/suppliers"
 import type { CreatePurchaseDTO, PurchaseItemDTO } from "@/types/purchases"
 import { SupplierService } from "@/services/supplier-service"
@@ -323,7 +324,7 @@ export function NewOrderDialog({ isOpen, onOpenChange, supplier, onSubmit, isPro
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="sm:max-w-[625px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Nuevo Pedido</DialogTitle>
           <DialogDescription>
@@ -332,287 +333,293 @@ export function NewOrderDialog({ isOpen, onOpenChange, supplier, onSubmit, isPro
         </DialogHeader>
 
         {supplier && (
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="supplier">Proveedor</Label>
-                <Input id="supplier" value={supplier.name} disabled />
-              </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="expected-date" className={dateError ? "text-destructive" : ""}>
-                  Fecha Esperada de Entrega*
-                </Label>
-                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      id="expected-date"
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal transition-all",
-                        !expectedDate && "text-muted-foreground",
-                        dateError && "border-destructive text-destructive",
-                        calendarOpen && "ring-2 ring-ring ring-offset-2",
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {expectedDate ? format(expectedDate, "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <div className="p-3 border-b">
-                      <h3 className="text-sm font-medium">Seleccione fecha de entrega</h3>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Elija la fecha esperada para recibir este pedido
-                      </p>
-                    </div>
-                    <Calendar
-                      mode="single"
-                      selected={expectedDate}
-                      onSelect={(date) => {
-                        handleDateChange(date)
-                        setCalendarOpen(false)
-                      }}
-                      initialFocus
-                      locale={es}
-                      disabled={(date) => isBefore(date, today) || isAfter(date, maxDate)}
-                      className="rounded-md border-0"
-                      classNames={{
-                        day_selected:
-                          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                        day_today: "bg-accent text-accent-foreground",
-                        day_outside: "text-muted-foreground opacity-50",
-                        day_disabled: "text-muted-foreground opacity-50",
-                        day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                        day_hidden: "invisible",
-                        caption: "flex justify-center pt-1 relative items-center",
-                        caption_label: "text-sm font-medium",
-                        nav: "space-x-1 flex items-center",
-                        nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
-                        nav_button_previous: "absolute left-1",
-                        nav_button_next: "absolute right-1",
-                        head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
-                        cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                        day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors",
-                        table: "w-full border-collapse space-y-1",
-                      }}
-                      footer={
-                        <div className="p-3 border-t">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full justify-center"
-                            onClick={() => {
-                              handleDateChange(addDays(today, 7))
-                              setCalendarOpen(false)
-                            }}
-                          >
-                            Usar fecha recomendada (7 días)
-                          </Button>
-                        </div>
-                      }
-                    />
-                  </PopoverContent>
-                </Popover>
-                {dateError && <p className="text-xs text-destructive mt-1">{dateError}</p>}
-              </div>
-            </div>
-
-            <div>
-              <Label className="mb-2 block">Productos*</Label>
-              <div className="space-y-3">
-                {items.map((item, index) => (
-                  <div key={index} className="flex items-end gap-2">
-                    <div className="flex-1">
-                      <Label htmlFor={`product-${index}`} className="sr-only">
-                        Producto
-                      </Label>
-                      <Popover
-                        open={openProductSelector === index}
-                        onOpenChange={(open) => setOpenProductSelector(open ? index : -1)}
+          <ScrollArea className="flex-1 pr-4">
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="supplier">Proveedor</Label>
+                  <Input id="supplier" value={supplier.name} disabled />
+                </div>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="expected-date" className={dateError ? "text-destructive" : ""}>
+                    Fecha Esperada de Entrega*
+                  </Label>
+                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="expected-date"
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal transition-all",
+                          !expectedDate && "text-muted-foreground",
+                          dateError && "border-destructive text-destructive",
+                          calendarOpen && "ring-2 ring-ring ring-offset-2",
+                        )}
                       >
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={openProductSelector === index}
-                            className={cn(
-                              "w-full justify-between",
-                              !item.productId && items.length > 0 && "border-destructive",
-                            )}
-                          >
-                            {item.productName ? item.productName : "Seleccionar producto"}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[300px] p-0">
-                          <div className="p-2">
-                            <Input
-                              placeholder="Buscar producto..."
-                              value={searchTerms[index] || ""}
-                              onChange={(e) => {
-                                console.log("Search input changed:", e.target.value)
-                                handleSearch(e.target.value, index)
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {expectedDate ? format(expectedDate, "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <div className="p-3 border-b">
+                        <h3 className="text-sm font-medium">Seleccione fecha de entrega</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Elija la fecha esperada para recibir este pedido
+                        </p>
+                      </div>
+                      <Calendar
+                        mode="single"
+                        selected={expectedDate}
+                        onSelect={(date) => {
+                          handleDateChange(date)
+                          setCalendarOpen(false)
+                        }}
+                        initialFocus
+                        locale={es}
+                        disabled={(date) => isBefore(date, today) || isAfter(date, maxDate)}
+                        className="rounded-md border-0"
+                        classNames={{
+                          day_selected:
+                            "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                          day_today: "bg-accent text-accent-foreground",
+                          day_outside: "text-muted-foreground opacity-50",
+                          day_disabled: "text-muted-foreground opacity-50",
+                          day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                          day_hidden: "invisible",
+                          caption: "flex justify-center pt-1 relative items-center",
+                          caption_label: "text-sm font-medium",
+                          nav: "space-x-1 flex items-center",
+                          nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+                          nav_button_previous: "absolute left-1",
+                          nav_button_next: "absolute right-1",
+                          head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+                          cell: "text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                          day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md transition-colors",
+                          table: "w-full border-collapse space-y-1",
+                        }}
+                        footer={
+                          <div className="p-3 border-t">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-center"
+                              onClick={() => {
+                                handleDateChange(addDays(today, 7))
+                                setCalendarOpen(false)
                               }}
-                              className="mb-2"
-                            />
+                            >
+                              Usar fecha recomendada (7 días)
+                            </Button>
                           </div>
+                        }
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {dateError && <p className="text-xs text-destructive mt-1">{dateError}</p>}
+                </div>
+              </div>
 
-                          {isLoading ? (
-                            <div className="py-6 text-center text-sm">Cargando productos...</div>
-                          ) : (
-                            <div className="max-h-[300px] overflow-auto p-2">
-                              {supplierProducts.length === 0 ? (
-                                <div className="py-6 text-center text-sm">No hay productos disponibles</div>
-                              ) : (
-                                supplierProducts
-                                  .filter((product) => {
-                                    // Si no hay término de búsqueda, mostrar todos
-                                    if (!searchTerms[index] || searchTerms[index].trim() === "") return true
+              <div>
+                <Label className="mb-2 block">Productos*</Label>
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                  {items.map((item, index) => (
+                    <div key={index} className="flex items-end gap-2">
+                      <div className="flex-1">
+                        <Label htmlFor={`product-${index}`} className="sr-only">
+                          Producto
+                        </Label>
+                        <Popover
+                          open={openProductSelector === index}
+                          onOpenChange={(open) => setOpenProductSelector(open ? index : -1)}
+                        >
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={openProductSelector === index}
+                              className={cn(
+                                "w-full justify-between",
+                                !item.productId && items.length > 0 && "border-destructive",
+                              )}
+                            >
+                              {item.productName ? item.productName : "Seleccionar producto"}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[300px] p-0" align="start">
+                            <div className="p-2">
+                              <Input
+                                placeholder="Buscar producto..."
+                                value={searchTerms[index] || ""}
+                                onChange={(e) => {
+                                  console.log("Search input changed:", e.target.value)
+                                  handleSearch(e.target.value, index)
+                                }}
+                                className="mb-2"
+                              />
+                            </div>
 
-                                    const searchTerm = searchTerms[index].toLowerCase().trim()
-                                    const productName = product.name.toLowerCase()
-                                    const productCategory = product.category.toLowerCase()
+                            {isLoading ? (
+                              <div className="py-6 text-center text-sm">Cargando productos...</div>
+                            ) : (
+                              <ScrollArea className="max-h-[200px]">
+                                <div className="p-2">
+                                  {supplierProducts.length === 0 ? (
+                                    <div className="py-6 text-center text-sm">No hay productos disponibles</div>
+                                  ) : (
+                                    supplierProducts
+                                      .filter((product) => {
+                                        // Si no hay término de búsqueda, mostrar todos
+                                        if (!searchTerms[index] || searchTerms[index].trim() === "") return true
 
-                                    console.log(
-                                      `Filtering product: ${product.name}, search: ${searchTerm}, match: ${productName.includes(searchTerm)}`,
-                                    )
+                                        const searchTerm = searchTerms[index].toLowerCase().trim()
+                                        const productName = product.name.toLowerCase()
+                                        const productCategory = product.category.toLowerCase()
 
-                                    return productName.includes(searchTerm) || productCategory.includes(searchTerm)
-                                  })
-                                  .map((product) => {
-                                    // Verificar si el producto ya está en la lista (excepto en la posición actual)
-                                    const isDuplicate = items.some(
-                                      (item, idx) => idx !== index && item.productId === product.id,
-                                    )
+                                        console.log(
+                                          `Filtering product: ${product.name}, search: ${searchTerm}, match: ${productName.includes(searchTerm)}`,
+                                        )
 
-                                    return (
-                                      <div
-                                        key={product.id}
-                                        className={cn(
-                                          "flex items-start justify-between rounded-md p-2 cursor-pointer hover:bg-accent",
-                                          isDuplicate && "opacity-50 cursor-not-allowed",
-                                        )}
-                                        onClick={() => {
-                                          if (!isDuplicate) {
-                                            handleProductSelect(index, product)
-                                          }
-                                        }}
-                                      >
-                                        <div className="flex flex-1 items-start flex-col">
-                                          <div className="flex items-center w-full">
-                                            <span className={isDuplicate ? "line-through" : ""}>{product.name}</span>
-                                            {isDuplicate && (
-                                              <Badge variant="outline" className="ml-2 text-xs">
-                                                Ya agregado
-                                              </Badge>
+                                        return productName.includes(searchTerm) || productCategory.includes(searchTerm)
+                                      })
+                                      .map((product) => {
+                                        // Verificar si el producto ya está en la lista (excepto en la posición actual)
+                                        const isDuplicate = items.some(
+                                          (item, idx) => idx !== index && item.productId === product.id,
+                                        )
+
+                                        return (
+                                          <div
+                                            key={product.id}
+                                            className={cn(
+                                              "flex items-start justify-between rounded-md p-2 cursor-pointer hover:bg-accent",
+                                              isDuplicate && "opacity-50 cursor-not-allowed",
+                                            )}
+                                            onClick={() => {
+                                              if (!isDuplicate) {
+                                                handleProductSelect(index, product)
+                                              }
+                                            }}
+                                          >
+                                            <div className="flex flex-1 items-start flex-col">
+                                              <div className="flex items-center w-full">
+                                                <span className={isDuplicate ? "line-through" : ""}>
+                                                  {product.name}
+                                                </span>
+                                                {isDuplicate && (
+                                                  <Badge variant="outline" className="ml-2 text-xs">
+                                                    Ya agregado
+                                                  </Badge>
+                                                )}
+                                              </div>
+                                              <div className="flex items-center text-xs text-muted-foreground gap-2 mt-1">
+                                                <Badge variant="outline" className="rounded-sm">
+                                                  {product.category}
+                                                </Badge>
+                                                <span>Stock: {product.stock}</span>
+                                                <span className="font-medium">${product.price.toFixed(2)}</span>
+                                              </div>
+                                            </div>
+                                            {item.productId === product.id && (
+                                              <Check className="ml-auto h-4 w-4 text-primary" />
                                             )}
                                           </div>
-                                          <div className="flex items-center text-xs text-muted-foreground gap-2 mt-1">
-                                            <Badge variant="outline" className="rounded-sm">
-                                              {product.category}
-                                            </Badge>
-                                            <span>Stock: {product.stock}</span>
-                                            <span className="font-medium">${product.price.toFixed(2)}</span>
-                                          </div>
-                                        </div>
-                                        {item.productId === product.id && (
-                                          <Check className="ml-auto h-4 w-4 text-primary" />
-                                        )}
-                                      </div>
-                                    )
-                                  })
-                              )}
-                            </div>
-                          )}
-                        </PopoverContent>
-                      </Popover>
+                                        )
+                                      })
+                                  )}
+                                </div>
+                              </ScrollArea>
+                            )}
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                      <div className="w-20">
+                        <Label htmlFor={`quantity-${index}`} className="sr-only">
+                          Cantidad
+                        </Label>
+                        <Input
+                          id={`quantity-${index}`}
+                          type="number"
+                          min="1"
+                          placeholder="Cant."
+                          value={item.quantity}
+                          onChange={(e) => updateItem(index, "quantity", Number.parseInt(e.target.value) || 1)}
+                          className={item.quantity <= 0 ? "border-destructive" : ""}
+                        />
+                      </div>
+                      <div className="w-24">
+                        <Label htmlFor={`price-${index}`} className="sr-only">
+                          Precio
+                        </Label>
+                        <Input
+                          id={`price-${index}`}
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="Precio"
+                          value={item.unitPrice}
+                          disabled
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeItem(index)}
+                        disabled={items.length === 1}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Eliminar producto</span>
+                      </Button>
                     </div>
-                    <div className="w-20">
-                      <Label htmlFor={`quantity-${index}`} className="sr-only">
-                        Cantidad
-                      </Label>
-                      <Input
-                        id={`quantity-${index}`}
-                        type="number"
-                        min="1"
-                        placeholder="Cant."
-                        value={item.quantity}
-                        onChange={(e) => updateItem(index, "quantity", Number.parseInt(e.target.value) || 1)}
-                        className={item.quantity <= 0 ? "border-destructive" : ""}
-                      />
-                    </div>
-                    <div className="w-24">
-                      <Label htmlFor={`price-${index}`} className="sr-only">
-                        Precio
-                      </Label>
-                      <Input
-                        id={`price-${index}`}
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="Precio"
-                        value={item.unitPrice}
-                        disabled
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeItem(index)}
-                      disabled={items.length === 1}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="sr-only">Eliminar producto</span>
-                    </Button>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <Button type="button" variant="outline" size="sm" className="mt-3" onClick={addItem}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Agregar Producto
+                </Button>
               </div>
-              <Button type="button" variant="outline" size="sm" className="mt-3" onClick={addItem}>
-                <Plus className="mr-2 h-4 w-4" />
-                Agregar Producto
-              </Button>
+
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="notes">Notas</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Notas adicionales para este pedido"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
+
+              <Separator className="my-2" />
+
+              <div className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <div className="text-sm">Subtotal:</div>
+                  <div className="font-medium">${subtotal.toFixed(2)}</div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="text-sm">Impuestos (13%):</div>
+                  <div className="font-medium">${tax.toFixed(2)}</div>
+                </div>
+                <div className="flex justify-between items-center pt-2">
+                  <div className="text-sm font-medium">Total del Pedido:</div>
+                  <div className="text-lg font-bold">${total.toFixed(2)}</div>
+                </div>
+              </div>
+
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <p className="text-xs text-muted-foreground">* Campos obligatorios</p>
             </div>
-
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="notes">Notas</Label>
-              <Textarea
-                id="notes"
-                placeholder="Notas adicionales para este pedido"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </div>
-
-            <Separator className="my-2" />
-
-            <div className="space-y-1">
-              <div className="flex justify-between items-center">
-                <div className="text-sm">Subtotal:</div>
-                <div className="font-medium">${subtotal.toFixed(2)}</div>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="text-sm">Impuestos (13%):</div>
-                <div className="font-medium">${tax.toFixed(2)}</div>
-              </div>
-              <div className="flex justify-between items-center pt-2">
-                <div className="text-sm font-medium">Total del Pedido:</div>
-                <div className="text-lg font-bold">${total.toFixed(2)}</div>
-              </div>
-            </div>
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <p className="text-xs text-muted-foreground">* Campos obligatorios</p>
-          </div>
+          </ScrollArea>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="pt-2 border-t mt-2">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
