@@ -102,19 +102,37 @@ namespace proyectInvetoryDSI.Services
             int previousCount = previousSales.Count;
             decimal? transactionChange = dateFilter.ToLower() != "all" && previousCount != 0 ? (decimal?)Math.Round(((currentCount - previousCount) / (decimal)previousCount) * 100, 1) : null;
 
-            var customerStats = await _context.Customers.CountAsync();
-            int lowStockCount = await _context.Products
+            // Obtener todas las estadísticas en una sola consulta
+            var stats = await _context.Customers
+                .GroupBy(c => 1)
+                .Select(g => new
+                {
+                    TotalCustomers = g.Count(),
+                    CurrentPeriodCustomers = g.Count(c => c.RegistrationDate >= startDate && c.RegistrationDate <= endDate),
+                    PreviousPeriodCustomers = g.Count(c => c.RegistrationDate >= previousStartDate && c.RegistrationDate <= previousEndDate)
+                })
+                .FirstOrDefaultAsync() ?? new { TotalCustomers = 0, CurrentPeriodCustomers = 0, PreviousPeriodCustomers = 0 };
+
+            // Obtener productos con bajo stock en una sola consulta
+            var lowStockProducts = await _context.Products
                 .Where(p => p.ReorderLevel.HasValue &&
-                           p.StockQuantity < p.ReorderLevel.Value &&
-                           p.Status != "deleted")
+                            p.StockQuantity < p.ReorderLevel.Value &&
+                            p.Status != "deleted")
                 .CountAsync();
+
+            // Calcular el cambio de clientes
+            decimal? customerChange = null;
+            if (dateFilter.ToLower() != "all" && stats.PreviousPeriodCustomers != 0)
+            {
+                customerChange = Math.Round(((stats.CurrentPeriodCustomers - stats.PreviousPeriodCustomers) / (decimal)stats.PreviousPeriodCustomers) * 100, 1);
+            }
 
             return new
             {
                 sales = new { total = currentTotal, change = salesChange, period = dateFilter },
                 transactions = new { count = currentCount, change = transactionChange, period = dateFilter },
-                customers = new { count = customerStats, change = 12.5, period = dateFilter }, // Asumo que este cambio sigue siendo fijo
-                inventory = new { lowStock = lowStockCount }
+                customers = new { count = stats.CurrentPeriodCustomers, change = customerChange, period = dateFilter }, // Corrección aquí
+                inventory = new { lowStock = lowStockProducts }
             };
         }
 
