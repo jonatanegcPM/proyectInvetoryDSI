@@ -88,6 +88,9 @@ export function useCustomers() {
   // Añadir este estado para los errores de validación después de los otros estados
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
 
+  // Añadir el estado refreshTrigger después de los otros estados
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+
   // Función para restablecer el formulario
   const resetCustomerForm = () => {
     setCustomerForm(emptyCustomerForm)
@@ -131,10 +134,10 @@ export function useCustomers() {
     }
   }, [searchTerm, statusFilter, currentPage, itemsPerPage, sortConfig])
 
-  // Cargar clientes cuando cambian los filtros o la paginación
+  // Modificar la dependencia del useEffect de loadCustomers para incluir refreshTrigger
   useEffect(() => {
     loadCustomers()
-  }, [loadCustomers])
+  }, [loadCustomers, refreshTrigger])
 
   // Función para cambiar el orden
   const requestSort = (key: string) => {
@@ -337,8 +340,8 @@ export function useCustomers() {
       resetCustomerForm()
       setIsAddDialogOpen(false)
 
-      // Recargar la lista de clientes
-      loadCustomers()
+      // Incrementar refreshTrigger para actualizar los datos
+      setRefreshTrigger((prev) => prev + 1)
     } catch (error) {
       console.error("Error al añadir cliente:", error)
       toast({
@@ -382,8 +385,8 @@ export function useCustomers() {
       setSelectedCustomer(null)
       resetCustomerForm()
 
-      // Recargar la lista de clientes
-      loadCustomers()
+      // Incrementar refreshTrigger para actualizar los datos
+      setRefreshTrigger((prev) => prev + 1)
     } catch (error) {
       console.error("Error al actualizar cliente:", error)
       toast({
@@ -396,7 +399,7 @@ export function useCustomers() {
     }
   }
 
-  // Función para manejar la eliminación de un cliente
+  // Modificar la función handleDeleteCustomer para usar refreshTrigger
   const handleDeleteCustomer = async () => {
     if (!customerToDelete) return
 
@@ -416,8 +419,8 @@ export function useCustomers() {
       setIsDeleteDialogOpen(false)
       setCustomerToDelete(null)
 
-      // Recargar la lista de clientes
-      loadCustomers()
+      // Incrementar refreshTrigger para actualizar los datos
+      setRefreshTrigger((prev) => prev + 1)
     } catch (error) {
       console.error("Error al eliminar cliente:", error)
       toast({
@@ -494,6 +497,7 @@ export function useCustomers() {
     setCurrentPage(1)
   }, [searchTerm, statusFilter])
 
+  // Añadir refreshTrigger y setRefreshTrigger al objeto de retorno
   return {
     // Datos
     stats,
@@ -514,9 +518,9 @@ export function useCustomers() {
     isProcessing,
     isExporting,
     isLoading,
-
-    // Añadir esto a las propiedades existentes
     validationErrors,
+    refreshTrigger,
+    setRefreshTrigger,
 
     // Cálculos para paginación
     totalPages,
