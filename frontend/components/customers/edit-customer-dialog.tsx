@@ -26,7 +26,7 @@ export function EditCustomerDialog({
 }: EditCustomerDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Cliente</DialogTitle>
           <DialogDescription>Modifique los datos del cliente según sea necesario.</DialogDescription>
