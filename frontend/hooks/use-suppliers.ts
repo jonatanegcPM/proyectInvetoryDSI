@@ -104,6 +104,9 @@ export function useSuppliers() {
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false)
   const [supplierForNewOrder, setSupplierForNewOrder] = useState<Supplier | null>(null)
 
+  // Añadir un nuevo estado para controlar la actualización de datos
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+
   // Cargar categorías al inicio
   useEffect(() => {
     loadCategories()
@@ -112,17 +115,17 @@ export function useSuppliers() {
   // Cargar proveedores cuando cambian los filtros o la paginación
   useEffect(() => {
     loadSuppliers()
-  }, [searchTerm, categoryFilter, currentPage, itemsPerPage])
+  }, [searchTerm, categoryFilter, currentPage, itemsPerPage, refreshTrigger])
 
   // Cargar estadísticas al inicio
   useEffect(() => {
     loadStats()
-  }, [])
+  }, [refreshTrigger])
 
   // Cargar pedidos
   useEffect(() => {
     loadOrders()
-  }, [ordersCurrentPage, ordersItemsPerPage])
+  }, [ordersCurrentPage, ordersItemsPerPage, refreshTrigger])
 
   // Resetear el formulario cuando se cierra el diálogo de añadir
   useEffect(() => {
@@ -430,8 +433,8 @@ export function useSuppliers() {
         description: `El pedido ${response.id} ha sido creado correctamente.`,
       })
 
-      // Recargar los pedidos
-      loadOrders()
+      // Actualizar todos los datos
+      setRefreshTrigger((prev) => prev + 1)
 
       // Cerrar el diálogo y resetear estados
       setIsNewOrderDialogOpen(false)
@@ -524,8 +527,8 @@ export function useSuppliers() {
         description: `Los datos de ${supplierForm.name} han sido actualizados correctamente.`,
       })
 
-      // Recargar los proveedores
-      loadSuppliers()
+      // Actualizar todos los datos
+      setRefreshTrigger((prev) => prev + 1)
 
       // Cerrar el diálogo y resetear estados
       setIsEditDialogOpen(false)
@@ -555,8 +558,8 @@ export function useSuppliers() {
         description: `${supplierForm.name} ha sido añadido correctamente.`,
       })
 
-      // Recargar los proveedores
-      loadSuppliers()
+      // Actualizar todos los datos
+      setRefreshTrigger((prev) => prev + 1)
 
       // Resetear el formulario y cerrar el diálogo
       setSupplierForm({ ...initialSupplierForm })
@@ -588,8 +591,8 @@ export function useSuppliers() {
         description: `${supplierToDelete.name} ha sido eliminado correctamente.`,
       })
 
-      // Recargar los proveedores
-      loadSuppliers()
+      // Actualizar todos los datos
+      setRefreshTrigger((prev) => prev + 1)
 
       // Cerrar el diálogo de confirmación
       setIsDeleteDialogOpen(false)
@@ -747,5 +750,7 @@ export function useSuppliers() {
     setIsNewOrderDialogOpen,
     setSelectedSupplier,
     setSelectedOrder,
+    refreshTrigger,
+    setRefreshTrigger,
   }
 }
