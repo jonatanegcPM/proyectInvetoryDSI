@@ -79,9 +79,10 @@ namespace proyectInvetoryDSI.Services
         public async Task<SupplierDetailDTO?> GetSupplierByIdAsync(int id)
         {
             var supplier = await _context.Suppliers
-                .Include(s => s.Products)
+                .Include(s => s.Products!.Where(p => p.Status != "deleted"))
+                    .ThenInclude(p => p.Category)
                 .Include(s => s.Purchases!)
-                    .ThenInclude(p => p.PurchaseDetails!)
+                    .ThenInclude(p => p.PurchaseDetails)
                 .FirstOrDefaultAsync(s => s.SupplierID == id);
 
             if (supplier == null)
@@ -95,7 +96,7 @@ namespace proyectInvetoryDSI.Services
                 Name = p.Name,
                 Category = p.Category != null ? p.Category.CategoryName : "Sin categoría",
                 Stock = p.StockQuantity,
-                Price = p.Price
+                Price = p.CostPrice ?? 0
             }).ToList() ?? new List<SupplierProductDTO>();
 
             var orders = supplier.Purchases?.Select(p => new SupplierOrderDTO
@@ -104,7 +105,7 @@ namespace proyectInvetoryDSI.Services
                 Date = p.PurchaseDate.ToString("yyyy-MM-dd"),
                 Items = p.PurchaseDetails != null ? p.PurchaseDetails.Count : 0,
                 Total = p.TotalAmount,
-                Status = "Recibido"
+                Status = p.Status
             }).ToList() ?? new List<SupplierOrderDTO>();
 
             return new SupplierDetailDTO
@@ -199,7 +200,7 @@ namespace proyectInvetoryDSI.Services
         public async Task<SupplierProductsResponse> GetSupplierProductsAsync(int id, int page = 1, int limit = 10)
         {
             var query = _context.Products
-                .Where(p => p.SupplierID == id)
+                .Where(p => p.SupplierID == id && p.Status != "deleted")
                 .Include(p => p.Category)
                 .OrderBy(p => p.Name);
 
@@ -214,7 +215,7 @@ namespace proyectInvetoryDSI.Services
                     Name = p.Name,
                     Category = p.Category != null ? p.Category.CategoryName : "Sin categoría",
                     Stock = p.StockQuantity,
-                    Price = p.Price
+                    Price = p.CostPrice ?? 0
                 })
                 .ToListAsync();
 

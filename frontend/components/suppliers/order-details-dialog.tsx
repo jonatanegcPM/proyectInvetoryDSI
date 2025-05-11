@@ -1,6 +1,6 @@
 "use client"
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
@@ -11,19 +11,40 @@ import type { OrderDetailsDialogProps } from "@/types/suppliers"
 export function OrderDetailsDialog({ order, isOpen, onOpenChange }: OrderDetailsDialogProps) {
   if (!order) return null
 
-  // Calcular el total de los items
-  const total = order.orderItems
-    ? order.orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    : order.total
+  // Mapear el estado a un texto en español y un color
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "received":
+      case "recibido":
+        return {
+          text: "Recibido",
+          className:
+            "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",
+        }
+      case "cancelled":
+      case "cancelado":
+        return {
+          text: "Cancelado",
+          className: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800",
+        }
+      case "pending":
+      case "pendiente":
+      default:
+        return {
+          text: "Pendiente",
+          className:
+            "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800",
+        }
+    }
+  }
+
+  const statusBadge = getStatusBadge(order.status)
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
           <DialogTitle>Detalles del Pedido</DialogTitle>
-          <DialogDescription>
-            Pedido {order.id} a {order.supplierName}
-          </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
@@ -46,20 +67,13 @@ export function OrderDetailsDialog({ order, isOpen, onOpenChange }: OrderDetails
             )}
             <div>
               <h4 className="text-sm font-medium mb-1">Estado</h4>
-              <Badge
-                variant="outline"
-                className={cn(
-                  order.status === "Recibido"
-                    ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800"
-                    : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800",
-                )}
-              >
-                {order.status}
+              <Badge variant="outline" className={cn(statusBadge.className)}>
+                {statusBadge.text}
               </Badge>
             </div>
             <div>
               <h4 className="text-sm font-medium mb-1">Total</h4>
-              <p className="text-sm font-semibold">${total.toFixed(2)}</p>
+              <p className="text-sm font-semibold">${order.total?.toFixed(2) || "0.00"}</p>
             </div>
           </div>
 
@@ -96,6 +110,13 @@ export function OrderDetailsDialog({ order, isOpen, onOpenChange }: OrderDetails
               </Table>
             </div>
           </div>
+
+          {order.notes && (
+            <div>
+              <h4 className="text-sm font-medium mb-1">Notas</h4>
+              <p className="text-sm">{order.notes}</p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

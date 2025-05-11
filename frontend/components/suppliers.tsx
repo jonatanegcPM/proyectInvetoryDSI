@@ -26,15 +26,14 @@ export default function Suppliers() {
     // Datos
     stats,
     suppliers,
-    filteredSuppliers,
     selectedSupplier,
     supplierToDelete,
     supplierProducts,
     supplierOrders,
     orders,
-    allOrders,
     selectedOrder,
     supplierForNewOrder,
+    categories,
 
     // Estados
     searchTerm,
@@ -56,9 +55,11 @@ export default function Suppliers() {
 
     // Cálculos para paginación
     totalPages,
+    totalItems,
     indexOfFirstItem,
     indexOfLastItem,
     ordersTotalPages,
+    ordersTotalItems,
     ordersIndexOfFirstItem,
     ordersIndexOfLastItem,
 
@@ -94,8 +95,6 @@ export default function Suppliers() {
     setSelectedOrder,
   } = useSuppliers()
 
-  const currentSuppliers = filteredSuppliers.length > 0 ? filteredSuppliers : suppliers
-
   return (
     <div className="flex flex-col gap-6">
       {/* Header with search and actions */}
@@ -105,13 +104,10 @@ export default function Suppliers() {
           onSearchChange={setSearchTerm}
           categoryFilter={categoryFilter}
           onCategoryFilterChange={setCategoryFilter}
+          categories={categories}
         />
         <div className="flex gap-2">
-          <ExportMenu
-            onExport={exportSuppliersData}
-            isExporting={isExporting}
-            disabled={filteredSuppliers.length === 0}
-          />
+          <ExportMenu onExport={exportSuppliersData} isExporting={isExporting} disabled={suppliers.length === 0} />
           <AddSupplierDialog
             isOpen={isAddDialogOpen}
             onOpenChange={setIsAddDialogOpen}
@@ -120,6 +116,7 @@ export default function Suppliers() {
             onSelectChange={handleSelectChange}
             onSubmit={handleAddSupplier}
             isProcessing={isProcessing}
+            categories={categories}
           />
         </div>
       </div>
@@ -142,11 +139,11 @@ export default function Suppliers() {
               <CardDescription>Gestione sus proveedores y vea información detallada.</CardDescription>
             </CardHeader>
             <CardContent>
-              {filteredSuppliers.length === 0 ? (
+              {suppliers.length === 0 ? (
                 <EmptyState />
               ) : (
                 <SuppliersTable
-                  suppliers={currentSuppliers}
+                  suppliers={suppliers}
                   sortConfig={sortConfig}
                   onRequestSort={requestSort}
                   onViewDetails={handleViewDetails}
@@ -160,12 +157,12 @@ export default function Suppliers() {
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                itemsPerPage={itemsPerPage}
-                totalItems={filteredSuppliers.length}
+                itemsPerPage={itemsPerPage.toString()}
+                totalItems={totalItems}
                 startIndex={indexOfFirstItem}
-                endIndex={indexOfLastItem}
+                endIndex={Math.min(indexOfLastItem, totalItems)}
                 onPageChange={(page) => (page > currentPage ? nextPage() : prevPage())}
-                onItemsPerPageChange={(value) => changeItemsPerPage(value)}
+                onItemsPerPageChange={changeItemsPerPage}
               />
             </CardFooter>
           </Card>
@@ -179,7 +176,7 @@ export default function Suppliers() {
               <CardDescription>Gestione y revise los pedidos realizados a sus proveedores.</CardDescription>
             </CardHeader>
             <CardContent>
-              {allOrders.length === 0 ? (
+              {orders.length === 0 ? (
                 <EmptyState message="No hay pedidos registrados" />
               ) : (
                 <OrdersTable
@@ -191,16 +188,16 @@ export default function Suppliers() {
               )}
             </CardContent>
             <CardFooter>
-              {allOrders.length > 0 && (
+              {orders.length > 0 && (
                 <Pagination
                   currentPage={ordersCurrentPage}
                   totalPages={ordersTotalPages}
-                  itemsPerPage={ordersItemsPerPage}
-                  totalItems={allOrders.length}
+                  itemsPerPage={ordersItemsPerPage.toString()}
+                  totalItems={ordersTotalItems}
                   startIndex={ordersIndexOfFirstItem}
-                  endIndex={ordersIndexOfLastItem}
+                  endIndex={Math.min(ordersIndexOfLastItem, ordersTotalItems)}
                   onPageChange={(page) => (page > ordersCurrentPage ? nextOrdersPage() : prevOrdersPage())}
-                  onItemsPerPageChange={(value) => changeOrdersItemsPerPage(value)}
+                  onItemsPerPageChange={changeOrdersItemsPerPage}
                 />
               )}
             </CardFooter>
@@ -238,6 +235,7 @@ export default function Suppliers() {
         onSelectChange={handleSelectChange}
         onSubmit={handleSaveEditedSupplier}
         isProcessing={isProcessing}
+        categories={categories}
       />
 
       {/* Delete Supplier Dialog */}

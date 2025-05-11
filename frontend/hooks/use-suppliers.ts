@@ -1,10 +1,11 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { toast } from "@/hooks/use-toast"
+import { SupplierService } from "@/services/supplier-service"
+import { PurchaseService } from "@/services/purchase-service"
 import type {
   Supplier,
   SupplierForm,
@@ -13,206 +14,30 @@ import type {
   SupplierOrder,
   SortConfig,
 } from "@/types/suppliers"
-
-// Datos de ejemplo para proveedores
-const suppliersData: Supplier[] = [
-  {
-    id: 1,
-    name: "Distribuidora MediFarma",
-    contact: "Juan Martínez",
-    email: "juan@medifarma.com",
-    phone: "123-456-7890",
-    address: "Calle Farmacia 123, Distrito Médico, Madrid 28001",
-    status: "active",
-    products: 42,
-    lastOrder: "2023-05-15",
-    category: "Medicamentos",
-    rating: 4.8,
-  },
-  {
-    id: 2,
-    name: "Suministros Médicos S.A.",
-    contact: "Sara Jiménez",
-    email: "sara@suministrosmedicos.com",
-    phone: "234-567-8901",
-    address: "Avenida Salud 456, Centro Médico, Barcelona 08001",
-    status: "active",
-    products: 28,
-    lastOrder: "2023-05-10",
-    category: "Equipos Médicos",
-    rating: 4.5,
-  },
-  {
-    id: 3,
-    name: "Soluciones Farmacéuticas Globales",
-    contact: "Miguel Moreno",
-    email: "miguel@globalpharma.com",
-    phone: "345-678-9012",
-    address: "Bulevar Farmacéutico 789, Parque Farmacéutico, Valencia 46001",
-    status: "inactive",
-    products: 35,
-    lastOrder: "2023-04-22",
-    category: "Medicamentos",
-    rating: 4.2,
-  },
-  {
-    id: 4,
-    name: "Equipos MediTech S.L.",
-    contact: "Elena Díaz",
-    email: "elena@meditech.com",
-    phone: "456-789-0123",
-    address: "Calle Tecnología 101, Ciudad Médica, Sevilla 41001",
-    status: "active",
-    products: 15,
-    lastOrder: "2023-05-18",
-    category: "Equipos Médicos",
-    rating: 4.7,
-  },
-  {
-    id: 5,
-    name: "Productos Bienestar Ltd.",
-    contact: "David Vega",
-    email: "david@bienestar.com",
-    phone: "567-890-1234",
-    address: "Camino Bienestar 202, Puerto Salud, Bilbao 48001",
-    status: "pending",
-    products: 22,
-    lastOrder: "2023-05-05",
-    category: "Suplementos",
-    rating: 4.0,
-  },
-]
-
-// Datos de ejemplo para productos por proveedor
-const supplierProductsData: SupplierProduct[] = [
-  { id: 1, name: "Amoxicillin 500mg", category: "Antibiotics", stock: 120, price: 15.99 },
-  { id: 2, name: "Lisinopril 10mg", category: "Blood Pressure", stock: 85, price: 12.5 },
-  { id: 3, name: "Metformin 500mg", category: "Diabetes", stock: 95, price: 8.75 },
-  { id: 4, name: "Ibuprofen 200mg", category: "Pain Relief", stock: 150, price: 5.99 },
-  { id: 5, name: "Omeprazole 20mg", category: "Heartburn", stock: 75, price: 18.25 },
-]
-
-// Datos de ejemplo para órdenes por proveedor
-const supplierOrdersData: SupplierOrder[] = [
-  {
-    id: "ORD-2023-001",
-    date: "2023-05-15",
-    items: 12,
-    total: 1250.75,
-    status: "Recibido",
-    supplierName: "Distribuidora MediFarma",
-    supplierId: 1,
-    orderItems: [
-      { productName: "Amoxicillin 500mg", quantity: 5, price: 15.99 },
-      { productName: "Lisinopril 10mg", quantity: 7, price: 12.5 },
-    ],
-  },
-  {
-    id: "ORD-2023-002",
-    date: "2023-04-28",
-    items: 8,
-    total: 875.5,
-    status: "Recibido",
-    supplierName: "Suministros Médicos S.A.",
-    supplierId: 2,
-    orderItems: [{ productName: "Metformin 500mg", quantity: 8, price: 8.75 }],
-  },
-  {
-    id: "ORD-2023-003",
-    date: "2023-04-10",
-    items: 15,
-    total: 1580.25,
-    status: "Recibido",
-    supplierName: "Soluciones Farmacéuticas Globales",
-    supplierId: 3,
-    orderItems: [
-      { productName: "Ibuprofen 200mg", quantity: 10, price: 5.99 },
-      { productName: "Omeprazole 20mg", quantity: 5, price: 18.25 },
-    ],
-  },
-  {
-    id: "ORD-2023-004",
-    date: "2023-03-22",
-    items: 10,
-    total: 950.0,
-    status: "Recibido",
-    supplierName: "Equipos MediTech S.L.",
-    supplierId: 4,
-    orderItems: [
-      { productName: "Metformin 500mg", quantity: 5, price: 8.75 },
-      { productName: "Ibuprofen 200mg", quantity: 5, price: 5.99 },
-    ],
-  },
-  {
-    id: "ORD-2023-005",
-    date: "2023-05-20",
-    items: 5,
-    total: 450.75,
-    status: "Pendiente",
-    supplierName: "Productos Bienestar Ltd.",
-    supplierId: 5,
-    orderItems: [{ productName: "Lisinopril 10mg", quantity: 5, price: 12.5 }],
-  },
-  {
-    id: "ORD-2023-006",
-    date: "2023-06-05",
-    items: 7,
-    total: 720.3,
-    status: "Pendiente",
-    supplierName: "Distribuidora MediFarma",
-    supplierId: 1,
-    orderItems: [
-      { productName: "Amoxicillin 500mg", quantity: 3, price: 15.99 },
-      { productName: "Omeprazole 20mg", quantity: 4, price: 18.25 },
-    ],
-  },
-  {
-    id: "ORD-2023-007",
-    date: "2023-06-10",
-    items: 9,
-    total: 890.45,
-    status: "Pendiente",
-    supplierName: "Suministros Médicos S.A.",
-    supplierId: 2,
-    orderItems: [
-      { productName: "Lisinopril 10mg", quantity: 4, price: 12.5 },
-      { productName: "Ibuprofen 200mg", quantity: 5, price: 5.99 },
-    ],
-  },
-  {
-    id: "ORD-2023-008",
-    date: "2023-06-15",
-    items: 11,
-    total: 1100.25,
-    status: "Pendiente",
-    supplierName: "Soluciones Farmacéuticas Globales",
-    supplierId: 3,
-    orderItems: [
-      { productName: "Metformin 500mg", quantity: 6, price: 8.75 },
-      { productName: "Omeprazole 20mg", quantity: 5, price: 18.25 },
-    ],
-  },
-]
-
-// Categorías de proveedores
-export const categories = [
-  "Todos",
-  "Medicamentos",
-  "Equipos Médicos",
-  "Suplementos",
-  "Material Quirúrgico",
-  "Productos de Higiene",
-]
+import type { CreatePurchaseDTO } from "@/types/purchases"
 
 // Función para formatear fechas
-export const formatDate = (dateString: string) => {
+export const formatDate = (dateString: string | null) => {
+  if (!dateString) return "N/A"
   return format(new Date(dateString), "dd/MM/yyyy")
+}
+
+// Formulario inicial vacío
+const initialSupplierForm: SupplierForm = {
+  name: "",
+  contact: "",
+  email: "",
+  phone: "",
+  address: "",
+  category: "",
+  status: "active",
 }
 
 export function useSuppliers() {
   // Estados para búsqueda y filtros
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("Todos")
+  const [categories, setCategories] = useState<string[]>(["Todos"])
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -221,21 +46,29 @@ export function useSuppliers() {
   // Estados para paginación de proveedores
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
+  const [totalItems, setTotalItems] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
 
   // Estados para paginación de pedidos
   const [ordersCurrentPage, setOrdersCurrentPage] = useState(1)
   const [ordersItemsPerPage, setOrdersItemsPerPage] = useState(5)
+  const [ordersTotalItems, setOrdersTotalItems] = useState(0)
+  const [ordersTotalPages, setOrdersTotalPages] = useState(1)
+
+  // Estado para los datos
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
+  const [supplierProducts, setSupplierProducts] = useState<SupplierProduct[]>([])
+  const [supplierOrders, setSupplierOrders] = useState<SupplierOrder[]>([])
+  const [orders, setOrders] = useState<SupplierOrder[]>([])
+  const [stats, setStats] = useState<SupplierStats>({
+    total: 0,
+    active: 0,
+    products: 0,
+    lastOrderDate: null,
+  })
 
   // Estado para el formulario de nuevo proveedor
-  const [supplierForm, setSupplierForm] = useState<SupplierForm>({
-    name: "",
-    contact: "",
-    email: "",
-    phone: "",
-    address: "",
-    category: "",
-    status: "active",
-  })
+  const [supplierForm, setSupplierForm] = useState<SupplierForm>({ ...initialSupplierForm })
 
   // Estado para el diálogo de confirmación de eliminación
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -248,91 +81,143 @@ export function useSuppliers() {
   const [isExporting, setIsExporting] = useState(false)
 
   // Estados para pedidos
-  const [orders, setOrders] = useState<SupplierOrder[]>(supplierOrdersData)
   const [orderSortConfig, setOrderSortConfig] = useState<SortConfig>({ key: "date", direction: "descending" })
   const [selectedOrder, setSelectedOrder] = useState<SupplierOrder | null>(null)
   const [isOrderDetailsDialogOpen, setIsOrderDetailsDialogOpen] = useState(false)
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false)
   const [supplierForNewOrder, setSupplierForNewOrder] = useState<Supplier | null>(null)
 
-  // Filtrar proveedores por búsqueda y filtros
-  const filteredSuppliers = suppliersData.filter((supplier) => {
-    const matchesSearch =
-      supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      supplier.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      supplier.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      supplier.category.toLowerCase().includes(searchTerm.toLowerCase())
+  // Cargar categorías al inicio
+  useEffect(() => {
+    loadCategories()
+  }, [])
 
-    const matchesCategory = categoryFilter === "Todos" || supplier.category === categoryFilter
+  // Cargar proveedores cuando cambian los filtros o la paginación
+  useEffect(() => {
+    loadSuppliers()
+  }, [searchTerm, categoryFilter, currentPage, itemsPerPage])
 
-    return matchesSearch && matchesCategory
-  })
+  // Cargar estadísticas al inicio
+  useEffect(() => {
+    loadStats()
+  }, [])
 
-  // Ordenar proveedores
-  const sortedSuppliers = [...filteredSuppliers].sort((a, b) => {
-    if (!sortConfig.key) return 0
+  // Cargar pedidos
+  useEffect(() => {
+    loadOrders()
+  }, [ordersCurrentPage, ordersItemsPerPage])
 
-    let aValue = a[sortConfig.key as keyof Supplier]
-    let bValue = b[sortConfig.key as keyof Supplier]
-
-    // Convertir fechas a objetos Date para comparación
-    if (sortConfig.key === "lastOrder") {
-      aValue = new Date(aValue as string)
-      bValue = new Date(bValue as string)
+  // Resetear el formulario cuando se cierra el diálogo de añadir
+  useEffect(() => {
+    if (!isAddDialogOpen) {
+      setSupplierForm({ ...initialSupplierForm })
     }
+  }, [isAddDialogOpen])
 
-    if (aValue < bValue) {
-      return sortConfig.direction === "ascending" ? -1 : 1
+  // Resetear el formulario cuando se cierra el diálogo de editar
+  useEffect(() => {
+    if (!isEditDialogOpen) {
+      setSupplierForm({ ...initialSupplierForm })
     }
-    if (aValue > bValue) {
-      return sortConfig.direction === "ascending" ? 1 : -1
+  }, [isEditDialogOpen])
+
+  // Función para cargar categorías
+  const loadCategories = async () => {
+    try {
+      const categoriesData = await SupplierService.getSupplierCategories()
+      setCategories(categoriesData)
+    } catch (error) {
+      console.error("Error loading categories:", error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar las categorías de proveedores",
+        variant: "destructive",
+      })
     }
-    return 0
-  })
+  }
 
-  // Ordenar pedidos
-  const sortedOrders = [...orders].sort((a, b) => {
-    if (!orderSortConfig.key) return 0
-
-    let aValue = a[orderSortConfig.key as keyof SupplierOrder]
-    let bValue = b[orderSortConfig.key as keyof SupplierOrder]
-
-    // Convertir fechas a objetos Date para comparación
-    if (orderSortConfig.key === "date" || orderSortConfig.key === "expectedDate") {
-      aValue = new Date(aValue as string)
-      bValue = new Date(bValue as string)
+  // Función para cargar proveedores
+  const loadSuppliers = async () => {
+    try {
+      setIsProcessing(true)
+      const response = await SupplierService.getSuppliers(searchTerm, categoryFilter, currentPage, itemsPerPage)
+      setSuppliers(response.suppliers)
+      setTotalItems(response.pagination.total)
+      setTotalPages(response.pagination.pages)
+      setIsProcessing(false)
+    } catch (error) {
+      console.error("Error loading suppliers:", error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los proveedores",
+        variant: "destructive",
+      })
+      setIsProcessing(false)
     }
+  }
 
-    if (aValue < bValue) {
-      return orderSortConfig.direction === "ascending" ? -1 : 1
+  // Función para cargar estadísticas
+  const loadStats = async () => {
+    try {
+      const statsData = await SupplierService.getSupplierStats()
+      setStats(statsData)
+    } catch (error) {
+      console.error("Error loading stats:", error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar las estadísticas de proveedores",
+        variant: "destructive",
+      })
     }
-    if (aValue > bValue) {
-      return orderSortConfig.direction === "ascending" ? 1 : -1
+  }
+
+  // Función para cargar pedidos
+  const loadOrders = async () => {
+    try {
+      setIsProcessing(true)
+
+      // Obtener pedidos reales de la API
+      const response = await PurchaseService.getPurchases(ordersCurrentPage, ordersItemsPerPage)
+
+      // Mapear la respuesta al formato que espera nuestro componente
+      const mappedOrders: SupplierOrder[] = response.purchases.map((purchase) => ({
+        id: purchase.id,
+        date: purchase.purchaseDate,
+        expectedDate: purchase.expectedDeliveryDate,
+        items: purchase.items.length,
+        total: purchase.total,
+        status:
+          purchase.status === "pending"
+            ? "Pendiente"
+            : purchase.status === "received"
+              ? "Recibido"
+              : purchase.status === "cancelled"
+                ? "Cancelado"
+                : purchase.status,
+        supplierName: purchase.supplierName,
+        supplierId: purchase.supplierId,
+        orderItems: purchase.items.map((item) => ({
+          productId: item.productId.toString(),
+          productName: item.productName,
+          quantity: item.quantity,
+          price: item.unitPrice,
+        })),
+        notes: purchase.notes,
+      }))
+
+      setOrders(mappedOrders)
+      setOrdersTotalItems(response.pagination.total)
+      setOrdersTotalPages(response.pagination.pages)
+      setIsProcessing(false)
+    } catch (error) {
+      console.error("Error loading orders:", error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los pedidos",
+        variant: "destructive",
+      })
+      setIsProcessing(false)
     }
-    return 0
-  })
-
-  // Calcular índices para paginación de proveedores
-  const indexOfLastItem = currentPage * itemsPerPage
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentSuppliers = sortedSuppliers.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(sortedSuppliers.length / itemsPerPage)
-
-  // Calcular índices para paginación de pedidos
-  const ordersIndexOfLastItem = ordersCurrentPage * ordersItemsPerPage
-  const ordersIndexOfFirstItem = ordersIndexOfLastItem - ordersItemsPerPage
-  const currentOrders = sortedOrders.slice(ordersIndexOfFirstItem, ordersIndexOfLastItem)
-  const ordersTotalPages = Math.ceil(sortedOrders.length / ordersItemsPerPage)
-
-  // Calcular estadísticas
-  const stats: SupplierStats = {
-    total: suppliersData.length,
-    active: suppliersData.filter((s) => s.status === "active").length,
-    products: suppliersData.reduce((sum, supplier) => sum + supplier.products, 0),
-    lastOrderDate:
-      suppliersData.length > 0
-        ? new Date(Math.max(...suppliersData.map((s) => new Date(s.lastOrder).getTime()))).toISOString().split("T")[0]
-        : new Date().toISOString().split("T")[0],
   }
 
   // Función para cambiar el orden
@@ -354,13 +239,79 @@ export function useSuppliers() {
   }
 
   // Función para manejar la visualización de detalles
-  const handleViewDetails = (supplier: Supplier) => {
-    setSelectedSupplier(supplier)
+  const handleViewDetails = async (supplier: Supplier) => {
+    try {
+      setIsProcessing(true)
+      const detailResponse = await SupplierService.getSupplierById(supplier.id)
+      setSelectedSupplier(detailResponse.supplier)
+      setSupplierProducts(detailResponse.products)
+      setSupplierOrders(detailResponse.orders)
+      setIsProcessing(false)
+    } catch (error) {
+      console.error("Error loading supplier details:", error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los detalles del proveedor",
+        variant: "destructive",
+      })
+      setIsProcessing(false)
+    }
   }
 
   // Función para manejar la visualización de detalles de pedido
-  const handleViewOrderDetails = (order: SupplierOrder) => {
-    setSelectedOrder(order)
+  const handleViewOrderDetails = async (order: SupplierOrder) => {
+    try {
+      // Si el ID del pedido es numérico (sin el prefijo), obtener los detalles completos
+      const orderId = order.id.replace(/^PUR-0*/, "") // Eliminar prefijo y ceros iniciales
+      const numericId = Number.parseInt(orderId, 10)
+
+      if (!isNaN(numericId)) {
+        setIsProcessing(true)
+        const purchaseDetails = await PurchaseService.getPurchaseById(numericId)
+
+        // Mapear la respuesta al formato que espera nuestro componente
+        const mappedOrder: SupplierOrder = {
+          id: purchaseDetails.id,
+          date: purchaseDetails.purchaseDate,
+          expectedDate: purchaseDetails.expectedDeliveryDate,
+          items: purchaseDetails.items.length,
+          total: purchaseDetails.total,
+          status:
+            purchaseDetails.status === "pending"
+              ? "Pendiente"
+              : purchaseDetails.status === "received"
+                ? "Recibido"
+                : purchaseDetails.status === "cancelled"
+                  ? "Cancelado"
+                  : purchaseDetails.status,
+          supplierName: purchaseDetails.supplierName,
+          supplierId: purchaseDetails.supplierId,
+          orderItems: purchaseDetails.items.map((item) => ({
+            productId: item.productId.toString(),
+            productName: item.productName,
+            quantity: item.quantity,
+            price: item.unitPrice,
+          })),
+          notes: purchaseDetails.notes,
+        }
+
+        setSelectedOrder(mappedOrder)
+        setIsProcessing(false)
+      } else {
+        // Si no es un ID numérico, usar los datos que ya tenemos
+        setSelectedOrder(order)
+      }
+    } catch (error) {
+      console.error("Error loading order details:", error)
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los detalles del pedido",
+        variant: "destructive",
+      })
+      // Usar los datos que ya tenemos en caso de error
+      setSelectedOrder(order)
+    }
+
     setIsOrderDetailsDialogOpen(true)
   }
 
@@ -371,41 +322,43 @@ export function useSuppliers() {
   }
 
   // Función para crear un nuevo pedido
-  const handleCreateOrder = (orderData: any) => {
+  const handleCreateOrder = async (orderData: any) => {
     setIsProcessing(true)
 
-    // Simular una llamada a la API
-    setTimeout(() => {
-      // Generar un ID único para el pedido
-      const orderId = `ORD-${new Date().getFullYear()}-${String(orders.length + 1).padStart(3, "0")}`
-
-      // Crear el nuevo pedido
-      const newOrder: SupplierOrder = {
-        id: orderId,
-        date: new Date().toISOString().split("T")[0],
-        expectedDate: orderData.expectedDate?.toISOString().split("T")[0],
-        items: orderData.items.length,
-        total: orderData.total,
-        status: "Pendiente",
-        supplierName: orderData.supplierName,
-        supplierId: orderData.supplierId,
-        orderItems: orderData.items,
+    try {
+      // Extraer los datos ya formateados del componente
+      const purchaseData: CreatePurchaseDTO = {
+        supplierId: Number(orderData.supplierId),
+        expectedDeliveryDate: orderData.expectedDeliveryDate,
+        items: orderData.items,
+        notes: orderData.notes,
       }
 
-      // Añadir el nuevo pedido a la lista
-      setOrders([newOrder, ...orders])
+      // Llamar a la API para crear el pedido
+      const response = await PurchaseService.createPurchase(purchaseData)
 
       // Mostrar notificación de éxito
       toast({
         title: "Pedido creado",
-        description: `El pedido ${orderId} ha sido creado correctamente.`,
+        description: `El pedido ${response.id} ha sido creado correctamente.`,
       })
+
+      // Recargar los pedidos
+      loadOrders()
 
       // Cerrar el diálogo y resetear estados
       setIsNewOrderDialogOpen(false)
       setSupplierForNewOrder(null)
       setIsProcessing(false)
-    }, 1000)
+    } catch (error: any) {
+      console.error("Error creating order:", error)
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo crear el pedido",
+        variant: "destructive",
+      })
+      setIsProcessing(false)
+    }
   }
 
   // Funciones para paginación de proveedores
@@ -480,15 +433,13 @@ export function useSuppliers() {
   }
 
   // Función para guardar los cambios de un proveedor editado
-  const handleSaveEditedSupplier = () => {
+  const handleSaveEditedSupplier = async () => {
     if (!selectedSupplier) return
 
     setIsProcessing(true)
 
-    // Simular una llamada a la API
-    setTimeout(() => {
-      // Aquí iría la lógica para enviar los datos a la API
-      console.log("Proveedor editado:", selectedSupplier.id, supplierForm)
+    try {
+      await SupplierService.updateSupplier(selectedSupplier.id, supplierForm)
 
       // Mostrar notificación de éxito
       toast({
@@ -496,21 +447,30 @@ export function useSuppliers() {
         description: `Los datos de ${supplierForm.name} han sido actualizados correctamente.`,
       })
 
+      // Recargar los proveedores
+      loadSuppliers()
+
       // Cerrar el diálogo y resetear estados
       setIsEditDialogOpen(false)
       setSelectedSupplier(null)
       setIsProcessing(false)
-    }, 1000)
+    } catch (error) {
+      console.error("Error updating supplier:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el proveedor",
+        variant: "destructive",
+      })
+      setIsProcessing(false)
+    }
   }
 
   // Función para manejar el envío del formulario de nuevo proveedor
-  const handleAddSupplier = () => {
+  const handleAddSupplier = async () => {
     setIsProcessing(true)
 
-    // Simular una llamada a la API
-    setTimeout(() => {
-      // Aquí iría la lógica para enviar los datos a la API
-      console.log("Nuevo proveedor:", supplierForm)
+    try {
+      await SupplierService.createSupplier(supplierForm)
 
       // Mostrar notificación de éxito
       toast({
@@ -518,31 +478,32 @@ export function useSuppliers() {
         description: `${supplierForm.name} ha sido añadido correctamente.`,
       })
 
+      // Recargar los proveedores
+      loadSuppliers()
+
       // Resetear el formulario y cerrar el diálogo
-      setSupplierForm({
-        name: "",
-        contact: "",
-        email: "",
-        phone: "",
-        address: "",
-        category: "",
-        status: "active",
-      })
+      setSupplierForm({ ...initialSupplierForm })
       setIsAddDialogOpen(false)
       setIsProcessing(false)
-    }, 1000)
+    } catch (error) {
+      console.error("Error adding supplier:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo añadir el proveedor",
+        variant: "destructive",
+      })
+      setIsProcessing(false)
+    }
   }
 
   // Función para manejar la eliminación de un proveedor
-  const handleDeleteSupplier = () => {
+  const handleDeleteSupplier = async () => {
     if (!supplierToDelete) return
 
     setIsProcessing(true)
 
-    // Simular una llamada a la API
-    setTimeout(() => {
-      // Aquí iría la lógica para eliminar el proveedor en la API
-      console.log("Proveedor eliminado:", supplierToDelete.id)
+    try {
+      await SupplierService.deleteSupplier(supplierToDelete.id)
 
       // Mostrar notificación de éxito
       toast({
@@ -550,11 +511,22 @@ export function useSuppliers() {
         description: `${supplierToDelete.name} ha sido eliminado correctamente.`,
       })
 
+      // Recargar los proveedores
+      loadSuppliers()
+
       // Cerrar el diálogo de confirmación
       setIsDeleteDialogOpen(false)
       setSupplierToDelete(null)
       setIsProcessing(false)
-    }, 1000)
+    } catch (error) {
+      console.error("Error deleting supplier:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el proveedor",
+        variant: "destructive",
+      })
+      setIsProcessing(false)
+    }
   }
 
   // Función para abrir el diálogo de confirmación de eliminación
@@ -580,7 +552,7 @@ export function useSuppliers() {
         // Convertir los datos a formato CSV
         const csvContent = [
           headers.join(","),
-          ...filteredSuppliers.map((supplier) =>
+          ...suppliers.map((supplier) =>
             [
               supplier.id,
               supplier.name,
@@ -598,7 +570,7 @@ export function useSuppliers() {
         const url = URL.createObjectURL(blob)
         const link = document.createElement("a")
         link.setAttribute("href", url)
-        link.setAttribute("download", `proveedores_${format(new Date(), "yyyy-MM-dd")}.csv`)
+        link.setAttribute("download", `proveedores_${new Date().toISOString().slice(0, 10)}.csv`)
         link.style.visibility = "hidden"
         document.body.appendChild(link)
         link.click()
@@ -619,29 +591,26 @@ export function useSuppliers() {
     }, 1500)
   }
 
-  // Obtener productos y órdenes para un proveedor específico
-  const getSupplierProducts = () => supplierProductsData
-  const getSupplierOrders = () => supplierOrdersData
+  // Calcular índices para paginación de proveedores
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
 
-  // Efecto para resetear la página actual cuando cambia el filtro o la búsqueda
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchTerm, categoryFilter])
+  // Calcular índices para paginación de pedidos
+  const ordersIndexOfLastItem = ordersCurrentPage * ordersItemsPerPage
+  const ordersIndexOfFirstItem = ordersIndexOfLastItem - ordersItemsPerPage
 
   return {
     // Datos
     stats,
-    suppliers: currentSuppliers,
-    filteredSuppliers,
-    sortedSuppliers,
+    suppliers,
     selectedSupplier,
     supplierToDelete,
-    supplierProducts: getSupplierProducts(),
-    supplierOrders: getSupplierOrders(),
-    orders: currentOrders,
-    allOrders: sortedOrders,
+    supplierProducts,
+    supplierOrders,
+    orders,
     selectedOrder,
     supplierForNewOrder,
+    categories,
 
     // Estados
     searchTerm,
@@ -663,9 +632,11 @@ export function useSuppliers() {
 
     // Cálculos para paginación
     totalPages,
+    totalItems,
     indexOfFirstItem,
     indexOfLastItem,
     ordersTotalPages,
+    ordersTotalItems,
     ordersIndexOfFirstItem,
     ordersIndexOfLastItem,
 

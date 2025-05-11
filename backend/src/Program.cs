@@ -62,15 +62,16 @@ builder.Services.AddCors(options =>
 });
 
 // Registrar servicios
+builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<SupplierService>();
+builder.Services.AddScoped<PurchaseService>();
+builder.Services.AddScoped<IPosService, PosService>();
 builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<IPosService, PosService>(); 
-// Agregar esto con los otros servicios
-builder.Services.AddScoped<CustomerService>();
-// En el método ConfigureServices de Program.cs
-builder.Services.AddScoped<SupplierService>();
+
+
 // Agregar estos servicios en Program.cs
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddHttpContextAccessor();

@@ -4,13 +4,13 @@ import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { SearchAndFilterProps } from "@/types/suppliers"
-import { categories } from "@/hooks/use-suppliers"
 
 export function SearchAndFilter({
   searchTerm,
   onSearchChange,
   categoryFilter,
   onCategoryFilterChange,
+  categories,
 }: SearchAndFilterProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-4">
@@ -39,4 +39,3 @@ export function SearchAndFilter({
     </div>
   )
 }
-

@@ -23,9 +23,10 @@ export interface SupplierOrder {
   items: number
   total: number
   status: string
-  supplierName: string
-  supplierId: number
+  supplierName?: string
+  supplierId?: number
   orderItems?: OrderItem[]
+  notes?: string
 }
 
 export interface Supplier {
@@ -37,16 +38,15 @@ export interface Supplier {
   address: string
   status: "active" | "inactive" | "pending"
   products: number
-  lastOrder: string
+  lastOrder: string | null
   category: string
-  rating: number
 }
 
 export interface SupplierStats {
   total: number
   active: number
   products: number
-  lastOrderDate: string
+  lastOrderDate: string | null
 }
 
 export interface SupplierForm {
@@ -64,6 +64,39 @@ export interface SortConfig {
   direction: "ascending" | "descending"
 }
 
+// Interfaces para respuestas de la API
+export interface PaginationDTO {
+  total: number
+  page: number
+  limit: number
+  pages: number
+}
+
+export interface SuppliersResponse {
+  suppliers: Supplier[]
+  pagination: PaginationDTO
+}
+
+export interface SupplierDetailResponse {
+  supplier: Supplier
+  products: SupplierProduct[]
+  orders: SupplierOrder[]
+}
+
+export interface SupplierProductsResponse {
+  products: SupplierProduct[]
+  pagination: PaginationDTO
+}
+
+export interface SupplierOrdersResponse {
+  orders: SupplierOrder[]
+  pagination: PaginationDTO
+}
+
+export interface SupplierCategoriesResponse {
+  categories: string[]
+}
+
 // Props para los componentes
 export interface StatsCardsProps {
   stats: SupplierStats
@@ -74,6 +107,7 @@ export interface SearchAndFilterProps {
   onSearchChange: (value: string) => void
   categoryFilter: string
   onCategoryFilterChange: (value: string) => void
+  categories: string[]
 }
 
 export interface SuppliersTableProps {
@@ -105,6 +139,8 @@ export interface SupplierFormProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
   onSelectChange: (field: string, value: string) => void
   isProcessing: boolean
+  categories: string[]
+  errors?: Record<string, string> | null
 }
 
 export interface AddSupplierDialogProps {
@@ -115,6 +151,7 @@ export interface AddSupplierDialogProps {
   onSelectChange: (field: string, value: string) => void
   onSubmit: () => void
   isProcessing: boolean
+  categories: string[]
 }
 
 export interface EditSupplierDialogProps {
@@ -125,6 +162,7 @@ export interface EditSupplierDialogProps {
   onSelectChange: (field: string, value: string) => void
   onSubmit: () => void
   isProcessing: boolean
+  categories: string[]
 }
 
 export interface DeleteSupplierDialogProps {
@@ -157,7 +195,7 @@ export interface PaginationProps {
   startIndex: number
   endIndex: number
   onPageChange: (page: number) => void
-  onItemsPerPageChange: (items: number) => void
+  onItemsPerPageChange: (items: string) => void
 }
 
 export interface ExportMenuProps {

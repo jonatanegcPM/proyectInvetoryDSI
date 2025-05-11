@@ -333,10 +333,19 @@ export const InventoryService = {
   },
 }
 
-// Añadir la función getSuppliers
+// función getSuppliers para que use el token de autenticación
 export async function getSuppliers(): Promise<SuppliersResponse> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/suppliers`)
+    const token = AuthService.getToken()
+    if (!token) throw new Error("No authentication token")
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/suppliers`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
 
     if (!response.ok) {
       throw new Error(`Error al obtener proveedores: ${response.status}`)
