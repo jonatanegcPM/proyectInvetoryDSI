@@ -1,14 +1,21 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, CheckCircle, XCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { OrderDetailsDialogProps } from "@/types/suppliers"
 
-export function OrderDetailsDialog({ order, isOpen, onOpenChange }: OrderDetailsDialogProps) {
+export function OrderDetailsDialog({
+  order,
+  isOpen,
+  onOpenChange,
+  onUpdateStatus,
+  isStatusUpdateProcessing,
+}: OrderDetailsDialogProps) {
   if (!order) return null
 
   // Mapear el estado a un texto en español y un color
@@ -39,6 +46,9 @@ export function OrderDetailsDialog({ order, isOpen, onOpenChange }: OrderDetails
   }
 
   const statusBadge = getStatusBadge(order.status)
+
+  // Determinar si el pedido está pendiente
+  const isPending = order.status.toLowerCase() === "pendiente" || order.status.toLowerCase() === "pending"
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -118,6 +128,29 @@ export function OrderDetailsDialog({ order, isOpen, onOpenChange }: OrderDetails
             </div>
           )}
         </div>
+
+        {isPending && onUpdateStatus && (
+          <DialogFooter className="flex justify-between sm:justify-between">
+            <Button
+              variant="destructive"
+              onClick={() => onUpdateStatus(order.id, "cancelled")}
+              disabled={isStatusUpdateProcessing}
+              className="flex items-center gap-1"
+            >
+              <XCircle className="h-4 w-4" />
+              Cancelar Pedido
+            </Button>
+            <Button
+              variant="default"
+              onClick={() => onUpdateStatus(order.id, "received")}
+              disabled={isStatusUpdateProcessing}
+              className="flex items-center gap-1"
+            >
+              <CheckCircle className="h-4 w-4" />
+              Marcar como Recibido
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   )

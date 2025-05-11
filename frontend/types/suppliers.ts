@@ -185,6 +185,8 @@ export interface OrderDetailsDialogProps {
   order: SupplierOrder | null
   isOpen: boolean
   onOpenChange: (open: boolean) => void
+  onUpdateStatus?: (orderId: string, newStatus: string) => void
+  isStatusUpdateProcessing?: boolean
 }
 
 export interface PaginationProps {
@@ -199,7 +201,8 @@ export interface PaginationProps {
 }
 
 export interface ExportMenuProps {
-  onExport: (format: "csv" | "json" | "pdf") => void
+  onExport: (format: "csv" | "json" | "pdf", type: "suppliers" | "orders") => void
   isExporting: boolean
   disabled: boolean
+  hasOrders?: boolean
 }

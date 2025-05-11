@@ -52,6 +52,7 @@ export default function Suppliers() {
     isNewOrderDialogOpen,
     isProcessing,
     isExporting,
+    isStatusUpdateProcessing,
 
     // Cálculos para paginación
     totalPages,
@@ -93,6 +94,7 @@ export default function Suppliers() {
     setIsNewOrderDialogOpen,
     setSelectedSupplier,
     setSelectedOrder,
+    handleUpdateOrderStatus,
   } = useSuppliers()
 
   return (
@@ -107,10 +109,10 @@ export default function Suppliers() {
           categories={categories}
         />
         <div className="flex gap-2">
-          <ExportMenu 
-            onExport={(format, type) => exportData(format, type)} 
-            isExporting={isExporting} 
-            disabled={suppliers.length === 0} 
+          <ExportMenu
+            onExport={(format, type) => exportData(format, type)}
+            isExporting={isExporting}
+            disabled={suppliers.length === 0}
           />
           <AddSupplierDialog
             isOpen={isAddDialogOpen}
@@ -265,6 +267,8 @@ export default function Suppliers() {
         order={selectedOrder}
         isOpen={isOrderDetailsDialogOpen}
         onOpenChange={setIsOrderDetailsDialogOpen}
+        onUpdateStatus={handleUpdateOrderStatus}
+        isStatusUpdateProcessing={isStatusUpdateProcessing}
       />
     </div>
   )

@@ -109,6 +109,9 @@ export function useSuppliers() {
   // Añadir un nuevo estado para controlar la actualización de datos
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
+  // Add this new state
+  const [isStatusUpdateProcessing, setIsStatusUpdateProcessing] = useState(false)
+
   // Cargar categorías al inicio
   useEffect(() => {
     loadCategories()
@@ -319,7 +322,7 @@ export function useSuppliers() {
   // Función para manejar la visualización de detalles de pedido
   const handleViewOrderDetails = async (order: SupplierOrder) => {
     try {
-      // Si el ID del pedido es numérico (sin el prefijo), obtener los detalles completos
+      // Si el ID del pedido es num��rico (sin el prefijo), obtener los detalles completos
       const orderId = order.id.replace(/^PUR-0*/, "") // Eliminar prefijo y ceros iniciales
       const numericId = Number.parseInt(orderId, 10)
 
@@ -416,6 +419,46 @@ export function useSuppliers() {
         variant: "destructive",
       })
       setIsProcessing(false)
+    }
+  }
+
+  // Add this new function after handleCreateOrder
+  // Función para actualizar el estado de un pedido
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+    setIsStatusUpdateProcessing(true)
+
+    try {
+      // Extraer el ID numérico del pedido
+      const numericId = Number.parseInt(orderId.replace(/^PUR-0*/, ""), 10)
+
+      if (isNaN(numericId)) {
+        throw new Error("ID de pedido inválido")
+      }
+
+      // Llamar a la API para actualizar el estado
+      const response = await PurchaseService.updatePurchaseStatus(numericId, newStatus)
+
+      // Mostrar notificación de éxito
+      toast({
+        title: newStatus === "received" ? "Pedido recibido" : "Pedido cancelado",
+        description: `El pedido ${response.id} ha sido ${newStatus === "received" ? "marcado como recibido" : "cancelado"} correctamente.`,
+      })
+
+      // Actualizar todos los datos
+      setRefreshTrigger((prev) => prev + 1)
+
+      // Cerrar el diálogo de detalles
+      setIsOrderDetailsDialogOpen(false)
+      setSelectedOrder(null)
+    } catch (error: any) {
+      console.error("Error updating order status:", error)
+      toast({
+        title: "Error",
+        description: error.message || `No se pudo ${newStatus === "received" ? "recibir" : "cancelar"} el pedido`,
+        variant: "destructive",
+      })
+    } finally {
+      setIsStatusUpdateProcessing(false)
     }
   }
 
@@ -745,6 +788,8 @@ export function useSuppliers() {
     isNewOrderDialogOpen,
     isProcessing,
     isExporting,
+    // Add isStatusUpdateProcessing to the return object
+    isStatusUpdateProcessing,
 
     // Cálculos para paginación
     totalPages,
@@ -765,6 +810,8 @@ export function useSuppliers() {
     handleViewOrderDetails,
     handleNewOrder,
     handleCreateOrder,
+    // Add handleUpdateOrderStatus to the return object
+    handleUpdateOrderStatus,
     nextPage,
     prevPage,
     changeItemsPerPage,

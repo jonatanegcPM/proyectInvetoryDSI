@@ -1,6 +1,11 @@
 import { AuthService } from "./auth-service"
 import type { CreatePurchaseDTO, PurchaseResponseDTO, PurchasesResponse, PurchaseFilters } from "@/types/purchases"
 
+// Add this new interface at the top with the other interfaces
+export interface UpdatePurchaseStatusDTO {
+  status: string
+}
+
 // URL base de la API
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 
@@ -13,7 +18,7 @@ const ERROR_MESSAGES = {
   INVALID_PRICE: "Todos los productos deben tener un precio unitario válido",
   GENERIC_CREATE: "Error al crear el pedido",
   GENERIC_FETCH: "Error al obtener los pedidos",
-  GENERIC_FETCH_DETAIL: "Error al obtener el detalle del pedido"
+  GENERIC_FETCH_DETAIL: "Error al obtener el detalle del pedido",
 }
 
 /**
@@ -45,7 +50,7 @@ export const PurchaseService = {
       }
 
       // Validaciones de datos
-      this.validatePurchaseData(formattedData);
+      this.validatePurchaseData(formattedData)
 
       console.log("Enviando datos formateados:", JSON.stringify(formattedData, null, 2))
 
@@ -61,7 +66,7 @@ export const PurchaseService = {
 
       // Manejar errores de la API
       if (!response.ok) {
-        await this.handleApiError(response, ERROR_MESSAGES.GENERIC_CREATE);
+        await this.handleApiError(response, ERROR_MESSAGES.GENERIC_CREATE)
       }
 
       return await response.json()
@@ -102,28 +107,28 @@ export const PurchaseService = {
    * @param defaultMessage - Mensaje de error predeterminado
    */
   async handleApiError(response: Response, defaultMessage: string) {
-    let errorMessage = `${defaultMessage}: ${response.statusText}`;
+    let errorMessage = `${defaultMessage}: ${response.statusText}`
     try {
-      const errorData = await response.json();
-      console.log("Error API Response:", errorData);
-      
+      const errorData = await response.json()
+      console.log("Error API Response:", errorData)
+
       // Comprobar si hay errores de validación específicos
       if (errorData.errors) {
         const errorDetails = Object.entries(errorData.errors)
-          .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(', ') : value}`)
-          .join('; ');
-        
-        errorMessage = `Error de validación: ${errorDetails}`;
+          .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : value}`)
+          .join("; ")
+
+        errorMessage = `Error de validación: ${errorDetails}`
       } else {
-        errorMessage = errorData.message || errorData.title || errorMessage;
+        errorMessage = errorData.message || errorData.title || errorMessage
       }
-      
+
       console.error("Error details:", errorData)
     } catch (e) {
       // Si no podemos parsear la respuesta como JSON, usamos el mensaje genérico
       console.error("Could not parse error response:", e)
     }
-    throw new Error(errorMessage);
+    throw new Error(errorMessage)
   },
 
   /**
@@ -159,7 +164,7 @@ export const PurchaseService = {
       })
 
       if (!response.ok) {
-        await this.handleApiError(response, ERROR_MESSAGES.GENERIC_FETCH);
+        await this.handleApiError(response, ERROR_MESSAGES.GENERIC_FETCH)
       }
 
       return await response.json()
@@ -188,12 +193,49 @@ export const PurchaseService = {
       })
 
       if (!response.ok) {
-        await this.handleApiError(response, ERROR_MESSAGES.GENERIC_FETCH_DETAIL);
+        await this.handleApiError(response, ERROR_MESSAGES.GENERIC_FETCH_DETAIL)
       }
 
       return await response.json()
     } catch (error) {
       console.error(`Error in getPurchaseById for ID ${id}:`, error)
+      throw error
+    }
+  },
+
+  // Add this new method to the PurchaseService object
+  /**
+   * Actualizar el estado de un pedido
+   * @param id - ID del pedido
+   * @param status - Nuevo estado ("received" o "cancelled")
+   * @returns Promise con la respuesta del pedido actualizado
+   */
+  async updatePurchaseStatus(id: number, status: string): Promise<PurchaseResponseDTO> {
+    try {
+      const token = AuthService.getToken()
+      if (!token) throw new Error(ERROR_MESSAGES.NO_AUTH)
+
+      // Validar que el estado sea válido
+      if (status !== "received" && status !== "cancelled") {
+        throw new Error("Estado no válido. Debe ser 'received' o 'cancelled'")
+      }
+
+      const response = await fetch(`${API_URL}/purchases/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      })
+
+      if (!response.ok) {
+        await this.handleApiError(response, `Error al actualizar el estado del pedido a ${status}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error(`Error in updatePurchaseStatus for ID ${id}:`, error)
       throw error
     }
   },
