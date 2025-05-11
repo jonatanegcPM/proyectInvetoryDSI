@@ -20,11 +20,24 @@ export interface CustomersPreferences {
   defaultSortDirection: "asc" | "desc"
 }
 
+// Añadir esta interfaz para las preferencias de proveedores después de CustomersPreferences
+export interface SuppliersPreferences {
+  suppliersPerPage: number
+  ordersPerPage: number
+  defaultSuppliersSortKey: string
+  defaultSuppliersSortDirection: "ascending" | "descending"
+  defaultOrdersSortKey: string
+  defaultOrdersSortDirection: "ascending" | "descending"
+}
+
 // Claves para localStorage
 const DASHBOARD_PREFERENCES_KEY = "dashboard_preferences"
 const POS_PREFERENCES_KEY = "pos_preferences"
 const INVENTORY_PREFERENCES_KEY = "inventory_preferences"
-const CUSTOMERS_PREFERENCES_KEY = "customers_preferences"
+const CUSTOMERS_PREFERENCES_KEY = "customers_preferences" // Nueva clave para preferencias de clientes
+
+// Añadir esta clave para localStorage después de CUSTOMERS_PREFERENCES_KEY
+const SUPPLIERS_PREFERENCES_KEY = "suppliers_preferences"
 
 // Valores por defecto
 const DEFAULT_DASHBOARD_PREFERENCES: DashboardPreferences = {
@@ -46,6 +59,17 @@ const DEFAULT_CUSTOMERS_PREFERENCES: CustomersPreferences = {
   customersPerPage: 5,
   defaultSortKey: "CustomerID",
   defaultSortDirection: "desc",
+}
+
+// Añadir estos valores por defecto después de DEFAULT_CUSTOMERS_PREFERENCES
+// Valores por defecto para preferencias de proveedores
+const DEFAULT_SUPPLIERS_PREFERENCES: SuppliersPreferences = {
+  suppliersPerPage: 5,
+  ordersPerPage: 5,
+  defaultSuppliersSortKey: "name",
+  defaultSuppliersSortDirection: "ascending",
+  defaultOrdersSortKey: "date",
+  defaultOrdersSortDirection: "descending",
 }
 
 export const PreferencesService = {
@@ -130,6 +154,27 @@ export const PreferencesService = {
       localStorage.setItem(CUSTOMERS_PREFERENCES_KEY, JSON.stringify(updated))
     } catch (error) {
       console.error("Error saving customers preferences:", error)
+    }
+  },
+
+  // Suppliers Preferences - Nuevos métodos
+  getSuppliersPreferences(): SuppliersPreferences {
+    try {
+      const stored = localStorage.getItem(SUPPLIERS_PREFERENCES_KEY)
+      return stored ? JSON.parse(stored) : DEFAULT_SUPPLIERS_PREFERENCES
+    } catch (error) {
+      console.error("Error reading suppliers preferences:", error)
+      return DEFAULT_SUPPLIERS_PREFERENCES
+    }
+  },
+
+  setSuppliersPreferences(preferences: Partial<SuppliersPreferences>) {
+    try {
+      const current = this.getSuppliersPreferences()
+      const updated = { ...current, ...preferences }
+      localStorage.setItem(SUPPLIERS_PREFERENCES_KEY, JSON.stringify(updated))
+    } catch (error) {
+      console.error("Error saving suppliers preferences:", error)
     }
   },
 }

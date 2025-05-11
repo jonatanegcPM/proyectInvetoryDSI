@@ -6,6 +6,7 @@ import { format } from "date-fns"
 import { toast } from "@/hooks/use-toast"
 import { SupplierService } from "@/services/supplier-service"
 import { PurchaseService } from "@/services/purchase-service"
+import { PreferencesService } from "@/services/preferences-service"
 import type {
   Supplier,
   SupplierForm,
@@ -41,17 +42,34 @@ export function useSuppliers() {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "name", direction: "ascending" })
+
+  // Modificar los estados de paginación y ordenación para usar las preferencias guardadas
+  // Reemplazar estas líneas:
+  // const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "name", direction: "ascending" })
+  // const [itemsPerPage, setItemsPerPage] = useState(5)
+  // const [orderSortConfig, setOrderSortConfig] = useState<SortConfig>({ key: "date", direction: "descending" })
+  // const [ordersItemsPerPage, setOrdersItemsPerPage] = useState(5)
+
+  // Con estas:
+  const preferences = PreferencesService.getSuppliersPreferences()
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: preferences.defaultSuppliersSortKey,
+    direction: preferences.defaultSuppliersSortDirection,
+  })
+  const [itemsPerPage, setItemsPerPage] = useState(preferences.suppliersPerPage)
+  const [orderSortConfig, setOrderSortConfig] = useState<SortConfig>({
+    key: preferences.defaultOrdersSortKey,
+    direction: preferences.defaultOrdersSortDirection,
+  })
+  const [ordersItemsPerPage, setOrdersItemsPerPage] = useState(preferences.ordersPerPage)
 
   // Estados para paginación de proveedores
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(5)
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
 
   // Estados para paginación de pedidos
   const [ordersCurrentPage, setOrdersCurrentPage] = useState(1)
-  const [ordersItemsPerPage, setOrdersItemsPerPage] = useState(5)
   const [ordersTotalItems, setOrdersTotalItems] = useState(0)
   const [ordersTotalPages, setOrdersTotalPages] = useState(1)
 
@@ -81,7 +99,6 @@ export function useSuppliers() {
   const [isExporting, setIsExporting] = useState(false)
 
   // Estados para pedidos
-  const [orderSortConfig, setOrderSortConfig] = useState<SortConfig>({ key: "date", direction: "descending" })
   const [selectedOrder, setSelectedOrder] = useState<SupplierOrder | null>(null)
   const [isOrderDetailsDialogOpen, setIsOrderDetailsDialogOpen] = useState(false)
   const [isNewOrderDialogOpen, setIsNewOrderDialogOpen] = useState(false)
@@ -220,22 +237,92 @@ export function useSuppliers() {
     }
   }
 
-  // Función para cambiar el orden
+  // Modificar la función changeItemsPerPage para guardar las preferencias
+  // Reemplazar esta función:
+  // const changeItemsPerPage = (value: string) => {
+  //   setItemsPerPage(Number(value))
+  //   setCurrentPage(1) // Resetear a la primera página cuando cambia el número de items
+  // }
+
+  // Con esta:
+  const changeItemsPerPage = (value: string) => {
+    const newValue = Number(value)
+    setItemsPerPage(newValue)
+    setCurrentPage(1) // Resetear a la primera página cuando cambia el número de items
+
+    // Guardar la preferencia
+    PreferencesService.setSuppliersPreferences({
+      suppliersPerPage: newValue,
+    })
+  }
+
+  // Modificar la función changeOrdersItemsPerPage para guardar las preferencias
+  // Reemplazar esta función:
+  // const changeOrdersItemsPerPage = (value: string) => {
+  //   setOrdersItemsPerPage(Number(value))
+  //   setOrdersCurrentPage(1) // Resetear a la primera página cuando cambia el número de items
+  // }
+
+  // Con esta:
+  const changeOrdersItemsPerPage = (value: string) => {
+    const newValue = Number(value)
+    setOrdersItemsPerPage(newValue)
+    setOrdersCurrentPage(1) // Resetear a la primera página cuando cambia el número de items
+
+    // Guardar la preferencia
+    PreferencesService.setSuppliersPreferences({
+      ordersPerPage: newValue,
+    })
+  }
+
+  // Modificar la función requestSort para guardar las preferencias
+  // Reemplazar esta función:
+  // const requestSort = (key: string) => {
+  //   let direction: "ascending" | "descending" = "ascending"
+  //   if (sortConfig.key === key && sortConfig.direction === "ascending") {
+  //     direction = "descending"
+  //   }
+  //   setSortConfig({ key, direction })
+  // }
+
+  // Con esta:
   const requestSort = (key: string) => {
     let direction: "ascending" | "descending" = "ascending"
     if (sortConfig.key === key && sortConfig.direction === "ascending") {
       direction = "descending"
     }
     setSortConfig({ key, direction })
+
+    // Guardar las preferencias
+    PreferencesService.setSuppliersPreferences({
+      defaultSuppliersSortKey: key,
+      defaultSuppliersSortDirection: direction,
+    })
   }
 
-  // Función para cambiar el orden de pedidos
+  // Modificar la función requestOrderSort para guardar las preferencias
+  // Reemplazar esta función:
+  // const requestOrderSort = (key: string) => {
+  //   let direction: "ascending" | "descending" = "ascending"
+  //   if (orderSortConfig.key === key && orderSortConfig.direction === "ascending") {
+  //     direction = "descending"
+  //   }
+  //   setOrderSortConfig({ key, direction })
+  // }
+
+  // Con esta:
   const requestOrderSort = (key: string) => {
     let direction: "ascending" | "descending" = "ascending"
     if (orderSortConfig.key === key && orderSortConfig.direction === "ascending") {
       direction = "descending"
     }
     setOrderSortConfig({ key, direction })
+
+    // Guardar las preferencias
+    PreferencesService.setSuppliersPreferences({
+      defaultOrdersSortKey: key,
+      defaultOrdersSortDirection: direction,
+    })
   }
 
   // Función para manejar la visualización de detalles
@@ -374,11 +461,6 @@ export function useSuppliers() {
     }
   }
 
-  const changeItemsPerPage = (value: string) => {
-    setItemsPerPage(Number(value))
-    setCurrentPage(1) // Resetear a la primera página cuando cambia el número de items
-  }
-
   // Funciones para paginación de pedidos
   const nextOrdersPage = () => {
     if (ordersCurrentPage < ordersTotalPages) {
@@ -390,11 +472,6 @@ export function useSuppliers() {
     if (ordersCurrentPage > 1) {
       setOrdersCurrentPage(ordersCurrentPage - 1)
     }
-  }
-
-  const changeOrdersItemsPerPage = (value: string) => {
-    setOrdersItemsPerPage(Number(value))
-    setOrdersCurrentPage(1) // Resetear a la primera página cuando cambia el número de items
   }
 
   // Función para manejar cambios en el formulario de proveedor
