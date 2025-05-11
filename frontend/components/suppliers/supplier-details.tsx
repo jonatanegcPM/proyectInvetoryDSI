@@ -12,6 +12,32 @@ import { formatDate } from "@/hooks/use-suppliers"
 export function SupplierDetails({ supplier, products, orders, onNewOrder }: SupplierDetailsProps) {
   if (!supplier) return null
 
+  const getStatusBadgeStyles = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "received":
+      case "recibido":
+        return {
+          text: "Recibido",
+          className:
+            "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800",
+        }
+      case "cancelled":
+      case "cancelado":
+        return {
+          text: "Cancelado",
+          className: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800",
+        }
+      case "pending":
+      case "pendiente":
+      default:
+        return {
+          text: "Pendiente",
+          className:
+            "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800",
+        }
+    }
+  }
+
   return (
     <>
       <div className="py-4">
@@ -143,15 +169,8 @@ export function SupplierDetails({ supplier, products, orders, onNewOrder }: Supp
                       <TableCell>{order.items}</TableCell>
                       <TableCell>${order.total.toFixed(2)}</TableCell>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            order.status === "Recibido"
-                              ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800"
-                              : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800"
-                          }
-                        >
-                          {order.status}
+                        <Badge variant="outline" className={getStatusBadgeStyles(order.status).className}>
+                          {getStatusBadgeStyles(order.status).text}
                         </Badge>
                       </TableCell>
                     </TableRow>
