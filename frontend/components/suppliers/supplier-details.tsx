@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type { SupplierDetailsProps } from "@/types/suppliers"
 import { formatDate } from "@/hooks/use-suppliers"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function SupplierDetails({ supplier, products, orders, onNewOrder }: SupplierDetailsProps) {
   if (!supplier) return null
@@ -39,6 +40,27 @@ export function SupplierDetails({ supplier, products, orders, onNewOrder }: Supp
     }
   }
 
+  const TruncatedText = ({ text, maxLength = 30 }: { text: string; maxLength?: number }) => {
+    if (!text) return <span className="text-muted-foreground italic">No disponible</span>
+
+    if (text.length <= maxLength) return <span>{text}</span>
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="truncate block max-w-full" style={{ cursor: "help" }}>
+              {text}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" align="start" className="max-w-[300px] break-words">
+            {text}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
   return (
     <>
       <div className="py-4">
@@ -46,10 +68,12 @@ export function SupplierDetails({ supplier, products, orders, onNewOrder }: Supp
           <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
             <Package className="h-8 w-8 text-muted-foreground" />
           </div>
-          <div>
-            <h3 className="text-lg font-semibold">{supplier.name}</h3>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold">
+              <TruncatedText text={supplier.name} maxLength={40} />
+            </h3>
             <p className="text-sm text-muted-foreground">
-              ID: {supplier.id} • Categoría: {supplier.category}
+              ID: {supplier.id} • Categoría: <TruncatedText text={supplier.category} maxLength={20} />
             </p>
           </div>
           <Badge
@@ -72,9 +96,11 @@ export function SupplierDetails({ supplier, products, orders, onNewOrder }: Supp
             <div className="space-y-2">
               <div className="flex items-start gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">Email</p>
-                  <p className="text-sm">{supplier.email}</p>
+                  <p className="text-sm">
+                    <TruncatedText text={supplier.email} maxLength={25} />
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
@@ -86,9 +112,11 @@ export function SupplierDetails({ supplier, products, orders, onNewOrder }: Supp
               </div>
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">Dirección</p>
-                  <p className="text-sm">{supplier.address}</p>
+                  <p className="text-sm">
+                    <TruncatedText text={supplier.address} maxLength={40} />
+                  </p>
                 </div>
               </div>
             </div>
@@ -98,9 +126,11 @@ export function SupplierDetails({ supplier, products, orders, onNewOrder }: Supp
             <div className="space-y-2">
               <div className="flex items-start gap-2">
                 <CreditCard className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">Contacto Principal</p>
-                  <p className="text-sm">{supplier.contact}</p>
+                  <p className="text-sm">
+                    <TruncatedText text={supplier.contact} maxLength={25} />
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
@@ -144,8 +174,30 @@ export function SupplierDetails({ supplier, products, orders, onNewOrder }: Supp
                     <TableBody>
                       {products.map((product) => (
                         <TableRow key={product.id}>
-                          <TableCell className="font-medium">{product.name}</TableCell>
-                          <TableCell>{product.category}</TableCell>
+                          <TableCell>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="font-medium truncate max-w-[180px] block">{product.name}</span>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" align="start">
+                                  {product.name}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableCell>
+                          <TableCell>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="truncate max-w-[120px] block">{product.category}</span>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" align="start">
+                                  {product.category}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </TableCell>
                           <TableCell>{product.stock}</TableCell>
                           <TableCell>${product.price.toFixed(2)}</TableCell>
                         </TableRow>

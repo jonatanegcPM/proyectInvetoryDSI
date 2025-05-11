@@ -12,6 +12,7 @@ import { CustomerPersonalInfo } from "./customer-personal-info"
 import { CustomerContactInfo } from "./customer-contact-info"
 import { CustomerMedicalInfo } from "./customer-medical-info"
 import { CustomerPurchases } from "./customer-purchases"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function CustomerDetails({
   customer,
@@ -23,6 +24,27 @@ export function CustomerDetails({
 }) {
   if (!customer) return null
 
+  const TruncatedText = ({ text, maxLength = 30 }: { text: string; maxLength?: number }) => {
+    if (!text) return null
+
+    if (text.length <= maxLength) return <span>{text}</span>
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="truncate block max-w-full" style={{ cursor: "help" }}>
+              {text}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" align="start" className="max-w-[300px] break-words">
+            {text}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
   return (
     <>
       <div className="py-4">
@@ -30,8 +52,10 @@ export function CustomerDetails({
           <Avatar className="h-16 w-16">
             <AvatarFallback className="text-xl">{customer.name.charAt(0)}</AvatarFallback>
           </Avatar>
-          <div>
-            <h3 className="text-lg font-semibold">{customer.name}</h3>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold">
+              <TruncatedText text={customer.name} maxLength={40} />
+            </h3>
             <p className="text-sm text-muted-foreground">
               ID: {customer.id} • Cliente desde {formatDate(customer.registrationDate)}
             </p>

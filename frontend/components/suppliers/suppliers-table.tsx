@@ -14,6 +14,7 @@ import {
 import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import { formatDate } from "@/hooks/use-suppliers"
 import type { SuppliersTableProps } from "@/types/suppliers"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function SuppliersTable({
   suppliers,
@@ -60,20 +61,51 @@ export function SuppliersTable({
       <TableBody>
         {suppliers.map((supplier) => (
           <TableRow key={supplier.id}>
-            <TableCell className="font-medium">{supplier.name}</TableCell>
+            <TableCell>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="font-medium truncate max-w-[180px] block">{supplier.name}</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="start">
+                    {supplier.name}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </TableCell>
             <TableCell>
               <div className="space-y-1">
-                <div className="flex items-center text-sm">
-                  <Mail className="mr-1 h-3 w-3 text-muted-foreground" />
-                  {supplier.email}
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center text-sm">
+                        <Mail className="mr-1 h-3 w-3 text-muted-foreground" />
+                        <span className="truncate max-w-[150px]">{supplier.email}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" align="start">
+                      {supplier.email}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <div className="flex items-center text-sm">
                   <Phone className="mr-1 h-3 w-3 text-muted-foreground" />
                   {supplier.phone}
                 </div>
               </div>
             </TableCell>
-            <TableCell>{supplier.category}</TableCell>
+            <TableCell>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="truncate max-w-[120px] block">{supplier.category}</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="start">
+                    {supplier.category}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </TableCell>
             <TableCell>{supplier.products}</TableCell>
             <TableCell>{formatDate(supplier.lastOrder)}</TableCell>
             <TableCell>

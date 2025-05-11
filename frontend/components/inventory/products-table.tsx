@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { Product } from "@/types/inventory"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface ProductsTableProps {
   products: Product[]
@@ -100,12 +101,43 @@ export function ProductsTable({
                         <Pill className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">{product.description}</p>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <p className="font-medium truncate max-w-[180px]">{product.name}</p>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" align="start">
+                              {product.name}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <p className="text-xs text-muted-foreground truncate max-w-[180px]">
+                                {product.description}
+                              </p>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" align="start">
+                              {product.description}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{product.category}</TableCell>
+                  <TableCell>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="truncate max-w-[120px] inline-block">{product.category}</span>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" align="start">
+                          {product.category}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <div className="flex justify-between">

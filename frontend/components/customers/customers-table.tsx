@@ -1,7 +1,6 @@
 "use client"
 
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
-
 import { ArrowUpDown, Edit, Mail, MoreHorizontal, Phone, Trash2 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -16,6 +15,7 @@ import {
 import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import { formatDate } from "@/hooks/use-customers"
 import type { CustomersTableProps } from "@/types/customers"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function CustomersTable({
   customers,
@@ -73,7 +73,16 @@ export function CustomersTable({
                   <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium">{customer.name}</p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p className="font-medium truncate max-w-[150px]">{customer.name}</p>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" align="start">
+                        {customer.name}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <p className="text-xs text-muted-foreground">
                     {formatDate(customer.dateOfBirth)} • {customer.gender}
                   </p>
@@ -82,10 +91,19 @@ export function CustomersTable({
             </TableCell>
             <TableCell>
               <div className="space-y-1">
-                <div className="flex items-center text-sm">
-                  <Mail className="mr-1 h-3 w-3 text-muted-foreground" />
-                  {customer.email}
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center text-sm">
+                        <Mail className="mr-1 h-3 w-3 text-muted-foreground" />
+                        <span className="truncate max-w-[150px]">{customer.email}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" align="start">
+                      {customer.email}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <div className="flex items-center text-sm">
                   <Phone className="mr-1 h-3 w-3 text-muted-foreground" />
                   {customer.phone}
@@ -94,9 +112,18 @@ export function CustomersTable({
             </TableCell>
             <TableCell>{formatDate(customer.lastVisit)}</TableCell>
             <TableCell>
-              <div className="max-w-[200px] truncate" title={customer.insurance || "Sin seguro"}>
-                {customer.insurance || <span className="text-muted-foreground italic">Sin seguro</span>}
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="max-w-[150px] truncate" title={customer.insurance || "Sin seguro"}>
+                      {customer.insurance || <span className="text-muted-foreground italic">Sin seguro</span>}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="start">
+                    {customer.insurance || "Sin seguro"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </TableCell>
             <TableCell>
               <Badge
