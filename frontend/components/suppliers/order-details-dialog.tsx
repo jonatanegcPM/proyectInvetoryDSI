@@ -1,12 +1,23 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
-import { CalendarIcon, CheckCircle, XCircle } from "lucide-react"
+import { AlertCircle, CalendarIcon, Loader2, PackageCheck, XCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useState } from "react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import type { OrderDetailsDialogProps } from "@/types/suppliers"
 
 export function OrderDetailsDialog({
@@ -16,7 +27,8 @@ export function OrderDetailsDialog({
   onUpdateStatus,
   isStatusUpdateProcessing,
 }: OrderDetailsDialogProps) {
-  if (!order) return null
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [showReceiveConfirm, setShowReceiveConfirm] = useState(false)
 
   // Mapear el estado a un texto en español y un color
   const getStatusBadge = (status: string) => {
@@ -45,10 +57,14 @@ export function OrderDetailsDialog({
     }
   }
 
-  const statusBadge = getStatusBadge(order.status)
+  const statusBadge = order ? getStatusBadge(order.status) : getStatusBadge("pending")
 
   // Determinar si el pedido está pendiente
-  const isPending = order.status.toLowerCase() === "pendiente" || order.status.toLowerCase() === "pending"
+  const isPending = order
+    ? order.status.toLowerCase() === "pendiente" || order.status.toLowerCase() === "pending"
+    : false
+
+  if (!order) return null
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -130,26 +146,107 @@ export function OrderDetailsDialog({
         </div>
 
         {isPending && onUpdateStatus && (
-          <DialogFooter className="flex justify-between sm:justify-between">
-            <Button
-              variant="destructive"
-              onClick={() => onUpdateStatus(order.id, "cancelled")}
-              disabled={isStatusUpdateProcessing}
-              className="flex items-center gap-1"
-            >
-              <XCircle className="h-4 w-4" />
-              Cancelar Pedido
-            </Button>
-            <Button
-              variant="default"
-              onClick={() => onUpdateStatus(order.id, "received")}
-              disabled={isStatusUpdateProcessing}
-              className="flex items-center gap-1"
-            >
-              <CheckCircle className="h-4 w-4" />
-              Marcar como Recibido
-            </Button>
-          </DialogFooter>
+          <>
+            <div className="border-t pt-4 mt-2">
+              <h4 className="text-sm font-medium mb-3 flex items-center gap-1.5">
+                <AlertCircle className="h-4 w-4 text-amber-500" />
+                Actualizar estado del pedido
+              </h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowCancelConfirm(true)}
+                    disabled={isStatusUpdateProcessing}
+                    className="h-auto py-3 border-red-200 bg-red-50 hover:bg-red-100 hover:text-red-900 text-red-700 dark:border-red-800 dark:bg-red-950/50 dark:hover:bg-red-900/50 dark:text-red-300 dark:hover:text-red-200 transition-all"
+                  >
+                    <div className="flex flex-col items-center w-full">
+                      <XCircle className="h-5 w-5 mb-1" />
+                      <span className="text-xs font-medium">Cancelar</span>
+                    </div>
+                  </Button>
+                </div>
+
+                <div className="flex flex-col">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowReceiveConfirm(true)}
+                    disabled={isStatusUpdateProcessing}
+                    className="h-auto py-3 border-green-200 bg-green-50 hover:bg-green-100 hover:text-green-900 text-green-700 dark:border-green-800 dark:bg-green-950/50 dark:hover:bg-green-900/50 dark:text-green-300 dark:hover:text-green-200 transition-all"
+                  >
+                    <div className="flex flex-col items-center w-full">
+                      <PackageCheck className="h-5 w-5 mb-1" />
+                      <span className="text-xs font-medium">Recibido</span>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Cancel Confirmation Dialog */}
+            <AlertDialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Cancelar este pedido?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción no se puede deshacer. El pedido será marcado como cancelado y no actualizará el
+                    inventario.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Volver</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      setShowCancelConfirm(false)
+                      onUpdateStatus(order.id, "cancelled")
+                    }}
+                    className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                  >
+                    {isStatusUpdateProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      <>Confirmar</>
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Receive Confirmation Dialog */}
+            <AlertDialog open={showReceiveConfirm} onOpenChange={setShowReceiveConfirm}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Marcar pedido como recibido?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción actualizará automáticamente el inventario con las cantidades de productos en este
+                    pedido.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Volver</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      setShowReceiveConfirm(false)
+                      onUpdateStatus(order.id, "received")
+                    }}
+                    className="bg-green-600 hover:bg-green-700 focus:ring-green-600"
+                  >
+                    {isStatusUpdateProcessing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      <>Confirmar</>
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </>
         )}
       </DialogContent>
     </Dialog>
