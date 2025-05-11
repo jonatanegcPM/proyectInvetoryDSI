@@ -44,13 +44,6 @@ export function useSuppliers() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   // Modificar los estados de paginación y ordenación para usar las preferencias guardadas
-  // Reemplazar estas líneas:
-  // const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "name", direction: "ascending" })
-  // const [itemsPerPage, setItemsPerPage] = useState(5)
-  // const [orderSortConfig, setOrderSortConfig] = useState<SortConfig>({ key: "date", direction: "descending" })
-  // const [ordersItemsPerPage, setOrdersItemsPerPage] = useState(5)
-
-  // Con estas:
   const preferences = PreferencesService.getSuppliersPreferences()
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: preferences.defaultSuppliersSortKey,
@@ -241,13 +234,6 @@ export function useSuppliers() {
   }
 
   // Modificar la función changeItemsPerPage para guardar las preferencias
-  // Reemplazar esta función:
-  // const changeItemsPerPage = (value: string) => {
-  //   setItemsPerPage(Number(value))
-  //   setCurrentPage(1) // Resetear a la primera página cuando cambia el número de items
-  // }
-
-  // Con esta:
   const changeItemsPerPage = (value: string) => {
     const newValue = Number(value)
     setItemsPerPage(newValue)
@@ -260,13 +246,6 @@ export function useSuppliers() {
   }
 
   // Modificar la función changeOrdersItemsPerPage para guardar las preferencias
-  // Reemplazar esta función:
-  // const changeOrdersItemsPerPage = (value: string) => {
-  //   setOrdersItemsPerPage(Number(value))
-  //   setOrdersCurrentPage(1) // Resetear a la primera página cuando cambia el número de items
-  // }
-
-  // Con esta:
   const changeOrdersItemsPerPage = (value: string) => {
     const newValue = Number(value)
     setOrdersItemsPerPage(newValue)
@@ -279,16 +258,6 @@ export function useSuppliers() {
   }
 
   // Modificar la función requestSort para guardar las preferencias
-  // Reemplazar esta función:
-  // const requestSort = (key: string) => {
-  //   let direction: "ascending" | "descending" = "ascending"
-  //   if (sortConfig.key === key && sortConfig.direction === "ascending") {
-  //     direction = "descending"
-  //   }
-  //   setSortConfig({ key, direction })
-  // }
-
-  // Con esta:
   const requestSort = (key: string) => {
     let direction: "ascending" | "descending" = "ascending"
     if (sortConfig.key === key && sortConfig.direction === "ascending") {
@@ -304,16 +273,6 @@ export function useSuppliers() {
   }
 
   // Modificar la función requestOrderSort para guardar las preferencias
-  // Reemplazar esta función:
-  // const requestOrderSort = (key: string) => {
-  //   let direction: "ascending" | "descending" = "ascending"
-  //   if (orderSortConfig.key === key && orderSortConfig.direction === "ascending") {
-  //     direction = "descending"
-  //   }
-  //   setOrderSortConfig({ key, direction })
-  // }
-
-  // Con esta:
   const requestOrderSort = (key: string) => {
     let direction: "ascending" | "descending" = "ascending"
     if (orderSortConfig.key === key && orderSortConfig.direction === "ascending") {
@@ -616,7 +575,7 @@ export function useSuppliers() {
   }
 
   // Función para exportar datos de proveedores en diferentes formatos
-  const exportSuppliersData = (format: "csv" | "excel" | "pdf") => {
+  const exportSuppliersData = (format: "csv" | "json" | "pdf") => {
     setIsExporting(true)
 
     // Simular procesamiento de exportación
@@ -624,11 +583,10 @@ export function useSuppliers() {
       // En una implementación real, esto sería una llamada a la API
       // o procesamiento en el cliente para generar el archivo correspondiente
 
-      // Preparar los datos para exportación
-      const headers = ["ID", "Nombre", "Contacto", "Email", "Teléfono", "Categoría", "Estado"]
-
-      // Simular diferentes comportamientos según el formato
       if (format === "csv") {
+        // Preparar los datos para exportación CSV
+        const headers = ["ID", "Nombre", "Contacto", "Email", "Teléfono", "Categoría", "Estado"]
+
         // Convertir los datos a formato CSV
         const csvContent = [
           headers.join(","),
@@ -655,8 +613,34 @@ export function useSuppliers() {
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
+      } else if (format === "json") {
+        // Preparar los datos para exportación JSON
+        const jsonData = suppliers.map((supplier) => ({
+          id: supplier.id,
+          name: supplier.name,
+          contact: supplier.contact,
+          email: supplier.email,
+          phone: supplier.phone,
+          address: supplier.address,
+          category: supplier.category,
+          status: supplier.status === "active" ? "Activo" : supplier.status === "inactive" ? "Inactivo" : "Pendiente",
+        }))
+
+        // Convertir a string JSON con formato
+        const jsonContent = JSON.stringify(jsonData, null, 2)
+
+        // Crear un blob y un enlace de descarga
+        const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.setAttribute("href", url)
+        link.setAttribute("download", `proveedores_${new Date().toISOString().slice(0, 10)}.json`)
+        link.style.visibility = "hidden"
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
       } else {
-        // Para Excel y PDF, en una implementación real se usarían bibliotecas específicas
+        // Para PDF, en una implementación real se usaría una biblioteca específica
         // Aquí solo simulamos la acción
         console.log(`Exportando en formato ${format}...`)
       }

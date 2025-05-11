@@ -20,7 +20,7 @@ export function ExportMenu({ onExport, isExporting, disabled }: ExportMenuProps)
           CSV
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onExport("json")} disabled={isExporting}>
-          <Code className="mr-2 h-4 w-4" />
+          <FileText className="mr-2 h-4 w-4" />
           JSON
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onExport("pdf")} disabled={isExporting}>

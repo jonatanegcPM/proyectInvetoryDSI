@@ -19,9 +19,9 @@ export function ExportMenu({ onExport, isExporting, disabled }: ExportMenuProps)
           <FileText className="mr-2 h-4 w-4" />
           CSV
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onExport("excel")} disabled={isExporting} className="cursor-pointer">
+        <DropdownMenuItem onClick={() => onExport("json")} disabled={isExporting} className="cursor-pointer">
           <FileText className="mr-2 h-4 w-4" />
-          Excel
+          JSON
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onExport("pdf")} disabled={isExporting} className="cursor-pointer">
           <FileText className="mr-2 h-4 w-4" />
@@ -31,4 +31,3 @@ export function ExportMenu({ onExport, isExporting, disabled }: ExportMenuProps)
     </DropdownMenu>
   )
 }
-

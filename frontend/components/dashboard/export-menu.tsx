@@ -90,11 +90,11 @@ export function ExportMenu({ transactions = [], dateFilter = "all", isLoading = 
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem
-          onClick={() => handleExport("pdf")}
+          onClick={() => handleExport("csv")}
           disabled={isLoading || isExporting || transactions.length === 0}
         >
           <FileText className="mr-2 h-4 w-4" />
-          PDF
+          CSV
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handleExport("json")}
@@ -104,11 +104,11 @@ export function ExportMenu({ transactions = [], dateFilter = "all", isLoading = 
           JSON
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => handleExport("csv")}
+          onClick={() => handleExport("pdf")}
           disabled={isLoading || isExporting || transactions.length === 0}
         >
           <FileText className="mr-2 h-4 w-4" />
-          CSV
+          PDF
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

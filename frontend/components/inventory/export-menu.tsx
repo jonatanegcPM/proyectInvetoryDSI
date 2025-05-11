@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { FileDown, Download } from "lucide-react"
+import { FileDown, Download, FileText } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface ExportMenuProps {
@@ -29,15 +29,15 @@ export function ExportMenu({ onExport, isSubmitting, disabled = false }: ExportM
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onExport("csv")} disabled={isSubmitting || disabled}>
-                <FileDown className="mr-2 h-4 w-4" />
+                <FileText className="mr-2 h-4 w-4" />
                 CSV
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onExport("json")} disabled={isSubmitting || disabled}>
-                <FileDown className="mr-2 h-4 w-4" />
+                <FileText className="mr-2 h-4 w-4" />
                 JSON
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onExport("pdf")} disabled={isSubmitting || disabled}>
-                <FileDown className="mr-2 h-4 w-4" />
+                <FileText className="mr-2 h-4 w-4" />
                 PDF
               </DropdownMenuItem>
             </DropdownMenuContent>
