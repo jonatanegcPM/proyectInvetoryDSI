@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   LayoutDashboard,
   Building,
@@ -45,6 +45,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState<boolean | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const { user, logout } = useAuth()
@@ -79,6 +80,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   ]
 
   const getPageTitle = () => {
+    if (pathname === "/profile") return "Mi Perfil"
+
     const mainItem = navItems.find((item) => item.href === pathname)
     if (mainItem) return mainItem.label
 
@@ -86,6 +89,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (reportItem) return `Reportes - ${reportItem.label}`
 
     return "Farmacias Brasil"
+  }
+
+  const handleNavigateToProfile = () => {
+    router.push("/profile")
   }
 
   if (sidebarOpen === null) {
@@ -362,18 +369,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                               </p>
                             </div>
                           </div>
-                          <DropdownMenuItem className="flex items-center py-2 mt-1">
+                          <DropdownMenuItem
+                            className="flex items-center py-2 mt-1 cursor-pointer"
+                            onClick={handleNavigateToProfile}
+                          >
                             <User className="h-4 w-4 mr-2" />
                             <span>Mi Perfil</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="flex items-center py-2">
-                            <Settings className="h-4 w-4 mr-2" />
-                            <span>Preferencias</span>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={logout}
-                            className="text-red-500 flex items-center py-2 hover:text-red-600 hover:bg-red-50 focus:text-red-600 focus:bg-red-50"
+                            className="text-red-500 flex items-center py-2 hover:text-red-600 hover:bg-red-50 focus:text-red-600 focus:bg-red-50 cursor-pointer"
                           >
                             <LogOut className="h-4 w-4 mr-2" />
                             <span>Cerrar sesión</span>
