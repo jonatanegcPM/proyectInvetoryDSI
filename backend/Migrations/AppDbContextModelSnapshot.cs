@@ -271,8 +271,18 @@ namespace backend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PurchaseID"));
 
+                    b.Property<DateTime>("ExpectedDeliveryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("PurchaseDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SupplierID")
                         .HasColumnType("int");
@@ -361,6 +371,10 @@ namespace backend.Migrations
 
                     b.Property<int>("CustomerID")
                         .HasColumnType("int");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("SaleDate")
                         .HasColumnType("datetime2");

@@ -94,7 +94,7 @@ namespace proyectInvetoryDSI.Services
                 Date = s.SaleDate.ToString("yyyy-MM-dd"),
                 Items = s.SaleDetails?.Count ?? 0,
                 Total = s.TotalAmount,
-                PaymentMethod = "Tarjeta de Crédito"
+                PaymentMethod = s.PaymentMethod
             }).ToList() ?? new List<CustomerPurchaseDTO>();
 
             return new CustomerDetailDTO
@@ -131,7 +131,8 @@ namespace proyectInvetoryDSI.Services
                 Status = customerDto.Status ?? "active",
                 Allergies = customerDto.Allergies ?? string.Empty,
                 Notes = customerDto.Notes ?? string.Empty,
-                RegistrationDate = DateTime.UtcNow
+                RegistrationDate = DateTime.UtcNow,
+                LastVisit = DateTime.UtcNow
             };
 
             _context.Customers.Add(customer);
@@ -236,7 +237,7 @@ namespace proyectInvetoryDSI.Services
                     Date = s.SaleDate.ToString("yyyy-MM-dd"),
                     Items = s.SaleDetails != null ? s.SaleDetails.Count : 0,
                     Total = s.TotalAmount,
-                    PaymentMethod = "Tarjeta de Crédito"
+                    PaymentMethod = s.PaymentMethod
                 })
                 .ToListAsync();
 

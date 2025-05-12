@@ -142,7 +142,7 @@ namespace proyectInvetoryDSI.Services
             try
             {
                 // Verificar existencia de cliente
-                if (!await _context.Customers.AnyAsync(c => c.CustomerID == saleDto.CustomerId))
+                var customer = await _context.Customers.FindAsync(saleDto.CustomerId) ??
                     throw new KeyNotFoundException($"Cliente con ID {saleDto.CustomerId} no encontrado");
 
                 var sale = await ProcessSale(saleDto, userId);
@@ -155,12 +155,17 @@ namespace proyectInvetoryDSI.Services
                 // Actualizar el total de la venta
                 sale.TotalAmount = total;
                 _context.Sales.Update(sale);
+
+                // Actualizar LastVisit del cliente
+                var utcNow = DateTime.UtcNow;
+                var localTime = TimeZoneInfo.ConvertTimeFromUtc(utcNow, ElSalvadorTimeZone);
+                customer.LastVisit = localTime;
+                _context.Customers.Update(customer);
+
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
 
-                var customer = await _context.Customers.FindAsync(sale.CustomerID) ??
-                    throw new KeyNotFoundException($"Cliente con ID {sale.CustomerID} no encontrado");
                 return BuildSaleResponse(sale, saleDetails, subtotal, tax, total, saleDto.PaymentMethod, customer);
             }
             catch (Exception)
@@ -189,7 +194,8 @@ namespace proyectInvetoryDSI.Services
                 SaleDate = localTime,
                 CustomerID = saleDto.CustomerId,
                 TotalAmount = saleDto.Total,
-                UserID = userId
+                UserID = userId,
+                PaymentMethod = saleDto.PaymentMethod
             };
 
             _context.Sales.Add(sale);

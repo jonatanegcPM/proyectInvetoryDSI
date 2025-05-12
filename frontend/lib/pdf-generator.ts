@@ -64,6 +64,7 @@ export function generateTransactionPDF(transaction: TransactionDetails): Blob {
       "Estado:",
       transaction.status === "completed" ? "Completado" : transaction.status === "pending" ? "Pendiente" : "Cancelado",
     ],
+    ["Método de Pago:", transaction.paymentMethod || "No especificado"],
   ]
 
   doc.autoTable({

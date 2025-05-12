@@ -16,7 +16,8 @@ import type {
 } from "@/types/inventory"
 
 // First, add the import for the export functions at the top of the file
-import { exportInventoryToPDF, exportInventoryToCSV, exportInventoryToExcel } from "@/lib/export-utils"
+import { exportInventoryToPDF, exportInventoryToCSV } from "@/lib/export-utils"
+import { exportInventoryToJSON } from "@/lib/export-utils"
 
 // Tipos de transacciones
 export const transactionTypes = ["Recepción", "Venta", "Ajuste", "Devolución", "Transferencia"]
@@ -397,8 +398,8 @@ export function useInventory() {
         case "csv":
           exportInventoryToCSV(allProducts)
           break
-        case "excel":
-          exportInventoryToExcel(allProducts)
+        case "json":
+          exportInventoryToJSON(allProducts)
           break
         default:
           throw new Error(`Formato no soportado: ${format}`)

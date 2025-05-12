@@ -278,9 +278,9 @@ export function usePointOfSale() {
           productId: item.id,
           quantity: item.quantity,
         })),
-        paymentMethod,
+        paymentMethod: paymentMethod,
         subtotal: subtotal,
-        //tax: tax,
+        tax: tax,
         total: total,
       }
 

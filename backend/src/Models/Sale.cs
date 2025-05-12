@@ -7,6 +7,7 @@ namespace proyectInvetoryDSI.Models
         public int CustomerID { get; set; }
         public decimal TotalAmount { get; set; }
         public int UserID { get; set; }
+        public string PaymentMethod { get; set; } = "cash"; // Valor por defecto
 
         // Navigation Properties
         public Customer? Customer { get; set; } 

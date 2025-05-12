@@ -175,7 +175,7 @@ export default function Dashboard() {
           delay={100}
         />
         <AnimatedStatsCard
-          title="Clientes"
+          title="Clientes Nuevos"
           value={stats ? stats.customers.count.toString() : "0"}
           icon={<Users className="h-4 w-4" />}
           isLoading={isLoadingStats}

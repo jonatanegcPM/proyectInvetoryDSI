@@ -54,6 +54,8 @@ export interface SaleRequest {
   customerId: number
   items: SaleItem[]
   paymentMethod: string
+  subtotal: number
+  tax: number
   total: number
 }
 

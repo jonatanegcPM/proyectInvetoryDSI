@@ -5,6 +5,7 @@ import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTit
 import { FileText, Plus } from "lucide-react"
 import type { Product } from "@/types/inventory"
 import Barcode from "react-barcode"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface ProductDetailsDialogProps {
   product: Product | null
@@ -21,8 +22,29 @@ export function ProductDetailsDialog({
 }: ProductDetailsDialogProps) {
   if (!product) return null
 
+  const TruncatedText = ({ text, maxLength = 30 }: { text: string; maxLength?: number }) => {
+    if (!text) return <p className="text-sm">No disponible</p>
+
+    if (text.length <= maxLength) return <p className="text-sm">{text}</p>
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p className="text-sm truncate max-w-full" style={{ cursor: "help" }}>
+              {text}
+            </p>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" align="start" className="max-w-[300px] break-words">
+            {text}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
   return (
-    <DialogContent className="sm:max-w-[625px]">
+    <DialogContent className="sm:max-w-[625px] max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>{product.name}</DialogTitle>
         <DialogDescription>Información detallada del producto</DialogDescription>
@@ -31,7 +53,7 @@ export function ProductDetailsDialog({
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <h4 className="text-sm font-semibold mb-1">SKU</h4>
-            <p className="text-sm">{product.sku}</p>
+            <TruncatedText text={product.sku} />
           </div>
           <div>
             <h4 className="text-sm font-semibold mb-1">Código de Barras</h4>
@@ -46,15 +68,15 @@ export function ProductDetailsDialog({
           </div>
           <div>
             <h4 className="text-sm font-semibold mb-1">Categoría</h4>
-            <p className="text-sm">{product.category}</p>
+            <TruncatedText text={product.category} />
           </div>
           <div>
             <h4 className="text-sm font-semibold mb-1">Descripción</h4>
-            <p className="text-sm">{product.description}</p>
+            <TruncatedText text={product.description} maxLength={50} />
           </div>
           <div>
             <h4 className="text-sm font-semibold mb-1">Ubicación</h4>
-            <p className="text-sm">{product.location}</p>
+            <TruncatedText text={product.location} />
           </div>
           <div>
             <h4 className="text-sm font-semibold mb-1">Stock</h4>
@@ -78,7 +100,7 @@ export function ProductDetailsDialog({
           </div>
           <div>
             <h4 className="text-sm font-semibold mb-1">Proveedor</h4>
-            <p className="text-sm">{product.supplier}</p>
+            <TruncatedText text={product.supplier} />
           </div>
           <div>
             <h4 className="text-sm font-semibold mb-1">Fecha de Vencimiento</h4>

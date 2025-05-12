@@ -30,6 +30,7 @@ export interface Transaction {
   amount: number
   status: "completed" | "pending" | "cancelled"
   date: string
+  paymentMethod?: string
 }
 
 export interface TransactionDetails extends Transaction {
@@ -370,4 +371,3 @@ export const DashboardService = {
     }
   },
 }
-

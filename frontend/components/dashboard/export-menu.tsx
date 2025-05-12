@@ -3,7 +3,7 @@
 import { Download, FileText, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { exportToPDF, exportToCSV, exportToExcel } from "@/lib/export-utils"
+import { exportToPDF, exportToCSV, exportToJSON } from "@/lib/export-utils"
 import { useState } from "react"
 import { DashboardService } from "@/services/dashboard-service"
 import type { Transaction } from "@/services/dashboard-service"
@@ -17,7 +17,10 @@ interface ExportMenuProps {
 export function ExportMenu({ transactions = [], dateFilter = "all", isLoading = false }: ExportMenuProps) {
   const [isExporting, setIsExporting] = useState(false)
 
-  const handleExport = async (format: "pdf" | "csv" | "excel") => {
+  // Asegurarse de que estamos obteniendo transacciones completas con todos los detalles
+  // Modificar la función handleExport para obtener los detalles completos de cada transacción
+
+  const handleExport = async (format: "pdf" | "csv" | "json") => {
     if (isLoading || isExporting) return
 
     try {
@@ -29,17 +32,36 @@ export function ExportMenu({ transactions = [], dateFilter = "all", isLoading = 
       const response = await DashboardService.getTransactions(dateFilter as any, 1, 1000)
       const allTransactions = response.transactions || []
 
-      //console.log(`Exporting ${allTransactions.length} transactions in format ${format} for the period ${dateFilter}`)
+      // Para cada transacción, obtener sus detalles completos incluyendo el método de pago
+      const detailedTransactions = await Promise.all(
+        allTransactions.map(async (transaction) => {
+          try {
+            // Obtener detalles completos de la transacción
+            const details = await DashboardService.getTransactionDetails(transaction.id)
+            return {
+              ...transaction,
+              paymentMethod: details.paymentMethod,
+            }
+          } catch (error) {
+            console.error(`Error fetching details for transaction ${transaction.id}:`, error)
+            return transaction
+          }
+        }),
+      )
+
+      console.log(
+        `Exporting ${detailedTransactions.length} transactions in format ${format} for the period ${dateFilter}`,
+      )
 
       switch (format) {
         case "pdf":
-          exportToPDF(allTransactions, dateFilter)
+          exportToPDF(detailedTransactions, dateFilter)
           break
         case "csv":
-          exportToCSV(allTransactions, dateFilter)
+          exportToCSV(detailedTransactions, dateFilter)
           break
-        case "excel":
-          exportToExcel(allTransactions, dateFilter)
+        case "json":
+          exportToJSON(detailedTransactions, dateFilter)
           break
       }
     } catch (error) {
@@ -68,28 +90,27 @@ export function ExportMenu({ transactions = [], dateFilter = "all", isLoading = 
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem
-          onClick={() => handleExport("pdf")}
-          disabled={isLoading || isExporting || transactions.length === 0}
-        >
-          <FileText className="mr-2 h-4 w-4" />
-          PDF
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => handleExport("excel")}
-          disabled={isLoading || isExporting || transactions.length === 0}
-        >
-          <FileText className="mr-2 h-4 w-4" />
-          Excel
-        </DropdownMenuItem>
-        <DropdownMenuItem
           onClick={() => handleExport("csv")}
           disabled={isLoading || isExporting || transactions.length === 0}
         >
           <FileText className="mr-2 h-4 w-4" />
           CSV
         </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => handleExport("json")}
+          disabled={isLoading || isExporting || transactions.length === 0}
+        >
+          <FileText className="mr-2 h-4 w-4" />
+          JSON
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => handleExport("pdf")}
+          disabled={isLoading || isExporting || transactions.length === 0}
+        >
+          <FileText className="mr-2 h-4 w-4" />
+          PDF
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
 }
-

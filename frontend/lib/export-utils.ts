@@ -1,15 +1,43 @@
+"use client"
+
+import { format } from "date-fns"
+import type { Product } from "@/types/inventory"
 import jsPDF from "jspdf"
 import "jspdf-autotable"
-import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import type { Transaction } from "@/services/dashboard-service"
-import type { Product } from "@/types/inventory"
+
+// Importación dinámica de xlsx
+const XLSX = require('xlsx')
 
 // Extender el tipo jsPDF para incluir autotable
 declare module "jspdf" {
   interface jsPDF {
     autoTable: (options: any) => jsPDF
   }
+}
+
+/**
+ * Función auxiliar para descargar un Blob como archivo
+ * @param blob - El Blob a descargar
+ * @param filename - Nombre del archivo
+ */
+const downloadBlob = (blob: Blob, filename: string): void => {
+  // Crear una URL para el blob
+  const url = URL.createObjectURL(blob)
+
+  // Crear un elemento <a> para la descarga
+  const link = document.createElement("a")
+  link.href = url
+  link.download = filename
+
+  // Añadir el enlace al documento, hacer clic y luego eliminarlo
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+
+  // Liberar la URL del objeto
+  URL.revokeObjectURL(url)
 }
 
 // Función para exportar a PDF
@@ -55,7 +83,7 @@ export function exportToPDF(transactions: Transaction[], dateFilter: string): vo
   })
 
   // Preparar datos para la tabla
-  const tableColumn = ["ID", "Cliente", "Artículos", "Monto", "Estado", "Fecha"]
+  const tableColumn = ["ID", "Cliente", "Artículos", "Monto", "Estado", "Método de Pago", "Fecha"]
   const tableRows = transactions.map((transaction) => {
     const date = new Date(transaction.date)
     const formattedDate = format(date, "dd/MM/yyyy", { locale: es })
@@ -80,6 +108,7 @@ export function exportToPDF(transactions: Transaction[], dateFilter: string): vo
       transaction.items.toString(),
       `$${transaction.amount.toFixed(2)}`,
       estado,
+      transaction.paymentMethod || "No especificado",
       formattedDate,
     ]
   })
@@ -119,7 +148,8 @@ export function exportToPDF(transactions: Transaction[], dateFilter: string): vo
   }
 
   // Guardar el PDF
-  doc.save(`ventas_${dateFilter}_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`)
+  const pdfOutput = doc.output("blob")
+  downloadBlob(pdfOutput, `ventas_${dateFilter}_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`)
 }
 
 // Función para exportar a CSV
@@ -127,7 +157,7 @@ export function exportToCSV(transactions: Transaction[], dateFilter: string): vo
   // Add logging
   console.log(`Exportando a CSV: ${transactions.length} transacciones para el filtro ${dateFilter}`)
   // Encabezados CSV
-  const headers = ["ID", "Cliente", "Artículos", "Monto", "Estado", "Fecha"]
+  const headers = ["ID", "Cliente", "Artículos", "Monto", "Estado", "Método de Pago", "Fecha"]
 
   // Convertir datos a filas CSV
   const rows = transactions.map((transaction) => {
@@ -154,6 +184,7 @@ export function exportToCSV(transactions: Transaction[], dateFilter: string): vo
       transaction.items.toString(),
       transaction.amount.toFixed(2),
       estado,
+      (transaction.paymentMethod || "No especificado").replace(/,/g, " "), // Evitar problemas con comas
       formattedDate,
     ].join(",")
   })
@@ -167,74 +198,36 @@ export function exportToCSV(transactions: Transaction[], dateFilter: string): vo
 
   // Crear blob y descargar
   const blob = new Blob([csvContentWithBOM], { type: "text/csv;charset=utf-8;" })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.setAttribute("href", url)
-  link.setAttribute("download", `ventas_${dateFilter}_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`)
-  link.style.visibility = "hidden"
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+  downloadBlob(blob, `ventas_${dateFilter}_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`)
 }
 
-// Función para exportar a Excel (usando CSV como alternativa simple)
-export function exportToExcel(transactions: Transaction[], dateFilter: string): void {
+// Función para exportar a JSON
+export function exportToJSON(transactions: Transaction[], dateFilter: string): void {
   // Add logging
-  console.log(`Exportando a Excel: ${transactions.length} transacciones para el filtro ${dateFilter}`)
-  // En un entorno real, usaríamos una biblioteca como ExcelJS
-  // Para simplificar, usaremos el mismo enfoque CSV pero con extensión .xlsx
+  console.log(`Exportando a JSON: ${transactions.length} transacciones para el filtro ${dateFilter}`)
 
-  // Encabezados
-  const headers = ["ID", "Cliente", "Artículos", "Monto", "Estado", "Fecha"]
-
-  // Convertir datos a filas
-  const rows = transactions.map((transaction) => {
+  // Preparar datos para JSON
+  const jsonData = transactions.map((transaction) => {
     const date = new Date(transaction.date)
-    const formattedDate = format(date, "dd/MM/yyyy", { locale: es })
+    const formattedDate = format(date, "yyyy-MM-dd", { locale: es })
 
-    // Formatear el estado
-    let estado = ""
-    switch (transaction.status) {
-      case "completed":
-        estado = "Completado"
-        break
-      case "pending":
-        estado = "Pendiente"
-        break
-      case "cancelled":
-        estado = "Cancelado"
-        break
+    return {
+      id: transaction.id,
+      customer: transaction.customer,
+      items: transaction.items,
+      amount: transaction.amount,
+      status: transaction.status,
+      paymentMethod: transaction.paymentMethod || "No especificado",
+      date: formattedDate,
     }
-
-    return [
-      transaction.id,
-      transaction.customer.replace(/,/g, " "), // Evitar problemas con comas en nombres
-      transaction.items.toString(),
-      transaction.amount.toFixed(2),
-      estado,
-      formattedDate,
-    ].join(",")
   })
 
-  // Combinar encabezados y filas
-  const csvContent = [headers.join(","), ...rows].join("\n")
+  // Convertir a string JSON con formato legible (indentación de 2 espacios)
+  const jsonString = JSON.stringify(jsonData, null, 2)
 
-  // Añadir BOM (Byte Order Mark) para UTF-8
-  const BOM = "\uFEFF"
-  const csvContentWithBOM = BOM + csvContent
-
-  // Crear blob y descargar
-  const blob = new Blob([csvContentWithBOM], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;",
-  })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.setAttribute("href", url)
-  link.setAttribute("download", `ventas_${dateFilter}_${format(new Date(), "yyyyMMdd_HHmmss")}.xlsx`)
-  link.style.visibility = "hidden"
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+  // Crear blob con el contenido JSON
+  const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" })
+  downloadBlob(blob, `ventas_${dateFilter}_${format(new Date(), "yyyyMMdd_HHmmss")}.json`)
 }
 
 // Función para crear un degradado en el PDF
@@ -826,7 +819,7 @@ function drawEnhancedPieChart(
       label = label.substring(0, 13) + "..."
     }
 
-    doc.text(`${label} (${sector.percentage.toFixed(1)}% - ${sector.value} product.)`, x - radius + 12, legendY + 6)
+    doc.text(`${label} (${sector.percentage.toFixed(1)}% - ${sector.value} unid.)`, x - radius + 12, legendY + 6)
   }
 }
 
@@ -1403,7 +1396,8 @@ export function exportInventoryToPDF(products: Product[]): void {
   doc.text("* Los productos en rojo tienen un nivel de stock por debajo del nivel de reorden", margin, finalY + 10)
 
   // Guardar el PDF
-  doc.save(`inventario_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`)
+  const pdfOutput = doc.output("blob")
+  downloadBlob(pdfOutput, `inventario_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`)
 }
 
 // Función para exportar inventario a CSV
@@ -1456,77 +1450,74 @@ export function exportInventoryToCSV(products: Product[]): void {
 
   // Crear blob y descargar
   const blob = new Blob([csvContentWithBOM], { type: "text/csv;charset=utf-8;" })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.setAttribute("href", url)
-  link.setAttribute("download", `inventario_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`)
-  link.style.visibility = "hidden"
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+  downloadBlob(blob, `inventario_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`)
 }
 
-// Función para exportar inventario a Excel (usando CSV como alternativa simple)
+// Función para exportar inventario a JSON
+export function exportInventoryToJSON(products: Product[]): void {
+  console.log(`Exportando a JSON: ${products.length} productos`)
+
+  // Preparar los datos para JSON
+  const jsonData = products.map((product) => ({
+    id: product.id,
+    name: product.name,
+    sku: product.sku,
+    barcode: product.barcode,
+    category: product.category,
+    description: product.description,
+    stock: product.stock,
+    reorderLevel: product.reorderLevel,
+    price: product.price,
+    costPrice: product.costPrice,
+    supplier: product.supplier,
+    expiryDate: product.expiryDate,
+    location: product.location,
+    status: product.status,
+  }))
+
+  // Convertir a string JSON con formato legible (indentación de 2 espacios)
+  const jsonString = JSON.stringify(jsonData, null, 2)
+
+  // Crear blob con el contenido JSON
+  const blob = new Blob([jsonString], { type: "application/json;charset=utf-8" })
+  downloadBlob(blob, `inventario_${format(new Date(), "yyyyMMdd_HHmmss")}.json`)
+}
+
+// Function to export inventory to Excel
 export function exportInventoryToExcel(products: Product[]): void {
   console.log(`Exportando a Excel: ${products.length} productos`)
-  // En un entorno real, usaríamos una biblioteca como ExcelJS
-  // Para simplificar, usaremos el mismo enfoque CSV pero con extensión .xlsx
 
-  // Encabezados
-  const headers = [
-    "ID",
-    "Producto",
-    "SKU",
-    "Código de Barras",
-    "Categoría",
-    "Descripción",
-    "Stock",
-    "Nivel de Reorden",
-    "Precio",
-    "Costo",
-    "Proveedor",
-    "Fecha de Expiración",
-    "Ubicación",
-    "Estado",
-  ]
+  // Crear un nuevo libro de Excel
+  const wb = XLSX.utils.book_new()
 
-  // Convertir datos a filas
-  const rows = products.map((product) => {
-    return [
-      product.id,
-      product.name.replace(/,/g, " "), // Evitar problemas con comas en nombres
-      product.sku || "",
-      product.barcode || "",
-      product.category || "",
-      (product.description || "").replace(/,/g, " "),
-      product.stock,
-      product.reorderLevel || "",
-      product.price.toFixed(2),
-      product.costPrice || "",
-      product.supplier || "",
-      product.expiryDate || "",
-      product.location || "",
-      product.status || "",
-    ].join(",")
-  })
+  // Preparar los datos para la hoja de cálculo
+  const data = products.map((product) => ({
+    ID: product.id,
+    Producto: product.name,
+    SKU: product.sku || "",
+    "Código de Barras": product.barcode || "",
+    Categoría: product.category || "",
+    Descripción: product.description || "",
+    Stock: product.stock,
+    "Nivel de Reorden": product.reorderLevel || "",
+    Precio: product.price,
+    Costo: product.costPrice || "",
+    Proveedor: product.supplier || "",
+    "Fecha de Expiración": product.expiryDate || "",
+    Ubicación: product.location || "",
+    Estado: product.status || "",
+  }))
 
-  // Combinar encabezados y filas
-  const csvContent = [headers.join(","), ...rows].join("\n")
+  // Crear la hoja de cálculo
+  const ws = XLSX.utils.json_to_sheet(data)
 
-  // Añadir BOM (Byte Order Mark) para UTF-8
-  const BOM = "\uFEFF"
-  const csvContentWithBOM = BOM + csvContent
+  // Añadir la hoja al libro
+  XLSX.utils.book_append_sheet(wb, ws, "Inventario")
 
-  // Crear blob y descargar
-  const blob = new Blob([csvContentWithBOM], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;",
-  })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement("a")
-  link.setAttribute("href", url)
-  link.setAttribute("download", `inventario_${format(new Date(), "yyyyMMdd_HHmmss")}.xlsx`)
-  link.style.visibility = "hidden"
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+  // Generar el archivo Excel
+  const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" })
+  const blob = new Blob([new Uint8Array(wbout)], { type: "application/octet-stream" })
+
+  // Guardar el archivo usando nuestra función downloadBlob
+  downloadBlob(blob, `inventario_${format(new Date(), "yyyyMMdd_HHmmss")}.xlsx`)
 }

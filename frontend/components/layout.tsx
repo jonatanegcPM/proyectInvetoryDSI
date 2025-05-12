@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   LayoutDashboard,
   Building,
@@ -45,6 +45,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState<boolean | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const { user, logout } = useAuth()
@@ -79,6 +80,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   ]
 
   const getPageTitle = () => {
+    if (pathname === "/profile") return "Mi Perfil"
+
     const mainItem = navItems.find((item) => item.href === pathname)
     if (mainItem) return mainItem.label
 
@@ -86,6 +89,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (reportItem) return `Reportes - ${reportItem.label}`
 
     return "Farmacias Brasil"
+  }
+
+  const handleNavigateToProfile = () => {
+    router.push("/profile")
   }
 
   if (sidebarOpen === null) {
@@ -150,27 +157,40 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Sección de Reportes y Análisis */}
           <div className="px-3 mt-6">
-            {sidebarOpen && <p className="text-xs font-medium text-muted-foreground mb-2 ml-2">ANÁLISIS AVANZADO</p>}
+            {sidebarOpen && (
+              <div className="flex items-center mb-2 ml-2">
+                <p className="text-xs font-medium text-muted-foreground">ANÁLISIS AVANZADO</p>
+                <span className="ml-2 text-[10px] italic font-medium text-amber-500 dark:text-amber-400">
+                  próximamente
+                </span>
+              </div>
+            )}
 
             {/* Mostrar directamente las opciones de reportes */}
             <ul className="space-y-1">
               {reportItems.map((item) => (
                 <li key={item.href}>
-                  <Button
-                    variant={pathname === item.href ? "secondary" : "ghost"}
-                    className={cn(
-                      "w-full justify-start rounded-md",
-                      !sidebarOpen && "justify-center px-2",
-                      pathname === item.href && "bg-primary/10 text-primary font-medium",
-                      !sidebarOpen && "h-10",
-                    )}
-                    asChild
-                  >
-                    <Link href={item.href}>
-                      <item.icon className={cn("h-5 w-5", sidebarOpen ? "mr-2" : "mx-auto")} />
-                      {sidebarOpen && <span>{item.label}</span>}
-                    </Link>
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-start rounded-md opacity-60 cursor-not-allowed",
+                            !sidebarOpen && "justify-center px-2",
+                            !sidebarOpen && "h-10",
+                          )}
+                          disabled
+                        >
+                          <item.icon className={cn("h-5 w-5", sidebarOpen ? "mr-2" : "mx-auto")} />
+                          {sidebarOpen && <span>{item.label}</span>}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side={sidebarOpen ? "right" : "right"}>
+                        <p>Función próximamente disponible</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </li>
               ))}
             </ul>
@@ -362,18 +382,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                               </p>
                             </div>
                           </div>
-                          <DropdownMenuItem className="flex items-center py-2 mt-1">
+                          <DropdownMenuItem
+                            className="flex items-center py-2 mt-1 cursor-pointer"
+                            onClick={handleNavigateToProfile}
+                          >
                             <User className="h-4 w-4 mr-2" />
                             <span>Mi Perfil</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="flex items-center py-2">
-                            <Settings className="h-4 w-4 mr-2" />
-                            <span>Preferencias</span>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={logout}
-                            className="text-red-500 flex items-center py-2 hover:text-red-600 hover:bg-red-50 focus:text-red-600 focus:bg-red-50"
+                            className="text-red-500 flex items-center py-2 hover:text-red-600 hover:bg-red-50 focus:text-red-600 focus:bg-red-50 cursor-pointer"
                           >
                             <LogOut className="h-4 w-4 mr-2" />
                             <span>Cerrar sesión</span>
@@ -438,23 +457,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
                 {/* Sección de reportes en móvil */}
                 <div className="mt-6">
-                  <p className="text-xs font-medium text-muted-foreground mb-2 ml-2">ANÁLISIS AVANZADO</p>
+                  <div className="flex items-center mb-2 ml-2">
+                    <p className="text-xs font-medium text-muted-foreground">ANÁLISIS AVANZADO</p>
+                    <span className="ml-2 text-[10px] italic font-medium text-amber-500 dark:text-amber-400">
+                      próximamente
+                    </span>
+                  </div>
                   <ul className="space-y-1">
                     {reportItems.map((item) => (
                       <li key={item.href}>
                         <Button
-                          variant={pathname === item.href ? "secondary" : "ghost"}
-                          className={cn(
-                            "w-full justify-start rounded-md",
-                            pathname === item.href && "bg-primary/10 text-primary font-medium",
-                          )}
-                          asChild
-                          onClick={() => setMobileMenuOpen(false)}
+                          variant="ghost"
+                          className="w-full justify-start rounded-md opacity-60 cursor-not-allowed"
+                          disabled
                         >
-                          <Link href={item.href}>
-                            <item.icon className="h-5 w-5 mr-2" />
-                            <span>{item.label}</span>
-                          </Link>
+                          <item.icon className="h-5 w-5 mr-2" />
+                          <span>{item.label}</span>
                         </Button>
                       </li>
                     ))}

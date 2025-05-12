@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Save, Loader2, AlertCircle, RefreshCw } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import type { CreateProductDTO, Category, Supplier } from "@/types/inventory"
+import { InventoryService } from "@/services/inventory-service" // Importar el servicio directamente
 
 // Define the ValidationErrors type
 interface ValidationErrors {
@@ -48,14 +49,34 @@ export function AddProductDialog({
 }: AddProductDialogProps) {
   const [errors, setErrors] = useState<ValidationErrors>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [loadingSuppliers, setLoadingSuppliers] = useState(false)
+  const [localSuppliers, setLocalSuppliers] = useState<Supplier[]>(suppliers || [])
 
   // Reset errors and touched state when dialog opens/closes
   useEffect(() => {
     if (open) {
       setErrors({})
       setTouched({})
+
+      // Cargar proveedores si no hay ninguno
+      if (!localSuppliers.length) {
+        loadSuppliers()
+      }
     }
   }, [open])
+
+  // Función para cargar proveedores
+  const loadSuppliers = async () => {
+    setLoadingSuppliers(true)
+    try {
+      const suppliersData = await InventoryService.getSuppliers()
+      setLocalSuppliers(suppliersData)
+    } catch (error) {
+      console.error("Error al cargar proveedores:", error)
+    } finally {
+      setLoadingSuppliers(false)
+    }
+  }
 
   const validateField = (name: string, value: any) => {
     if (value === undefined || value === null || value === "") {
@@ -323,15 +344,19 @@ export function AddProductDialog({
                   <SelectValue placeholder="Seleccionar proveedor" />
                 </SelectTrigger>
                 <SelectContent>
-                  {suppliers && suppliers.length > 0 ? (
-                    suppliers.map((supplier) => (
+                  {loadingSuppliers ? (
+                    <SelectItem value="loading" disabled>
+                      Cargando proveedores...
+                    </SelectItem>
+                  ) : localSuppliers && localSuppliers.length > 0 ? (
+                    localSuppliers.map((supplier) => (
                       <SelectItem key={supplier.id} value={supplier.id.toString()}>
                         {supplier.name}
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value="loading" disabled>
-                      Cargando proveedores...
+                    <SelectItem value="empty" disabled>
+                      No hay proveedores disponibles
                     </SelectItem>
                   )}
                 </SelectContent>
