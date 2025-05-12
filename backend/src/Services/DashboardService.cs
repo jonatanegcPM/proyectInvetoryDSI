@@ -31,8 +31,8 @@ namespace proyectInvetoryDSI.Services
                     break;
                 case "week":
                     int daysToSubtract = ((int)currentDate.DayOfWeek + 6) % 7;
-                    startDate = currentDate.AddDays(-daysToSubtract); // Lunes
-                    endDate = startDate.Value.AddDays(7).AddTicks(-1); // Domingo
+                    startDate = currentDate.Date.AddDays(-daysToSubtract); // Lunes a las 00:00:00
+                    endDate = startDate.Value.AddDays(7).AddTicks(-1); // Domingo a las 23:59:59.999
                     break;
                 case "month":
                     startDate = new DateTime(currentDate.Year, currentDate.Month, 1);
@@ -47,8 +47,8 @@ namespace proyectInvetoryDSI.Services
                     endDate = null;
                     break;
                 default:
-                    startDate = currentDate.AddDays(-7);
-                    endDate = currentDate.Date.AddDays(1).AddTicks(-1);
+                    startDate = currentDate.Date.AddDays(-7); // 7 días antes, a las 00:00:00
+                    endDate = currentDate.Date.AddDays(1).AddTicks(-1); // Final del día actual
                     break;
             }
 
