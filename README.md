@@ -11,6 +11,7 @@
 ![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white)
 ![Entity Framework](https://img.shields.io/badge/Entity_Framework-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![Version](https://img.shields.io/badge/Version-1.0-green?style=for-the-badge)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/jonatanegcPM/proyectInvetoryDSI)
 
 
 ## 📂 Estructura del Proyecto
@@ -22,6 +23,10 @@ El proyecto está organizado en las siguientes carpetas:
 - **`database/`**: Scripts SQL.
 - **`docs/`**: Documentación general y archivos adicionales (como imágenes del README).
 - **`frontend/`**: Aplicación web desarrollada con Next.js y React.
+
+> [!NOTE]
+> Por favor, consulte la documentación oficial del repositorio para obtener una comprensión completa de la arquitectura, estructura, objetivos y directrices del proyecto. Acceda a la documentación aquí: [DOCUMENTACIÓN - SISTEMA DE GESTIÓN FARMACIAS BRASIL](https://deepwiki.com/jonatanegcPM/proyectInvetoryDSI/1-overview)
+
 
 ## ⚙️ Requisitos Previos 
 
