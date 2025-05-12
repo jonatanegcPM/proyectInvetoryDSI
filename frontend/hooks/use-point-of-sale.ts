@@ -246,7 +246,7 @@ export function usePointOfSale() {
         description: "Por favor complete todos los campos requeridos",
         variant: "destructive",
       })
-      return
+      return null
     }
 
     // Verificar stock antes de completar la venta
@@ -261,7 +261,7 @@ export function usePointOfSale() {
         description: "Algunos productos no tienen suficiente stock disponible",
         variant: "destructive",
       })
-      return
+      return null
     }
 
     setIsProcessing(true)
@@ -278,9 +278,9 @@ export function usePointOfSale() {
           productId: item.id,
           quantity: item.quantity,
         })),
-        paymentMethod: paymentMethod,
+        paymentMethod,
         subtotal: subtotal,
-        tax: tax,
+        //tax: tax,
         total: total,
       }
 
@@ -304,6 +304,9 @@ export function usePointOfSale() {
       setCart([])
       setSelectedCustomer(null)
       setPaymentMethod("")
+
+      // Return the sale result
+      return { success: true, id: response.id }
     } catch (error) {
       console.error("Error al procesar la venta:", error)
       toast({
@@ -311,6 +314,7 @@ export function usePointOfSale() {
         description: "No se pudo completar la venta. Inténtelo de nuevo.",
         variant: "destructive",
       })
+      return { success: false }
     } finally {
       setIsProcessing(false)
     }
