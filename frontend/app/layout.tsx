@@ -5,6 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/contexts/auth-context"
 import { Toaster } from "@/components/ui/toaster"
+import { NotificationProvider } from "@/components/notifications/notification-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -14,8 +15,8 @@ export const metadata: Metadata = {
   icons: {
     icon: "/farmacias-brasil-logo-bandera.png",
     shortcut: "/farmacias-brasil-logo-bandera.png",
-    apple: "/farmacias-brasil-logo-bandera.png"
-  }
+    apple: "/farmacias-brasil-logo-bandera.png",
+  },
 }
 
 export default function RootLayout({
@@ -28,8 +29,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            {children}
-            <Toaster />
+            <NotificationProvider>
+              {children}
+              <Toaster />
+            </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
@@ -37,6 +40,4 @@ export default function RootLayout({
   )
 }
 
-
-
-import './globals.css'
+import "./globals.css"

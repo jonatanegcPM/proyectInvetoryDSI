@@ -20,7 +20,6 @@ import {
   PieChart,
   TrendingUp,
   FileBarChart,
-  Bell,
   Menu,
   User,
 } from "lucide-react"
@@ -36,10 +35,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { NotificationBell } from "@/components/notifications/notification-bell"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState<boolean | null>(null)
@@ -48,7 +47,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const { user, logout } = useAuth()
+  const { user, logout, isAuthenticated } = useAuth()
 
   useEffect(() => {
     setMounted(true)
@@ -270,65 +269,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {/* Lado derecho del header - Iconos con color suavizado y espaciado ajustado */}
             <TooltipProvider>
               <div className="flex items-center gap-2">
-                {/* Notificaciones - Con color suavizado */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="relative text-muted-foreground hover:text-foreground"
-                          >
-                            <Bell className="h-5 w-5" />
-                            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-80">
-                          <DropdownMenuLabel className="flex justify-between items-center">
-                            <span>Notificaciones</span>
-                            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                              2 nuevas
-                            </span>
-                          </DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <div className="max-h-80 overflow-auto">
-                            <DropdownMenuItem className="flex flex-col items-start p-3 hover:bg-accent cursor-pointer">
-                              <div className="flex items-center w-full">
-                                <div className="bg-yellow-100 p-2 rounded-full mr-2">
-                                  <Package className="h-4 w-4 text-yellow-600" />
-                                </div>
-                                <div className="flex-1">
-                                  <p className="font-medium">Stock bajo en Paracetamol</p>
-                                  <p className="text-xs text-muted-foreground">Hace 10 minutos</p>
-                                </div>
-                              </div>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="flex flex-col items-start p-3 hover:bg-accent cursor-pointer">
-                              <div className="flex items-center w-full">
-                                <div className="bg-green-100 p-2 rounded-full mr-2">
-                                  <Building className="h-4 w-4 text-green-600" />
-                                </div>
-                                <div className="flex-1">
-                                  <p className="font-medium">Nueva orden de proveedor recibida</p>
-                                  <p className="text-xs text-muted-foreground">Hace 2 horas</p>
-                                </div>
-                              </div>
-                            </DropdownMenuItem>
-                          </div>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="justify-center text-primary text-sm font-medium">
-                            Ver todas las notificaciones
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    <p>Notificaciones</p>
-                  </TooltipContent>
-                </Tooltip>
+                {/* Notification Bell - Solo mostrar si el usuario está autenticado */}
+                {isAuthenticated && <NotificationBell />}
 
                 {/* Selector de tema - Ya tiene color suavizado */}
                 {mounted && (
