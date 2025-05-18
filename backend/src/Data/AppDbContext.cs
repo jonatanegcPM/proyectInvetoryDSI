@@ -17,6 +17,7 @@ namespace proyectInvetoryDSI.Data
         public DbSet<Category> Categories { get; set; } = null!;
         public DbSet<Purchase> Purchases { get; set; } = null!;
         public DbSet<PurchaseDetail> PurchaseDetails { get; set; } = null!;
+        public DbSet<Notification> Notifications { get; set; } = null!;
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -34,6 +35,7 @@ namespace proyectInvetoryDSI.Data
             ConfigureCategory(modelBuilder);
             ConfigurePurchase(modelBuilder);
             ConfigurePurchaseDetail(modelBuilder);
+            ConfigureNotification(modelBuilder);
         }
 
         private void ConfigureSupplier(ModelBuilder modelBuilder)
@@ -259,7 +261,7 @@ namespace proyectInvetoryDSI.Data
 
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Supplier)
-                .WithMany(s => s.Products) // Updated to reference the Products collection
+                .WithMany(s => s.Products)
                 .HasForeignKey(p => p.SupplierID)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -353,7 +355,7 @@ namespace proyectInvetoryDSI.Data
 
             modelBuilder.Entity<Purchase>()
                 .HasOne(p => p.Supplier)
-                .WithMany(s => s.Purchases) // Updated to reference the Purchases collection
+                .WithMany(s => s.Purchases)
                 .HasForeignKey(p => p.SupplierID)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -391,6 +393,46 @@ namespace proyectInvetoryDSI.Data
                 .WithMany()
                 .HasForeignKey(pd => pd.ProductID)
                 .OnDelete(DeleteBehavior.Restrict);
+        }
+
+        private void ConfigureNotification(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.Id)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.Title)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.Message)
+                .IsRequired()
+                .HasMaxLength(1000);
+
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.Type)
+                .IsRequired()
+                .HasMaxLength(20);
+
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.Category)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.EntityId)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.EntityType)
+                .HasMaxLength(50);
+
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

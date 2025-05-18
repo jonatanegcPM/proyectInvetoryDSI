@@ -70,7 +70,7 @@ builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<IPosService, PosService>(); 
-
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 // Agregar estos servicios en Program.cs
 builder.Services.AddScoped<IInventoryService, InventoryService>();

@@ -185,3 +185,23 @@ CREATE TABLE PurchaseDetails (
     FOREIGN KEY (PurchaseID) REFERENCES Purchases(PurchaseID),
     FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
 );
+
+CREATE TABLE Notifications (
+    Id NVARCHAR(50) PRIMARY KEY,
+    Title NVARCHAR(200) NOT NULL,
+    Message NVARCHAR(1000) NOT NULL,
+    Type NVARCHAR(20) NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    Read BIT NOT NULL DEFAULT 0,
+    Category NVARCHAR(50),
+    EntityId NVARCHAR(50),
+    EntityType NVARCHAR(50),
+    UserId INT,
+    FOREIGN KEY (UserId) REFERENCES Users(UserID) ON DELETE CASCADE
+);
+
+ INSERT INTO Notifications (Id, Title, Message, Type, CreatedAt, [Read], Category, EntityId, EntityType, UserId)
+VALUES 
+('notif-001', 'Stock bajo de Paracetamol', 'Solo quedan 5 unidades de Paracetamol 500mg', 'warning', GETDATE(), 0, 'inventory', 'prod-123', 'product', NULL),
+('notif-002', 'Actualización del sistema', 'Nueva versión 2.1 disponible', 'info', GETDATE(), 0, 'system', 'update-456', 'system', NULL),
+('notif-003', 'Pedido recibido', 'El pedido #789 ha sido recibido', 'success', GETDATE(), 1, 'orders', 'order-789', 'order', 1);
