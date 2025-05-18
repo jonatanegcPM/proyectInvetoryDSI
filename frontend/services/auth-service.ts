@@ -14,6 +14,7 @@ export interface AuthResponse {
   }
 }
 
+// Actualizar la interfaz ValidateResponse para incluir roleName
 export interface ValidateResponse {
   valid: boolean
   user: {
@@ -33,7 +34,7 @@ export interface AuthError {
 // URL base de la API (debe configurarse en variables de entorno)
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 
-// Credenciales de prueba para el modo simulado
+// Actualizar el objeto de credenciales de prueba para incluir roleName
 const TEST_CREDENTIALS = {
   email: "admin@farmacia.com",
   password: "password123",
@@ -138,6 +139,7 @@ export const AuthService = {
    * Obtener el token de autenticación
    */
   getToken(): string | null {
+    // Corregir para obtener el token correcto
     return localStorage.getItem("auth_token")
   },
 
@@ -208,4 +210,34 @@ export const AuthService = {
       return null
     }
   },
+}
+
+/**
+ * Obtiene el token de autenticación actual
+ * @returns El token JWT o null si no hay sesión activa
+ */
+export async function getAuthToken(): Promise<string | null> {
+  // Implementación depende de cómo almacenas el token
+  // Ejemplo usando localStorage:
+  return localStorage.getItem("auth_token")
+
+  // O si usas una cookie:
+  // return document.cookie.replace(/(?:(?:^|.*;\s*)authToken\s*\=\s*([^;]*).*$)|^.*$/, "$1")
+
+  // O si tienes un método más complejo que incluye refreshing:
+  // const tokenData = JSON.parse(localStorage.getItem('tokenData') || '{}')
+  // if (tokenData.expiresAt && new Date(tokenData.expiresAt) < new Date()) {
+  //   return await refreshToken()
+  // }
+  // return tokenData.token || null
+}
+
+/**
+ * Refresca el token de autenticación si es necesario
+ * @returns Un nuevo token válido
+ */
+export async function refreshToken(): Promise<string | null> {
+  // Implementación del refresh token
+  // ...
+  return null
 }
