@@ -1,6 +1,4 @@
 "use client"
-
-import { useState } from "react"
 import { motion } from "framer-motion"
 import { DollarSign, ShoppingCart, Users, Package } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,7 +8,6 @@ import { AlertCircle } from "lucide-react"
 
 // Hooks and services
 import { useDashboardApi } from "@/hooks/use-dashboard-api"
-import type { InventoryItem } from "@/services/dashboard-service"
 
 // Components
 import { DashboardHero } from "@/components/dashboard/dashboard-hero"
@@ -21,7 +18,6 @@ import { Pagination } from "@/components/dashboard/pagination"
 import { AnimatedTransactionsTable } from "@/components/dashboard/animated-transactions-table"
 import { InventoryTable } from "@/components/dashboard/inventory-table"
 import { TransactionDetailsModal } from "@/components/dashboard/transaction-details-modal"
-import { OrderProductModal } from "@/components/dashboard/order-product-modal"
 import { ExportMenu } from "@/components/dashboard/export-menu"
 import { NewSaleButton } from "@/components/dashboard/new-sale-button"
 import { SalesTrendChart } from "@/components/dashboard/sales-trend-chart"
@@ -61,16 +57,6 @@ export default function Dashboard() {
     handleViewTransactionDetails,
     setIsTransactionDetailsOpen,
   } = useDashboardApi()
-
-  // State for inventory item ordering
-  const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItem | null>(null)
-  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false)
-
-  // Function to handle ordering products
-  const handleOrderProduct = (item: InventoryItem) => {
-    setSelectedInventoryItem(item)
-    setIsOrderDialogOpen(true)
-  }
 
   // Función para obtener la descripción del período según el filtro
   const getFilterDescription = () => {
@@ -256,11 +242,7 @@ export default function Dashboard() {
               <CardDescription>Productos que requieren atención</CardDescription>
             </CardHeader>
             <CardContent>
-              <InventoryTable
-                inventory={lowStockItems}
-                isLoading={isLoadingInventory}
-                onOrderProduct={handleOrderProduct}
-              />
+              <InventoryTable inventory={lowStockItems} isLoading={isLoadingInventory} />
             </CardContent>
             <CardFooter>
               <Pagination
@@ -286,12 +268,6 @@ export default function Dashboard() {
         onOpenChange={setIsTransactionDetailsOpen}
         transaction={selectedTransaction}
         isLoading={isLoadingTransactionDetails}
-      />
-
-      <OrderProductModal
-        isOpen={isOrderDialogOpen}
-        onOpenChange={setIsOrderDialogOpen}
-        inventoryItem={selectedInventoryItem}
       />
     </div>
   )
