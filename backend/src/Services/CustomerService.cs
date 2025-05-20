@@ -10,10 +10,12 @@ namespace proyectInvetoryDSI.Services
     public class CustomerService
     {
         private readonly AppDbContext _context;
+        private readonly IEventNotificationService _eventNotificationService;
 
-        public CustomerService(AppDbContext context)
+        public CustomerService(AppDbContext context, IEventNotificationService eventNotificationService)
         {
             _context = context;
+            _eventNotificationService = eventNotificationService;
         }
 
         public async Task<CustomersResponse> GetAllCustomersAsync(string? search, string? status, int page = 1, int limit = 10, string? sort = "name", string? direction = "asc")
@@ -76,7 +78,7 @@ namespace proyectInvetoryDSI.Services
             };
         }
 
-            public async Task<CustomerDetailDTO?> GetCustomerByIdAsync(int id)
+        public async Task<CustomerDetailDTO?> GetCustomerByIdAsync(int id)
         {
             var customer = await _context.Customers
                 .Include(c => c.Sales!)
@@ -117,6 +119,7 @@ namespace proyectInvetoryDSI.Services
                 Purchases = purchases
             };
         }
+
         public async Task<CustomerDTO> CreateCustomerAsync(CustomerCreateDTO customerDto)
         {
             var customer = new Customer
@@ -137,6 +140,11 @@ namespace proyectInvetoryDSI.Services
 
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
+
+            await _eventNotificationService.NotifyCustomerEvent(
+                CustomerEventType.NewCustomer,
+                customer
+            );
 
             return new CustomerDTO
             {
@@ -174,6 +182,11 @@ namespace proyectInvetoryDSI.Services
 
             _context.Customers.Update(customer);
             await _context.SaveChangesAsync();
+
+            await _eventNotificationService.NotifyCustomerEvent(
+                CustomerEventType.CustomerUpdated,
+                customer
+            );
 
             return new CustomerDTO
             {

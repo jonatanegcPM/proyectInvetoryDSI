@@ -10,10 +10,12 @@ namespace proyectInvetoryDSI.Services
     public class SupplierService
     {
         private readonly AppDbContext _context;
+        private readonly IEventNotificationService _eventNotificationService; // Nuevo servicio
 
-        public SupplierService(AppDbContext context)
+        public SupplierService(AppDbContext context, IEventNotificationService eventNotificationService)
         {
             _context = context;
+            _eventNotificationService = eventNotificationService;
         }
 
         public async Task<SuppliersResponse> GetAllSuppliersAsync(
@@ -144,6 +146,12 @@ namespace proyectInvetoryDSI.Services
 
             _context.Suppliers.Add(supplier);
             await _context.SaveChangesAsync();
+
+            // Notificar nuevo proveedor
+            await _eventNotificationService.NotifySupplierEvent(
+                SupplierEventType.NewSupplier,
+                supplier
+            );
 
             return new SupplierDTO
             {

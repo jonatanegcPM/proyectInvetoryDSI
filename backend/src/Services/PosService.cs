@@ -15,10 +15,12 @@ namespace proyectInvetoryDSI.Services
         private const decimal TaxRate = 0.13m; // 13% de impuestos
         private const decimal Tolerance = 0.01m; // Margen de tolerancia para comparaciones decimales
         private static readonly TimeZoneInfo ElSalvadorTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
+        private readonly IEventNotificationService _eventNotificationService; // Nuevo servicio
 
-        public PosService(AppDbContext context)
+        public PosService(AppDbContext context, IEventNotificationService eventNotificationService)
         {
             _context = context;
+            _eventNotificationService = eventNotificationService;
         }
 
         public async Task<ProductResponse> GetProducts(string search, int page, int limit)
@@ -165,6 +167,13 @@ namespace proyectInvetoryDSI.Services
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
+
+                // Notificar venta completada
+                await _eventNotificationService.NotifySaleEvent(
+                    SaleEventType.Completed,
+                    sale,
+                    userId
+                );
 
                 return BuildSaleResponse(sale, saleDetails, subtotal, tax, total, saleDto.PaymentMethod, customer);
             }
