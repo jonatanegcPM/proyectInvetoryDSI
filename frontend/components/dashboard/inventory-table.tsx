@@ -5,15 +5,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Loader2 } from "lucide-react"
+import { useRouter } from "next/navigation"
 import type { InventoryItem } from "@/services/dashboard-service"
 
 interface InventoryTableProps {
   inventory: InventoryItem[]
   isLoading: boolean
-  onOrderProduct: (item: InventoryItem) => void
 }
 
-export function InventoryTable({ inventory, isLoading, onOrderProduct }: InventoryTableProps) {
+export function InventoryTable({ inventory, isLoading }: InventoryTableProps) {
+  const router = useRouter()
+
   // Helper function to get badge properties based on stock levels
   const getBadgeProps = (item: InventoryItem) => {
     // Default values
@@ -35,6 +37,11 @@ export function InventoryTable({ inventory, isLoading, onOrderProduct }: Invento
     }
 
     return { className, status }
+  }
+
+  // Function to navigate to suppliers page
+  const navigateToSuppliers = () => {
+    router.push("/suppliers")
   }
 
   if (isLoading) {
@@ -82,7 +89,7 @@ export function InventoryTable({ inventory, isLoading, onOrderProduct }: Invento
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
-                <Button variant="outline" size="sm" onClick={() => onOrderProduct(item)}>
+                <Button variant="outline" size="sm" onClick={navigateToSuppliers}>
                   Ordenar
                 </Button>
               </TableCell>

@@ -4,8 +4,9 @@ import type React from "react"
 import { createContext, useContext, useState, useEffect, useCallback } from "react"
 import { NotificationService } from "@/services/notification-service"
 import { useToast } from "@/hooks/use-toast"
-import { useAuth } from "@/contexts/auth-context" // Importamos el contexto de autenticación
+import { useAuth } from "@/contexts/auth-context"
 
+// Tipos
 export type NotificationType = "info" | "warning" | "success" | "error"
 
 export interface Notification {
@@ -13,9 +14,9 @@ export interface Notification {
   title: string
   message: string
   type: NotificationType
-  icon?: React.ReactNode
   timestamp: Date
   read: boolean
+  icon?: React.ReactNode
   category?: string
   entityId?: string
   entityType?: string
@@ -25,195 +26,197 @@ interface NotificationContextType {
   notifications: Notification[]
   unreadCount: number
   loading: boolean
-  error: string | null
-  fetchNotifications: (page?: number, filter?: "all" | "unread" | "read", category?: string) => Promise<void>
-  markAsRead: (id: string) => Promise<void>
-  markAllAsRead: () => Promise<void>
-  removeNotification: (id: string) => Promise<void>
+  totalPages?: number
+  addNotification: (notification: Omit<Notification, "id" | "timestamp">) => void
+  removeNotification: (id: string) => void
+  markAsRead: (id: string) => void
+  markAllAsRead: () => void
+  fetchNotifications: (page?: number, filter?: "all" | "unread" | "read") => void
   refreshUnreadCount: () => Promise<void>
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined)
 
-export function NotificationProvider({ children }: { children: React.ReactNode }) {
+export const useNotifications = () => {
+  const context = useContext(NotificationContext)
+  if (!context) {
+    throw new Error("useNotifications must be used within a NotificationProvider")
+  }
+  return context
+}
+
+export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const [unreadCount, setUnreadCount] = useState<number>(0)
-  const [loading, setLoading] = useState<boolean>(false)
-  const [error, setError] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState<number>(1)
-  const [totalPages, setTotalPages] = useState<number>(1)
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [totalPages, setTotalPages] = useState<number | undefined>(undefined)
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
   const { toast } = useToast()
-  const { isAuthenticated, isLoading: authLoading } = useAuth() // Obtenemos el estado de autenticación
 
-  // Fetch notifications from API
-  const fetchNotifications = useCallback(
-    async (page = 1, filter: "all" | "unread" | "read" = "all", category?: string) => {
-      // Solo cargar notificaciones si el usuario está autenticado
-      if (!isAuthenticated) return
-
-      setLoading(true)
-      setError(null)
-      try {
-        const response = await NotificationService.getNotifications(page, 20, filter, category)
-
-        const mappedNotifications = response.notifications.map(NotificationService.mapApiNotificationToInternal)
-
-        setNotifications(mappedNotifications)
-        setCurrentPage(response.page)
-        setTotalPages(response.totalPages)
-        setLoading(false)
-      } catch (err) {
-        setError("Error al cargar notificaciones")
-        setLoading(false)
-        // Solo mostrar toast de error si el usuario está autenticado
-        if (isAuthenticated) {
-          toast({
-            title: "Error",
-            description: "No se pudieron cargar las notificaciones",
-            variant: "destructive",
-          })
-        }
-        console.error("Error fetching notifications:", err)
-      }
-    },
-    [toast, isAuthenticated],
-  )
-
-  // Refresh unread count
+  // Refrescar el contador de notificaciones no leídas
   const refreshUnreadCount = useCallback(async () => {
-    // Solo cargar conteo si el usuario está autenticado
     if (!isAuthenticated) return
 
     try {
       const count = await NotificationService.getUnreadCount()
       setUnreadCount(count)
-    } catch (err) {
-      console.error("Error fetching unread count:", err)
+    } catch (error) {
+      console.error("Error fetching unread count:", error)
     }
   }, [isAuthenticated])
 
-  // Mark notification as read
-  const markAsRead = useCallback(
-    async (id: string) => {
+  // Cargar notificaciones iniciales
+  const fetchNotifications = useCallback(
+    async (page = 1, filter: "all" | "unread" | "read" = "all") => {
       if (!isAuthenticated) return
 
       try {
+        setLoading(true)
+        const response = await NotificationService.getNotifications(page, 10, filter)
+
+        const mappedNotifications = response.notifications.map(NotificationService.mapApiNotificationToInternal)
+
+        setNotifications(mappedNotifications)
+        setTotalPages(response.totalPages)
+
+        // Actualizar contador de no leídas
+        await refreshUnreadCount()
+      } catch (error) {
+        console.error("Error fetching notifications:", error)
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar las notificaciones",
+          variant: "destructive",
+        })
+      } finally {
+        setLoading(false)
+      }
+    },
+    [isAuthenticated, refreshUnreadCount, toast],
+  )
+
+  // Añadir notificación (simulado, en producción esto vendría del backend)
+  const addNotification = useCallback((notification: Omit<Notification, "id" | "timestamp">) => {
+    const newNotification: Notification = {
+      ...notification,
+      id: Math.random().toString(36).substring(2, 9),
+      timestamp: new Date(),
+    }
+
+    setNotifications((prev) => [newNotification, ...prev])
+    if (!notification.read) {
+      setUnreadCount((prev) => prev + 1)
+    }
+  }, [])
+
+  // Eliminar notificación
+  const removeNotification = useCallback(
+    async (id: string) => {
+      try {
+        await NotificationService.deleteNotification(id)
+
+        setNotifications((prev) => {
+          const notification = prev.find((n) => n.id === id)
+          if (notification && !notification.read) {
+            setUnreadCount((count) => Math.max(0, count - 1))
+          }
+          return prev.filter((n) => n.id !== id)
+        })
+      } catch (error) {
+        console.error(`Error removing notification ${id}:`, error)
+        toast({
+          title: "Error",
+          description: "No se pudo eliminar la notificación",
+          variant: "destructive",
+        })
+      }
+    },
+    [toast],
+  )
+
+  // Marcar como leída
+  const markAsRead = useCallback(
+    async (id: string) => {
+      try {
         await NotificationService.markAsRead(id)
 
-        // Update local state
         setNotifications((prev) =>
-          prev.map((notification) => (notification.id === id ? { ...notification, read: true } : notification)),
+          prev.map((n) => {
+            if (n.id === id && !n.read) {
+              setUnreadCount((count) => Math.max(0, count - 1))
+              return { ...n, read: true }
+            }
+            return n
+          }),
         )
-
-        // Refresh unread count
-        refreshUnreadCount()
-      } catch (err) {
+      } catch (error) {
+        console.error(`Error marking notification ${id} as read:`, error)
         toast({
           title: "Error",
           description: "No se pudo marcar la notificación como leída",
           variant: "destructive",
         })
-        console.error(`Error marking notification ${id} as read:`, err)
       }
     },
-    [refreshUnreadCount, toast, isAuthenticated],
+    [toast],
   )
 
-  // Mark all notifications as read
+  // Marcar todas como leídas
   const markAllAsRead = useCallback(async () => {
-    if (!isAuthenticated) return
-
     try {
       await NotificationService.markAllAsRead()
 
-      // Update local state
-      setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true })))
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
       setUnreadCount(0)
 
       toast({
         title: "Éxito",
         description: "Todas las notificaciones han sido marcadas como leídas",
       })
-    } catch (err) {
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error)
       toast({
         title: "Error",
         description: "No se pudieron marcar todas las notificaciones como leídas",
         variant: "destructive",
       })
-      console.error("Error marking all notifications as read:", err)
     }
-  }, [toast, isAuthenticated])
+  }, [toast])
 
-  // Remove notification
-  const removeNotification = useCallback(
-    async (id: string) => {
-      if (!isAuthenticated) return
-
-      try {
-        await NotificationService.deleteNotification(id)
-
-        // Update local state
-        setNotifications((prev) => prev.filter((notification) => notification.id !== id))
-
-        // Refresh unread count if needed
-        refreshUnreadCount()
-
-        toast({
-          title: "Éxito",
-          description: "Notificación eliminada correctamente",
-        })
-      } catch (err) {
-        toast({
-          title: "Error",
-          description: "No se pudo eliminar la notificación",
-          variant: "destructive",
-        })
-        console.error(`Error removing notification ${id}:`, err)
-      }
-    },
-    [refreshUnreadCount, toast, isAuthenticated],
-  )
-
-  // Initial load and polling setup
+  // Cargar notificaciones y contador al iniciar y cuando cambia el estado de autenticación
   useEffect(() => {
-    // No hacer nada si la autenticación está cargando o el usuario no está autenticado
-    if (authLoading || !isAuthenticated) return
+    // No hacer nada si la autenticación está cargando
+    if (authLoading) return
 
-    // Cargar notificaciones iniciales
-    fetchNotifications()
-    refreshUnreadCount()
-
-    // Set up polling for unread count (every 30 seconds)
-    const intervalId = setInterval(() => {
+    // Si el usuario está autenticado, cargar datos
+    if (isAuthenticated) {
+      // Cargar contador de no leídas inmediatamente
       refreshUnreadCount()
-    }, 30000)
 
-    return () => clearInterval(intervalId)
-  }, [fetchNotifications, refreshUnreadCount, isAuthenticated, authLoading])
+      // Cargar notificaciones
+      fetchNotifications()
 
-  return (
-    <NotificationContext.Provider
-      value={{
-        notifications,
-        unreadCount,
-        loading,
-        error,
-        fetchNotifications,
-        markAsRead,
-        markAllAsRead,
-        removeNotification,
-        refreshUnreadCount,
-      }}
-    >
-      {children}
-    </NotificationContext.Provider>
-  )
-}
+      // Actualizar contador de no leídas periódicamente
+      const intervalId = setInterval(() => {
+        refreshUnreadCount()
+      }, 30000) // Cada 30 segundos
 
-export function useNotifications() {
-  const context = useContext(NotificationContext)
-  if (context === undefined) {
-    throw new Error("useNotifications must be used within a NotificationProvider")
+      return () => clearInterval(intervalId)
+    }
+  }, [isAuthenticated, authLoading, fetchNotifications, refreshUnreadCount])
+
+  const value = {
+    notifications,
+    unreadCount,
+    loading,
+    totalPages,
+    addNotification,
+    removeNotification,
+    markAsRead,
+    markAllAsRead,
+    fetchNotifications,
+    refreshUnreadCount,
   }
-  return context
+
+  return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>
 }

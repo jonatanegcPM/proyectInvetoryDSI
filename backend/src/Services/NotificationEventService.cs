@@ -19,11 +19,17 @@ namespace proyectInvetoryDSI.Services
     {
         private readonly INotificationService _notificationService;
         private readonly AppDbContext _context;
+        private static readonly TimeZoneInfo ElSalvadorTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
 
         public EventNotificationService(INotificationService notificationService, AppDbContext context)
         {
             _notificationService = notificationService;
             _context = context;
+        }
+
+        private DateTime GetElSalvadorTime()
+        {
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ElSalvadorTimeZone);
         }
 
         public async Task NotifyInventoryEvent(InventoryEventType eventType, Product product, int? userId = null)
@@ -55,7 +61,7 @@ namespace proyectInvetoryDSI.Services
 
                 case InventoryEventType.NearExpiration:
                     title = $"Producto próximo a caducar: {product.Name}";
-                    message = $"El producto {product.Name} caducará en {(product.ExpirationDate - DateTime.Now)?.Days} días.";
+                    message = $"El producto {product.Name} caducará en {(product.ExpirationDate - GetElSalvadorTime())?.Days} días.";
                     type = "warning";
                     break;
 
