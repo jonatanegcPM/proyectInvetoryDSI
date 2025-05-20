@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using proyectInvetoryDSI.Services;
 using proyectInvetoryDSI.Models;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ namespace proyectInvetoryDSI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly UserService _userService;
@@ -19,6 +21,7 @@ namespace proyectInvetoryDSI.Controllers
 
         // GET: api/User
         [HttpGet]
+        [Authorize(Roles = "1")]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             var users = await _userService.GetAllUsersAsync();
@@ -38,7 +41,8 @@ namespace proyectInvetoryDSI.Controllers
         }
 
         // POST: api/User
-                [HttpPost]
+        [HttpPost]
+        [Authorize(Roles = "1")]
         public async Task<ActionResult<User>> PostUser(User user)
         {
             try
@@ -59,9 +63,18 @@ namespace proyectInvetoryDSI.Controllers
         }
 
         // PUT: api/User/id
-                [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        [HttpPut("{id}")]
+        public async Task<ActionResult<User>> PutUser(int id, User user)
         {
+            // Verificar si el usuario actual es admin o el mismo usuario
+            var currentUserId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
+            var isAdmin = User.IsInRole("1");
+
+            if (!isAdmin && currentUserId != id)
+            {
+                return Forbid();
+            }
+
             if (id != user.UserID)
             {
                 return BadRequest();
@@ -69,8 +82,8 @@ namespace proyectInvetoryDSI.Controllers
 
             try
             {
-                await _userService.UpdateUserAsync(user);
-                return NoContent();
+                var updatedUser = await _userService.UpdateUserAsync(user);
+                return Ok(updatedUser);
             }
             catch (InvalidOperationException ex)
             {
@@ -81,8 +94,10 @@ namespace proyectInvetoryDSI.Controllers
                 return StatusCode(500, new { message = "Error interno del servidor", details = ex.Message });
             }
         }
+
         // DELETE: api/User/id
         [HttpDelete("{id}")]
+        [Authorize(Roles = "1")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             await _userService.DeleteUserAsync(id);

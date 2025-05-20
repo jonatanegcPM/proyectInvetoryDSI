@@ -1,16 +1,35 @@
 import { AuthService } from "./auth-service"
+import { toast } from "@/hooks/use-toast"
+
+// Define types for user data
+export interface UserData {
+  userID: number
+  name: string
+  username: string
+  password?: string
+  roleID: number
+  email: string
+  createdAt: string
+  isActive: boolean
+  role?: {
+    roleID: number
+    roleName: string
+    description: string
+    isActive: boolean
+  }
+}
 
 // Define types for profile update
 export interface ProfileUpdateData {
-  name?: string
-  email?: string
-  phone?: string
-  position?: string
+  userId: number
+  Name: string
+  Username: string
+  Email: string
+  Password?: string
 }
 
 // Define types for password update
 export interface PasswordUpdateData {
-  currentPassword: string
   newPassword: string
   confirmPassword?: string
 }
@@ -26,26 +45,62 @@ const IS_MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_MODE === "true" || false
  */
 export const UserService = {
   /**
-   * Actualizar el perfil del usuario
+   * Obtener los datos del usuario actual
    */
-  async updateProfile(data: ProfileUpdateData): Promise<any> {
-    // Si estamos en modo simulado, usar actualización simulada
-    if (IS_MOCK_MODE) {
-      return this._mockUpdateProfile(data)
-    }
-
-    // Modo API real
+  async getCurrentUser(): Promise<UserData | null> {
     try {
       const token = AuthService.getToken()
       if (!token) {
         throw new Error("No hay sesión activa")
       }
 
-      const response = await fetch(`${API_URL}/users/profile`, {
+      const user = AuthService.getUser()
+      if (!user || !user.id) {
+        throw new Error("No se pudo obtener el ID del usuario")
+      }
+
+      const userId = user.id
+      const headers = await AuthService.getAuthHeaders()
+
+      const response = await fetch(`${API_URL}/User/${userId}`, {
+        method: "GET",
+        headers,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Error al obtener datos del usuario")
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error("Error al obtener datos del usuario:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al obtener datos del usuario",
+        variant: "destructive",
+      })
+      return null
+    }
+  },
+
+  /**
+   * Actualizar el perfil del usuario
+   */
+  async updateProfile(data: ProfileUpdateData): Promise<UserData | null> {
+    try {
+      const token = AuthService.getToken()
+      if (!token) {
+        throw new Error("No hay sesión activa")
+      }
+
+      const headers = await AuthService.getAuthHeaders()
+
+      const response = await fetch(`${API_URL}/User/${data.userId}`, {
         method: "PUT",
         headers: {
+          ...headers,
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       })
@@ -58,60 +113,38 @@ export const UserService = {
       return await response.json()
     } catch (error) {
       console.error("Error al actualizar el perfil:", error)
-      throw error
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al actualizar el perfil",
+        variant: "destructive",
+      })
+      return null
     }
-  },
-
-  /**
-   * Versión simulada de la actualización de perfil para desarrollo
-   */
-  async _mockUpdateProfile(data: ProfileUpdateData): Promise<any> {
-    // Simular latencia de red
-    await new Promise((resolve) => setTimeout(resolve, 800))
-
-    // Obtener usuario actual
-    const currentUser = AuthService.getUser()
-    if (!currentUser) {
-      throw new Error("No hay usuario activo")
-    }
-
-    // Actualizar datos en localStorage
-    const updatedUser = {
-      ...currentUser,
-      ...data,
-    }
-
-    // Guardar en localStorage
-    localStorage.setItem("user", JSON.stringify(updatedUser))
-
-    return { success: true, user: updatedUser }
   },
 
   /**
    * Actualizar la contraseña del usuario
    */
-  async updatePassword(data: PasswordUpdateData): Promise<any> {
-    // Si estamos en modo simulado, usar actualización simulada
-    if (IS_MOCK_MODE) {
-      return this._mockUpdatePassword(data)
-    }
-
-    // Modo API real
+  async updatePassword(userId: number, newPassword: string): Promise<UserData | null> {
     try {
       const token = AuthService.getToken()
       if (!token) {
         throw new Error("No hay sesión activa")
       }
 
-      const response = await fetch(`${API_URL}/users/password`, {
+      // Para actualizar la contraseña, usamos el mismo endpoint de actualización de perfil
+      // pero solo enviamos los campos necesarios
+      const headers = await AuthService.getAuthHeaders()
+
+      const response = await fetch(`${API_URL}/User/${userId}`, {
         method: "PUT",
         headers: {
+          ...headers,
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          currentPassword: data.currentPassword,
-          newPassword: data.newPassword,
+          userId: userId,
+          Password: newPassword,
         }),
       })
 
@@ -123,23 +156,12 @@ export const UserService = {
       return await response.json()
     } catch (error) {
       console.error("Error al actualizar la contraseña:", error)
-      throw error
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Error al actualizar la contraseña",
+        variant: "destructive",
+      })
+      return null
     }
-  },
-
-  /**
-   * Versión simulada de la actualización de contraseña para desarrollo
-   */
-  async _mockUpdatePassword(data: PasswordUpdateData): Promise<any> {
-    // Simular latencia de red
-    await new Promise((resolve) => setTimeout(resolve, 800))
-
-    // Verificar contraseña actual (en un entorno real esto se haría en el servidor)
-    if (data.currentPassword !== "password123") {
-      throw new Error("La contraseña actual es incorrecta")
-    }
-
-    // En un entorno real, la contraseña se actualizaría en la base de datos
-    return { success: true }
   },
 }
