@@ -59,26 +59,65 @@ namespace proyectInvetoryDSI.Services
             
             return createdUser;
         }
-            public async Task UpdateUserAsync(User user)
+            public async Task<User> UpdateUserAsync(User user)
         {
-            // Validar si el email ya existe en otro usuario
-            var emailExists = await _context.Users
-                .AnyAsync(u => u.Email == user.Email && u.UserID != user.UserID);
-            if (emailExists)
+            // Obtener el usuario existente
+            var existingUser = await _context.Users.FindAsync(user.UserID);
+            if (existingUser == null)
             {
-                throw new InvalidOperationException("El correo electrónico ya está registrado en otro usuario");
+                throw new InvalidOperationException("Usuario no encontrado");
             }
 
-            // Validar si el username ya existe en otro usuario
-            var usernameExists = await _context.Users
-                .AnyAsync(u => u.Username == user.Username && u.UserID != user.UserID);
-            if (usernameExists)
+            // Validar email solo si se proporciona uno nuevo
+            if (!string.IsNullOrEmpty(user.Email) && user.Email != existingUser.Email)
             {
-                throw new InvalidOperationException("El nombre de usuario ya está en uso por otro usuario");
+                var emailExists = await _context.Users
+                    .AnyAsync(u => u.Email == user.Email && u.UserID != user.UserID);
+                if (emailExists)
+                {
+                    throw new InvalidOperationException("El correo electrónico ya está registrado en otro usuario");
+                }
+                existingUser.Email = user.Email;
             }
 
-            _context.Users.Update(user);
+            // Validar username solo si se proporciona uno nuevo
+            if (!string.IsNullOrEmpty(user.Username) && user.Username != existingUser.Username)
+            {
+                var usernameExists = await _context.Users
+                    .AnyAsync(u => u.Username == user.Username && u.UserID != user.UserID);
+                if (usernameExists)
+                {
+                    throw new InvalidOperationException("El nombre de usuario ya está en uso por otro usuario");
+                }
+                existingUser.Username = user.Username;
+            }
+
+            // Actualizar nombre solo si se proporciona uno nuevo
+            if (!string.IsNullOrEmpty(user.Name))
+            {
+                existingUser.Name = user.Name;
+            }
+
+            // Actualizar contraseña solo si se proporciona una nueva
+            if (!string.IsNullOrEmpty(user.Password))
+            {
+                existingUser.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+            }
+
+            _context.Users.Update(existingUser);
             await _context.SaveChangesAsync();
+
+            // Retornar el usuario actualizado con su rol
+            var updatedUser = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserID == user.UserID);
+
+            if (updatedUser == null)
+            {
+                throw new InvalidOperationException("Error al recuperar el usuario actualizado");
+            }
+
+            return updatedUser;
         }
 
         public async Task DeleteUserAsync(int id)

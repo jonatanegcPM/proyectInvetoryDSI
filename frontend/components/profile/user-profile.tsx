@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useAuth } from "@/contexts/auth-context"
-import { UserService } from "@/services/user-service"
+import { UserService, type UserData } from "@/services/user-service"
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -13,29 +13,28 @@ import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle2, User, Lock, Shield, History } from "lucide-react"
+import { CheckCircle2, User, Lock, Shield, History, Loader2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
 
 // Define the form schema
 const profileFormSchema = z.object({
   name: z.string().min(2, {
     message: "El nombre debe tener al menos 2 caracteres.",
   }),
+  username: z.string().min(2, {
+    message: "El nombre de usuario debe tener al menos 2 caracteres.",
+  }),
   email: z.string().email({
     message: "Por favor ingrese un correo electrónico válido.",
   }),
-  phone: z.string().optional(),
-  position: z.string().optional(),
 })
 
 // Define the password form schema
 const passwordFormSchema = z
   .object({
-    currentPassword: z.string().min(8, {
-      message: "La contraseña actual debe tener al menos 8 caracteres.",
-    }),
     newPassword: z.string().min(8, {
       message: "La nueva contraseña debe tener al menos 8 caracteres.",
     }),
@@ -52,20 +51,21 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>
 type PasswordFormValues = z.infer<typeof passwordFormSchema>
 
 export function UserProfile() {
-  const { user, updateUserInfo } = useAuth()
+  const { user } = useAuth()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [isFetching, setIsFetching] = useState(true)
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [userData, setUserData] = useState<UserData | null>(null)
 
   // Profile form
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       name: "",
+      username: "",
       email: "",
-      phone: "",
-      position: "",
     },
     mode: "onChange",
   })
@@ -74,42 +74,71 @@ export function UserProfile() {
   const passwordForm = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordFormSchema),
     defaultValues: {
-      currentPassword: "",
       newPassword: "",
       confirmPassword: "",
     },
     mode: "onChange",
   })
 
-  // Update form when user data changes
+  // Fetch user data
   useEffect(() => {
-    if (user) {
-      // Instead of using reset, set the values directly
-      form.setValue("name", user.name || "")
-      form.setValue("email", user.email || "")
-      form.setValue("phone", user.phone || "")
-      form.setValue("position", user.position || "")
+    const fetchUserData = async () => {
+      setIsFetching(true)
+      try {
+        const data = await UserService.getCurrentUser()
+        if (data) {
+          setUserData(data)
+
+          // Update form values
+          form.setValue("name", data.name || "")
+          form.setValue("username", data.username || "")
+          form.setValue("email", data.email || "")
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error)
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar los datos del usuario",
+          variant: "destructive",
+        })
+      } finally {
+        setIsFetching(false)
+      }
     }
-  }, [user, form])
+
+    if (user?.id) {
+      fetchUserData()
+    }
+  }, [user, form, toast])
 
   // Handle profile form submission
   async function onSubmit(data: ProfileFormValues) {
+    if (!userData) return
+
     setIsLoading(true)
     setSaveSuccess(false)
 
     try {
-      await UserService.updateProfile(data)
-      updateUserInfo(data)
+      const updateData = {
+        userId: userData.userID,
+        Name: data.name,
+        Username: data.username,
+        Email: data.email,
+      }
 
-      setSaveSuccess(true)
-      toast({
-        title: "Perfil actualizado",
-        description: "Tu información ha sido actualizada correctamente.",
-        variant: "success",
-      })
+      const updatedUser = await UserService.updateProfile(updateData)
 
-      // Reset success message after 3 seconds
-      setTimeout(() => setSaveSuccess(false), 3000)
+      if (updatedUser) {
+        setUserData(updatedUser)
+        setSaveSuccess(true)
+        toast({
+          title: "Perfil actualizado",
+          description: "Tu información ha sido actualizada correctamente.",
+        })
+
+        // Reset success message after 3 seconds
+        setTimeout(() => setSaveSuccess(false), 3000)
+      }
     } catch (error) {
       console.error("Error updating profile:", error)
       toast({
@@ -124,36 +153,58 @@ export function UserProfile() {
 
   // Handle password form submission
   async function onPasswordSubmit(data: PasswordFormValues) {
+    if (!userData) return
+
     setIsLoading(true)
     setPasswordSuccess(false)
 
     try {
-      await UserService.updatePassword(data)
+      const updatedUser = await UserService.updatePassword(userData.userID, data.newPassword)
 
-      setPasswordSuccess(true)
-      toast({
-        title: "Contraseña actualizada",
-        description: "Tu contraseña ha sido actualizada correctamente.",
-        variant: "success",
-      })
+      if (updatedUser) {
+        setPasswordSuccess(true)
+        toast({
+          title: "Contraseña actualizada",
+          description: "Tu contraseña ha sido actualizada correctamente.",
+        })
 
-      // Reset form fields individually instead of using reset()
-      passwordForm.setValue("currentPassword", "")
-      passwordForm.setValue("newPassword", "")
-      passwordForm.setValue("confirmPassword", "")
+        // Reset form fields
+        passwordForm.setValue("newPassword", "")
+        passwordForm.setValue("confirmPassword", "")
 
-      // Reset success message after 3 seconds
-      setTimeout(() => setPasswordSuccess(false), 3000)
+        // Reset success message after 3 seconds
+        setTimeout(() => setPasswordSuccess(false), 3000)
+      }
     } catch (error) {
       console.error("Error updating password:", error)
       toast({
         title: "Error",
-        description: "No se pudo actualizar tu contraseña. Verifica que la contraseña actual sea correcta.",
+        description: "No se pudo actualizar tu contraseña.",
         variant: "destructive",
       })
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "dd 'de' MMMM 'de' yyyy", { locale: es })
+    } catch (error) {
+      return "Fecha no disponible"
+    }
+  }
+
+  if (isFetching) {
+    return (
+      <div className="container mx-auto py-6 flex justify-center items-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Cargando información del perfil...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -172,13 +223,13 @@ export function UserProfile() {
               <CardContent className="p-6 flex flex-col items-center text-center">
                 <Avatar className="h-24 w-24 mb-4">
                   <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                    {user?.name?.charAt(0).toUpperCase() || "U"}
+                    {userData?.name?.charAt(0).toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
-                <h3 className="font-medium text-lg">{user?.name}</h3>
-                <p className="text-sm text-muted-foreground mb-2">{user?.email}</p>
+                <h3 className="font-medium text-lg">{userData?.name}</h3>
+                <p className="text-sm text-muted-foreground mb-2">{userData?.email}</p>
                 <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                  {user?.roleName || `Rol ${user?.role || "desconocido"}`}
+                  {userData?.role?.roleName || `Rol ${userData?.roleID || "desconocido"}`}
                 </Badge>
               </CardContent>
             </Card>
@@ -188,11 +239,11 @@ export function UserProfile() {
                 <div className="space-y-4 mt-2">
                   <div className="flex items-center gap-2 text-sm">
                     <Shield className="h-4 w-4 text-muted-foreground" />
-                    <span>Último acceso: {new Date().toLocaleDateString()}</span>
+                    <span>Usuario: {userData?.username}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <History className="h-4 w-4 text-muted-foreground" />
-                    <span>Cuenta creada: {new Date().toLocaleDateString()}</span>
+                    <span>Cuenta creada: {userData?.createdAt ? formatDate(userData.createdAt) : "No disponible"}</span>
                   </div>
                 </div>
               </CardContent>
@@ -249,6 +300,20 @@ export function UserProfile() {
 
                         <FormField
                           control={form.control}
+                          name="username"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Nombre de usuario</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Tu nombre de usuario" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
                           name="email"
                           render={({ field }) => (
                             <FormItem>
@@ -261,38 +326,15 @@ export function UserProfile() {
                           )}
                         />
 
-                        <div className="grid gap-6 md:grid-cols-2">
-                          <FormField
-                            control={form.control}
-                            name="phone"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Teléfono</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Tu número de teléfono" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="position"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Cargo</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Tu cargo" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
                         <Button type="submit" disabled={isLoading}>
-                          {isLoading ? "Guardando..." : "Guardar cambios"}
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Guardando...
+                            </>
+                          ) : (
+                            "Guardar cambios"
+                          )}
                         </Button>
                       </form>
                     </Form>
@@ -318,22 +360,6 @@ export function UserProfile() {
 
                     <Form {...passwordForm}>
                       <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-6">
-                        <FormField
-                          control={passwordForm.control}
-                          name="currentPassword"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Contraseña actual</FormLabel>
-                              <FormControl>
-                                <Input type="password" placeholder="••••••••" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <Separator className="my-4" />
-
                         <FormField
                           control={passwordForm.control}
                           name="newPassword"
@@ -364,7 +390,14 @@ export function UserProfile() {
                         />
 
                         <Button type="submit" disabled={isLoading}>
-                          {isLoading ? "Actualizando..." : "Actualizar contraseña"}
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Actualizando...
+                            </>
+                          ) : (
+                            "Actualizar contraseña"
+                          )}
                         </Button>
                       </form>
                     </Form>

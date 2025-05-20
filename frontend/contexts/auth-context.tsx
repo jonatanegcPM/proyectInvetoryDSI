@@ -46,10 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (validationResult && validationResult.valid) {
           setUser(validationResult.user)
           setIsAuthenticated(true)
-          
+
           // Asegurarse de que el token está disponible para comandos
-          if (typeof window !== 'undefined' && AuthService.getToken()) {
-            localStorage.setItem('token', AuthService.getToken() || '');
+          if (typeof window !== "undefined" && AuthService.getToken()) {
+            localStorage.setItem("token", AuthService.getToken() || "")
           }
         } else {
           // Si el token no es válido, limpiar la autenticación
@@ -86,10 +86,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Actualizar estado
       setUser(response.user)
       setIsAuthenticated(true)
-      
+
       // Asegurarse de que el token está disponible para comandos
-      if (typeof window !== 'undefined' && AuthService.getToken()) {
-        localStorage.setItem('token', AuthService.getToken() || '');
+      if (typeof window !== "undefined" && AuthService.getToken()) {
+        localStorage.setItem("token", AuthService.getToken() || "")
       }
 
       toast({
@@ -113,8 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Función de logout
   const logout = () => {
     AuthService.logout()
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('token'); // Eliminar también el token de compatibilidad
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token") // Eliminar también el token de compatibilidad
     }
     setUser(null)
     setIsAuthenticated(false)

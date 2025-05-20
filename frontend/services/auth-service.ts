@@ -210,6 +210,21 @@ export const AuthService = {
       return null
     }
   },
+
+  /**
+   * Obtener los headers de autenticación
+   */
+  async getAuthHeaders(): Promise<HeadersInit> {
+    const token = this.getToken()
+    if (!token) {
+      throw new Error("No hay token disponible")
+    }
+
+    return {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    }
+  },
 }
 
 /**
