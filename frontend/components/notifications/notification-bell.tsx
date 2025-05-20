@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Bell, Check, Trash2 } from "lucide-react"
 import { format, formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
@@ -10,13 +10,28 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/compon
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useRouter } from "next/navigation"
 
 export function NotificationBell() {
-  const { notifications, unreadCount, loading, markAsRead, markAllAsRead, removeNotification, fetchNotifications } =
-    useNotifications()
+  const router = useRouter()
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    markAsRead,
+    markAllAsRead,
+    removeNotification,
+    fetchNotifications,
+    refreshUnreadCount,
+  } = useNotifications()
 
   const [filter, setFilter] = useState<"all" | "unread">("all")
   const [isOpen, setIsOpen] = useState(false)
+
+  // Refrescar el contador de notificaciones no leídas al montar el componente
+  useEffect(() => {
+    refreshUnreadCount()
+  }, [refreshUnreadCount])
 
   // Handle filter change
   const handleFilterChange = (newFilter: "all" | "unread") => {
@@ -76,6 +91,12 @@ export function NotificationBell() {
       // Refresh notifications when opening the dropdown
       fetchNotifications(1, filter)
     }
+  }
+
+  // Navigate to notifications page
+  const handleViewAll = () => {
+    setIsOpen(false)
+    router.push("/notifications")
   }
 
   return (
@@ -227,7 +248,7 @@ export function NotificationBell() {
                 {/* Footer */}
                 {notifications.length > 0 && (
                   <div className="border-t p-2 flex justify-center">
-                    <Button variant="ghost" size="sm" className="text-xs text-primary">
+                    <Button variant="ghost" size="sm" className="text-xs text-primary" onClick={handleViewAll}>
                       Ver todas
                     </Button>
                   </div>

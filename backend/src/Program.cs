@@ -73,12 +73,11 @@ builder.Services.AddScoped<IPosService, PosService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 // Program.cs
 builder.Services.AddScoped<IEventNotificationService, EventNotificationService>();
-
-// Agregar estos servicios en Program.cs
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddHttpContextAccessor();
 // Configuración de la API
 builder.Services.AddControllers();
+builder.Services.AddHostedService<InventoryCheckService>();
 
 var app = builder.Build();
 
