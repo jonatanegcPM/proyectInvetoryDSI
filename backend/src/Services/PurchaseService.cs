@@ -11,11 +11,13 @@ namespace proyectInvetoryDSI.Services
         private readonly AppDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private const decimal TaxRate = 0.13m; // 13% de impuestos
+        private readonly IEventNotificationService _eventNotificationService; // Nuevo servicio
 
-        public PurchaseService(AppDbContext context, IHttpContextAccessor httpContextAccessor)
+        public PurchaseService(AppDbContext context, IHttpContextAccessor httpContextAccessor, IEventNotificationService eventNotificationService)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _eventNotificationService = eventNotificationService;
         }
 
         private int GetCurrentUserId()
@@ -91,6 +93,13 @@ namespace proyectInvetoryDSI.Services
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
+
+                // Notificar nuevo pedido
+                await _eventNotificationService.NotifySupplierEvent(
+                    SupplierEventType.NewOrder,
+                    supplier,
+                    GetCurrentUserId()
+                );
 
                 // Construir la respuesta
                 return new PurchaseResponseDTO
@@ -273,6 +282,22 @@ namespace proyectInvetoryDSI.Services
 
                         _context.InventoryTransactions.Add(inventoryTransaction);
                     }
+
+                    // Notificar pedido recibido
+                    await _eventNotificationService.NotifySupplierEvent(
+                        SupplierEventType.OrderReceived,
+                        purchase.Supplier,
+                        GetCurrentUserId()
+                    );
+                }
+                else if (newStatus == "cancelled")
+                {
+                    // Notificar pedido cancelado
+                    await _eventNotificationService.NotifySupplierEvent(
+                        SupplierEventType.OrderCancelled,
+                        purchase.Supplier,
+                        GetCurrentUserId()
+                    );
                 }
 
                 // Actualizar el estado del pedido
@@ -291,4 +316,4 @@ namespace proyectInvetoryDSI.Services
             }
         }
     }
-} 
+}

@@ -71,6 +71,8 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<IPosService, PosService>(); 
 builder.Services.AddScoped<INotificationService, NotificationService>();
+// Program.cs
+builder.Services.AddScoped<IEventNotificationService, EventNotificationService>();
 
 // Agregar estos servicios en Program.cs
 builder.Services.AddScoped<IInventoryService, InventoryService>();

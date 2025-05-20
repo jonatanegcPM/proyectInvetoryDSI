@@ -31,13 +31,16 @@ namespace proyectInvetoryDSI.Services
     {
         private readonly AppDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEventNotificationService _eventNotificationService;
 
         public InventoryService(
             AppDbContext context,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IEventNotificationService eventNotificationService)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _eventNotificationService = eventNotificationService;
         }
 
         private int GetCurrentUserId()
@@ -223,6 +226,13 @@ namespace proyectInvetoryDSI.Services
             await _context.Products.AddAsync(product);
             await _context.SaveChangesAsync();
 
+            // Notificar nuevo producto
+            await _eventNotificationService.NotifyInventoryEvent(
+                InventoryEventType.NewProductAdded,
+                product,
+                currentUserId
+            );
+
             // Crear registro de inventario
             var inventory = new Inventory
             {
@@ -290,6 +300,14 @@ namespace proyectInvetoryDSI.Services
 
             _context.Products.Update(product);
             await _context.SaveChangesAsync();
+
+            // Notificar eliminación del producto
+            var currentUserId = GetCurrentUserId();
+            await _eventNotificationService.NotifyInventoryEvent(
+                InventoryEventType.ProductDeleted,
+                product,
+                currentUserId
+            );
         }
 
         public async Task<object> AdjustStockAsync(int id, AdjustStockDTO adjustStockDto)
@@ -314,6 +332,19 @@ namespace proyectInvetoryDSI.Services
             product.StockQuantity = newStock;
             product.LastUpdated = DateTime.UtcNow;
             _context.Products.Update(product);
+
+            // Notificar ajuste de inventario (solo si el ajuste es significativo)
+            if (Math.Abs(adjustStockDto.Quantity) >= 5)
+            {
+                await _eventNotificationService.NotifyInventoryEvent(
+                    InventoryEventType.InventoryAdjustment,
+                    product,
+                    currentUserId
+                );
+            }
+
+            // Verificar niveles de stock después del ajuste
+            await CheckStockLevels(product, currentUserId);
 
             // Actualizar inventario
             var inventory = await _context.Inventories.FirstOrDefaultAsync(i => i.ProductID == id);
@@ -361,6 +392,60 @@ namespace proyectInvetoryDSI.Services
                 Notes = adjustStockDto.Notes,
                 ProductName = product.Name
             };
+        }
+
+        private async Task CheckStockLevels(Product product, int? userId = null)
+        {
+            if (product.StockQuantity <= 0)
+            {
+                await _eventNotificationService.NotifyInventoryEvent(
+                    InventoryEventType.OutOfStock,
+                    product,
+                    userId
+                );
+            }
+            else if (product.ReorderLevel.HasValue)
+            {
+                if (product.StockQuantity < 5 || product.StockQuantity < (product.ReorderLevel.Value * 0.1))
+                {
+                    await _eventNotificationService.NotifyInventoryEvent(
+                        InventoryEventType.CriticalStock,
+                        product,
+                        userId
+                    );
+                }
+                else if (product.StockQuantity <= product.ReorderLevel.Value)
+                {
+                    await _eventNotificationService.NotifyInventoryEvent(
+                        InventoryEventType.LowStock,
+                        product,
+                        userId
+                    );
+                }
+            }
+
+            // Verificar fecha de caducidad
+            if (product.ExpirationDate.HasValue)
+            {
+                var daysToExpire = (product.ExpirationDate.Value - DateTime.Now).Days;
+
+                if (daysToExpire <= 0)
+                {
+                    await _eventNotificationService.NotifyInventoryEvent(
+                        InventoryEventType.Expired,
+                        product,
+                        userId
+                    );
+                }
+                else if (daysToExpire <= 90)
+                {
+                    await _eventNotificationService.NotifyInventoryEvent(
+                        InventoryEventType.NearExpiration,
+                        product,
+                        userId
+                    );
+                }
+            }
         }
 
         public async Task<object> GetTransactionsAsync(
