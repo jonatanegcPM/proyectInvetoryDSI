@@ -1,27 +1,52 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { toast } from "@/hooks/use-toast"
 import { Save } from "lucide-react"
+import { useTheme } from "next-themes"
 
 export function AppearanceSettings() {
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [language, setLanguage] = useState("es")
+  const { theme, setTheme } = useTheme()
   const [isSaving, setIsSaving] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
+  // Cargar preferencias al iniciar
+  useEffect(() => {
+    const loadPreferences = () => {
+      try {
+        // Cargar tema
+        const currentTheme = theme || "light"
+        setIsDarkMode(currentTheme === "dark")
+      } catch (error) {
+        console.error("Error al cargar preferencias de apariencia:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    // Pequeño retraso para asegurar que next-themes haya cargado
+    const timer = setTimeout(loadPreferences, 100)
+    return () => clearTimeout(timer)
+  }, [theme])
+
+  // Manejar cambio de tema
+  const handleThemeChange = (checked: boolean) => {
+    setIsDarkMode(checked)
+    setTheme(checked ? "dark" : "light")
+  }
+
+  // Guardar preferencias
   async function handleSave() {
     setIsSaving(true)
 
     try {
-      // Aquí iría la llamada a la API para guardar los datos
-      console.log("Guardando configuración de apariencia:", { isDarkMode, language })
-
-      // Simulamos un retraso para mostrar el estado de carga
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // El tema ya se aplica en tiempo real con handleThemeChange
+      // Simulamos un pequeño retraso para mostrar el estado de carga
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
       toast({
         title: "Configuración guardada",
@@ -39,6 +64,10 @@ export function AppearanceSettings() {
     }
   }
 
+  if (isLoading) {
+    return <div className="flex justify-center p-4">Cargando preferencias...</div>
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -47,22 +76,7 @@ export function AppearanceSettings() {
             <Label htmlFor="dark-mode">Modo Oscuro</Label>
             <p className="text-sm text-muted-foreground">Activa el modo oscuro para reducir la fatiga visual.</p>
           </div>
-          <Switch id="dark-mode" checked={isDarkMode} onCheckedChange={setIsDarkMode} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="language">Idioma</Label>
-          <Select value={language} onValueChange={setLanguage}>
-            <SelectTrigger id="language">
-              <SelectValue placeholder="Seleccionar idioma" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="es">Español</SelectItem>
-              <SelectItem value="en">English</SelectItem>
-              <SelectItem value="fr">Français</SelectItem>
-              <SelectItem value="de">Deutsch</SelectItem>
-            </SelectContent>
-          </Select>
+          <Switch id="dark-mode" checked={isDarkMode} onCheckedChange={handleThemeChange} />
         </div>
       </div>
 
