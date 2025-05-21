@@ -3,51 +3,43 @@
 import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { PharmacyInfoForm } from "./pharmacy-info-form"
+import { Bell, Palette } from "lucide-react"
 import { AppearanceSettings } from "./appearance-settings"
 import { NotificationSettings } from "./notification-settings"
-import { Store, Palette, Bell } from "lucide-react"
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("general")
+  const [activeTab, setActiveTab] = useState("appearance")
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-3 w-full max-w-2xl">
-          <TabsTrigger value="general" className="flex items-center gap-2">
-            <Store className="h-4 w-4" />
-            <span>General</span>
-          </TabsTrigger>
-          <TabsTrigger value="appearance" className="flex items-center gap-2">
-            <Palette className="h-4 w-4" />
-            <span>Apariencia</span>
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
-            <Bell className="h-4 w-4" />
-            <span>Notificaciones</span>
-          </TabsTrigger>
-        </TabsList>
+    <div className="container mx-auto py-6 px-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="flex justify-center w-full mb-6">
+          <TabsList className="w-full max-w-md">
+            <TabsTrigger value="appearance" className="flex-1">
+              <div className="flex items-center justify-center gap-1">
+                <Palette className="h-4 w-4" />
+                <span className="text-sm">Apariencia</span>
+              </div>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex-1">
+              <div className="flex items-center justify-center gap-1">
+                <Bell className="h-4 w-4" />
+                <span className="text-sm">Notificaciones</span>
+              </div>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="general" className="space-y-6">
+        <TabsContent value="appearance">
           <Card>
-            <CardHeader>
-              <CardTitle>Información de la Farmacia</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
+                <Palette className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500 dark:text-blue-400" />
+                Apariencia
+              </CardTitle>
               <CardDescription>
-                Información básica sobre su farmacia que aparecerá en recibos, facturas y otros documentos.
+                Personaliza la apariencia visual de la aplicación según tus preferencias.
               </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PharmacyInfoForm />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="appearance" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Apariencia</CardTitle>
-              <CardDescription>Personalice la apariencia de la aplicación según sus preferencias.</CardDescription>
             </CardHeader>
             <CardContent>
               <AppearanceSettings />
@@ -55,11 +47,14 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="notifications" className="space-y-6">
+        <TabsContent value="notifications">
           <Card>
-            <CardHeader>
-              <CardTitle>Notificaciones</CardTitle>
-              <CardDescription>Configure qué notificaciones desea recibir y cómo.</CardDescription>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
+                <Bell className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500 dark:text-amber-400" />
+                Notificaciones
+              </CardTitle>
+              <CardDescription>Configura qué notificaciones quieres recibir y cómo quieres recibirlas.</CardDescription>
             </CardHeader>
             <CardContent>
               <NotificationSettings />

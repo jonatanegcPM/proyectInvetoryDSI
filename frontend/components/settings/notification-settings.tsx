@@ -12,8 +12,10 @@ export function NotificationSettings() {
   const [settings, setSettings] = useState({
     lowStockAlerts: true,
     expirationAlerts: true,
-    salesReports: true,
-    systemUpdates: true,
+    expiredProductAlerts: true,
+    editAlerts: true,
+    stockAdjustmentAlerts: true,
+    salesAlerts: true,
   })
 
   const [isSaving, setIsSaving] = useState(false)
@@ -56,7 +58,7 @@ export function NotificationSettings() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="low-stock-alerts">Alertas de Bajo Stock</Label>
+            <Label htmlFor="low-stock-alerts">Alertas de stock bajo</Label>
             <p className="text-sm text-muted-foreground">
               Recibir alertas cuando los productos estén por debajo del nivel de reorden
             </p>
@@ -72,7 +74,7 @@ export function NotificationSettings() {
 
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="expiration-alerts">Alertas de Vencimiento</Label>
+            <Label htmlFor="expiration-alerts">Alertas de vencimiento</Label>
             <p className="text-sm text-muted-foreground">
               Recibir alertas cuando los productos estén próximos a vencer
             </p>
@@ -88,13 +90,13 @@ export function NotificationSettings() {
 
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="sales-reports">Reportes de Ventas</Label>
-            <p className="text-sm text-muted-foreground">Recibir reportes periódicos sobre las ventas</p>
+            <Label htmlFor="expired-product-alerts">Alertas de producto caducado</Label>
+            <p className="text-sm text-muted-foreground">Recibir alertas cuando los productos hayan caducado</p>
           </div>
           <Switch
-            id="sales-reports"
-            checked={settings.salesReports}
-            onCheckedChange={() => handleToggle("salesReports")}
+            id="expired-product-alerts"
+            checked={settings.expiredProductAlerts}
+            onCheckedChange={() => handleToggle("expiredProductAlerts")}
           />
         </div>
 
@@ -102,13 +104,39 @@ export function NotificationSettings() {
 
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="system-updates">Actualizaciones del Sistema</Label>
-            <p className="text-sm text-muted-foreground">Recibir notificaciones sobre actualizaciones del sistema</p>
+            <Label htmlFor="edit-alerts">Alertas de edición</Label>
+            <p className="text-sm text-muted-foreground">
+              Recibir alertas cuando se editen productos o información importante
+            </p>
+          </div>
+          <Switch id="edit-alerts" checked={settings.editAlerts} onCheckedChange={() => handleToggle("editAlerts")} />
+        </div>
+
+        <Separator />
+
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label htmlFor="stock-adjustment-alerts">Alertas de ajuste de stock</Label>
+            <p className="text-sm text-muted-foreground">Recibir alertas cuando se realicen ajustes en el inventario</p>
           </div>
           <Switch
-            id="system-updates"
-            checked={settings.systemUpdates}
-            onCheckedChange={() => handleToggle("systemUpdates")}
+            id="stock-adjustment-alerts"
+            checked={settings.stockAdjustmentAlerts}
+            onCheckedChange={() => handleToggle("stockAdjustmentAlerts")}
+          />
+        </div>
+
+        <Separator />
+
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label htmlFor="sales-alerts">Alertas de ventas</Label>
+            <p className="text-sm text-muted-foreground">Recibir alertas sobre actividades importantes de ventas</p>
+          </div>
+          <Switch
+            id="sales-alerts"
+            checked={settings.salesAlerts}
+            onCheckedChange={() => handleToggle("salesAlerts")}
           />
         </div>
       </div>

@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    /* Tema claro (por defecto)  */
     --background: 210 50% 98%;
     --foreground: 222.2 84% 4.9%;
 
@@ -36,6 +37,7 @@
   }
 
   .dark {
+    /* Tema oscuro  */
     --background: 215 50% 6%;
     --foreground: 0 0% 99%;
 
@@ -64,6 +66,347 @@
     --input: 215 50% 12%;
     --ring: 200 80% 45%;
   }
+
+  /* Tema azul marino oscuro */
+  .navy {
+    --background: 222 47% 5%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 0 0% 100%;
+    --primary-foreground: 222 47% 5%;
+
+    --secondary: 222 47% 12%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 222 47% 12%;
+    --muted-foreground: 210 40% 70%;
+
+    --accent: 222 47% 12%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 47% 15%;
+    --input: 222 47% 15%;
+    --ring: 210 40% 98%;
+  }
+
+  .emerald {
+    /* Tema esmeralda - Verde farmacia */
+    --background: 152 75% 97%;
+    --foreground: 160 84% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 160 84% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 160 84% 15%;
+
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%; /* Gris claro (slate-100) */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 152 50% 90%;
+    --muted-foreground: 160 40% 30%;
+
+    --accent: 152 50% 90%;
+    --accent-foreground: 160 84% 15%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 152 30% 85%;
+    --input: 152 30% 85%;
+    --ring: 160 84% 39%;
+  }
+
+  .teal {
+    /* Tema turquesa - Salud y bienestar */
+    --background: 168 75% 97%;
+    --foreground: 173 80% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 173 80% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 173 80% 15%;
+
+    --primary: 173 80% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%; /* Gris claro (slate-100) */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 168 50% 90%;
+    --muted-foreground: 173 40% 30%;
+
+    --accent: 168 50% 90%;
+    --accent-foreground: 173 80% 15%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 168 30% 85%;
+    --input: 168 30% 85%;
+    --ring: 173 80% 40%;
+  }
+
+  .sky {
+    /* Tema cielo - Azul médico */
+    --background: 204 100% 97%;
+    --foreground: 204 80% 16%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 204 80% 16%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 204 80% 16%;
+
+    --primary: 204 80% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%; /* Gris claro (slate-100) */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 204 50% 90%;
+    --muted-foreground: 204 40% 30%;
+
+    --accent: 204 50% 90%;
+    --accent-foreground: 204 80% 16%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 204 30% 85%;
+    --input: 204 30% 85%;
+    --ring: 204 80% 50%;
+  }
+
+  .blue {
+    /* Tema azul - Azul farmacéutico */
+    --background: 213 100% 97%;
+    --foreground: 213 80% 16%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 213 80% 16%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 213 80% 16%;
+
+    --primary: 213 80% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%; /* Gris claro (slate-100) */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 213 50% 90%;
+    --muted-foreground: 213 40% 30%;
+
+    --accent: 213 50% 90%;
+    --accent-foreground: 213 80% 16%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 213 30% 85%;
+    --input: 213 30% 85%;
+    --ring: 213 80% 50%;
+  }
+
+  .indigo {
+    /* Tema índigo - Profesional */
+    --background: 226 100% 97%;
+    --foreground: 243 75% 35%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 243 75% 35%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 243 75% 35%;
+
+    --primary: 243 75% 67%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%; /* Gris claro (slate-100) */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 226 50% 90%;
+    --muted-foreground: 243 40% 50%;
+
+    --accent: 226 50% 90%;
+    --accent-foreground: 243 75% 35%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 226 30% 85%;
+    --input: 226 30% 85%;
+    --ring: 243 75% 67%;
+  }
+
+  .purple {
+    /* Tema púrpura - Elegante */
+    --background: 270 100% 97%;
+    --foreground: 270 75% 35%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 270 75% 35%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 270 75% 35%;
+
+    --primary: 270 75% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%; /* Gris claro (slate-100) */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 270 50% 90%;
+    --muted-foreground: 270 40% 50%;
+
+    --accent: 270 50% 90%;
+    --accent-foreground: 270 75% 35%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 270 30% 85%;
+    --input: 270 30% 85%;
+    --ring: 270 75% 60%;
+  }
+
+  .rose {
+    /* Tema rosa - Cálido */
+    --background: 350 100% 97%;
+    --foreground: 336 80% 30%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 336 80% 30%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 336 80% 30%;
+
+    --primary: 340 82% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%; /* Gris claro (slate-100) */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 350 50% 90%;
+    --muted-foreground: 336 40% 40%;
+
+    --accent: 350 50% 90%;
+    --accent-foreground: 336 80% 30%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 350 30% 85%;
+    --input: 350 30% 85%;
+    --ring: 340 82% 60%;
+  }
+
+  .amber {
+    /* Tema ámbar - Energético */
+    --background: 43 100% 96%;
+    --foreground: 36 100% 26%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 36 100% 26%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 36 100% 26%;
+
+    --primary: 38 92% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%; /* Gris claro (slate-100) */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 43 50% 90%;
+    --muted-foreground: 36 40% 40%;
+
+    --accent: 43 50% 90%;
+    --accent-foreground: 36 100% 26%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 43 30% 85%;
+    --input: 43 30% 85%;
+    --ring: 38 92% 50%;
+  }
+
+  .lime {
+    /* Tema lima - Fresco */
+    --background: 90 80% 97%;
+    --foreground: 90 80% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 90 80% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 90 80% 20%;
+
+    --primary: 90 80% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%; /* Gris claro (slate-100) */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 90 50% 90%;
+    --muted-foreground: 90 40% 30%;
+
+    --accent: 90 50% 90%;
+    --accent-foreground: 90 80% 20%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 90 30% 85%;
+    --input: 90 30% 85%;
+    --ring: 90 80% 45%;
+  }
+
+  .cyan {
+    /* Tema cian - Refrescante */
+    --background: 186 100% 97%;
+    --foreground: 186 80% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 186 80% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 186 80% 20%;
+
+    --primary: 186 80% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%; /* Gris claro (slate-100) */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 186 50% 90%;
+    --muted-foreground: 186 40% 30%;
+
+    --accent: 186 50% 90%;
+    --accent-foreground: 186 80% 20%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 186 30% 85%;
+    --input: 186 30% 85%;
+    --ring: 186 80% 45%;
+  }
 }
 
 @layer base {
@@ -88,6 +431,83 @@
   background-color: rgba(15, 23, 42, 0.95);
   border: 1px solid rgba(30, 41, 59, 0.7);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Estilos para tema azul marino oscuro */
+.navy .card {
+  background-color: rgba(7, 22, 48, 0.95);
+  border: 1px solid rgba(30, 58, 138, 0.7);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Estilos para tema esmeralda */
+.emerald .card {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.1);
+}
+
+/* Estilos para tema turquesa */
+.teal .card {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(20, 184, 166, 0.2);
+  box-shadow: 0 4px 20px rgba(20, 184, 166, 0.1);
+}
+
+/* Estilos para tema cielo */
+.sky .card {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.1);
+}
+
+/* Estilos para tema azul */
+.blue .card {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
+}
+
+/* Estilos para tema índigo */
+.indigo .card {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+}
+
+/* Estilos para tema púrpura */
+.purple .card {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.1);
+}
+
+/* Estilos para tema rosa */
+.rose .card {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  box-shadow: 0 4px 20px rgba(244, 63, 94, 0.1);
+}
+
+/* Estilos para tema ámbar */
+.amber .card {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1);
+}
+
+/* Estilos para tema lima */
+.lime .card {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(132, 204, 22, 0.2);
+  box-shadow: 0 4px 20px rgba(132, 204, 22, 0.1);
+}
+
+/* Estilos para tema cian */
+.cyan .card {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.1);
 }
 
 /* Add these keyframes at the end of the file */
@@ -347,4 +767,19 @@
 
 .button-glow:hover::after {
   transform: rotate(30deg) translate(50%, 50%);
+}
+
+/* Transiciones suaves entre temas */
+html,
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+* {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+button,
+a {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
