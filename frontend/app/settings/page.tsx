@@ -1,14 +1,13 @@
-import Layout from "@/components/layout"
-import Settings from "@/components/settings"
 import { AuthCheck } from "@/components/auth-check"
+import Layout from "@/components/layout"
+import SettingsPage from "@/components/settings/settings-page"
 
-export default function SettingsPage() {
+export default function Settings() {
   return (
     <AuthCheck>
       <Layout>
-        <Settings />
+        <SettingsPage />
       </Layout>
     </AuthCheck>
   )
 }
-
