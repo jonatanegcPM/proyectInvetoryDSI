@@ -19,7 +19,7 @@ interface TopProductsChartProps {
 
 export function TopProductsChart({ data, isLoading }: TopProductsChartProps) {
   const { theme } = useTheme()
-  const isDark = theme === "dark"
+  const isDark = theme === "dark" || theme === "navy"
   const textColor = isDark ? "#ffffff" : "#000000"
   const gridColor = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"
 
@@ -69,6 +69,7 @@ export function TopProductsChart({ data, isLoading }: TopProductsChartProps) {
                 tick={{ fontSize: 12, fill: textColor }}
                 width={150}
                 stroke={textColor}
+                label={{ value: "", angle: -90, position: "insideLeft", fill: textColor }}
               />
               <Tooltip
                 formatter={(value, name, props) => {
@@ -99,4 +100,3 @@ export function TopProductsChart({ data, isLoading }: TopProductsChartProps) {
     </Card>
   )
 }
-
