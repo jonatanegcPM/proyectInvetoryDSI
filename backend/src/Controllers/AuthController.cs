@@ -89,17 +89,22 @@ namespace proyectInvetoryDSI.Controllers
             var jwtSettings = _configuration.GetSection("Jwt");
             var key = Encoding.ASCII.GetBytes(jwtSettings["Key"] ?? throw new InvalidOperationException("JWT Key no puede ser nulo."));
 
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserID.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
+                new Claim(ClaimTypes.Name, user.Name ?? string.Empty),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                // Claim de rol usando el NOMBRE del rol (no el ID)
+                new Claim(ClaimTypes.Role, user.Role?.RoleName ?? "User"),
+                // Mantener claims adicionales para compatibilidad
+                new Claim("RoleId", user.RoleID.ToString()),
+                new Claim("RoleName", user.Role?.RoleName ?? "User")
+            };
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim("userId", user.UserID.ToString() ?? string.Empty),
-                    new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString() ?? string.Empty),
-                    new Claim(ClaimTypes.Name, user.Name ?? string.Empty),
-                    new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
-                    new Claim(ClaimTypes.Role, user.RoleID.ToString() ?? string.Empty),
-                    new Claim("RoleName", user.Role?.RoleName ?? string.Empty)
-                }),
+                Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["ExpiryInMinutes"] ?? "120")),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                 Issuer = jwtSettings["Issuer"],

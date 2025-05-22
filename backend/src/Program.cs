@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,8 +46,28 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(key)
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        // Añade estas líneas para mapear correctamente los claims
+        NameClaimType = ClaimTypes.Name,
+        RoleClaimType = ClaimTypes.Role
     };
+});
+
+// Configuración de autorización para roles
+builder.Services.AddAuthorization(options =>
+{
+    // Esta política asegura que el usuario tenga el claim Role con valor "Admin"
+    options.AddPolicy("AdminOnly", policy => 
+        policy.RequireRole("Admin"));
+    
+    // Opcional: política alternativa que busca en ambos claims
+    options.AddPolicy("AdminPolicy", policy => 
+        policy.RequireAssertion(context =>
+            context.User.HasClaim(c => 
+                (c.Type == ClaimTypes.Role && c.Value == "Admin") ||
+                (c.Type == "RoleName" && c.Value == "Admin")
+            )
+        ));
 });
 
 // Configuración de CORS
@@ -71,9 +92,10 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<IPosService, PosService>(); 
 builder.Services.AddScoped<INotificationService, NotificationService>();
-// Program.cs
 builder.Services.AddScoped<IEventNotificationService, EventNotificationService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<ISettingsService, SettingsService>();
+builder.Services.AddScoped<INotificationSettingsService, NotificationSettingsService>();
 builder.Services.AddHttpContextAccessor();
 // Configuración de la API
 builder.Services.AddControllers();

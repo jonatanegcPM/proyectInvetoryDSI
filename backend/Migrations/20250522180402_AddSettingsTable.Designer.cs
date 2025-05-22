@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using proyectInvetoryDSI.Data;
 
@@ -11,9 +12,11 @@ using proyectInvetoryDSI.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250522180402_AddSettingsTable")]
+    partial class AddSettingsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -232,45 +235,6 @@ namespace backend.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Notifications");
-                });
-
-            modelBuilder.Entity("proyectInvetoryDSI.Models.NotificationSettings", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("EditAlerts")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("ExpirationAlerts")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("ExpiredProductAlerts")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("LowStockAlerts")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("SalesAlerts")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("StockAdjustmentAlerts")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("NotificationSettings");
                 });
 
             modelBuilder.Entity("proyectInvetoryDSI.Models.Product", b =>
@@ -698,17 +662,6 @@ namespace backend.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("proyectInvetoryDSI.Models.NotificationSettings", b =>
-                {
-                    b.HasOne("proyectInvetoryDSI.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("User");
                 });
