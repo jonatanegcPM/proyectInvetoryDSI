@@ -18,6 +18,8 @@ namespace proyectInvetoryDSI.Data
         public DbSet<Purchase> Purchases { get; set; } = null!;
         public DbSet<PurchaseDetail> PurchaseDetails { get; set; } = null!;
         public DbSet<Notification> Notifications { get; set; } = null!;
+        public DbSet<Settings> Settings { get; set; } = null!;
+        public DbSet<NotificationSettings> NotificationSettings { get; set; } = null!;
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -36,6 +38,8 @@ namespace proyectInvetoryDSI.Data
             ConfigurePurchase(modelBuilder);
             ConfigurePurchaseDetail(modelBuilder);
             ConfigureNotification(modelBuilder);
+            ConfigureSettings(modelBuilder);
+            ConfigureNotificationSettings(modelBuilder);
         }
 
         private void ConfigureSupplier(ModelBuilder modelBuilder)
@@ -432,6 +436,47 @@ namespace proyectInvetoryDSI.Data
                 .HasOne(n => n.User)
                 .WithMany()
                 .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+
+        private void ConfigureSettings(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Settings>()
+                .Property(s => s.Key)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            modelBuilder.Entity<Settings>()
+                .Property(s => s.Value)
+                .IsRequired()
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<Settings>()
+                .Property(s => s.Description)
+                .HasMaxLength(500);
+
+            modelBuilder.Entity<Settings>()
+                .Property(s => s.Category)
+                .HasMaxLength(100)
+                .HasDefaultValue("General");
+
+            modelBuilder.Entity<Settings>()
+                .Property(s => s.CreatedAt)
+                .HasDefaultValueSql("GETDATE()");
+
+            modelBuilder.Entity<Settings>()
+                .HasOne(s => s.UpdatedByUser)
+                .WithMany()
+                .HasForeignKey(s => s.UpdatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+
+        private void ConfigureNotificationSettings(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<NotificationSettings>()
+                .HasOne(ns => ns.User)
+                .WithMany()
+                .HasForeignKey(ns => ns.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
