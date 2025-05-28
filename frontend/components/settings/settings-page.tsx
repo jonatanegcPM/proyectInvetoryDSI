@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bell, Palette } from "lucide-react"
+import { Bell } from "lucide-react"
+import { Palette } from "lucide-react"
 import { AppearanceSettings } from "./appearance-settings"
 import { NotificationSettings } from "./notification-settings"
 
