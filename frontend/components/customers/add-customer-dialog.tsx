@@ -1,5 +1,4 @@
 "use client"
-import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -12,7 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { CustomerForm } from "./customer-form"
 import type { AddCustomerDialogProps } from "@/types/customers"
-import { Loader2 } from "lucide-react"
+import { Loader2, Plus } from "lucide-react"
 
 // Modificar la definición de la función para incluir validationErrors
 export function AddCustomerDialog({
@@ -24,15 +23,18 @@ export function AddCustomerDialog({
   onSubmit,
   isProcessing,
   validationErrors = {},
+  showTrigger = true,
 }: AddCustomerDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button size="sm">
-          <Plus className="mr-2 h-4 w-4" />
-          Nuevo Cliente
-        </Button>
-      </DialogTrigger>
+      {showTrigger && (
+        <DialogTrigger asChild>
+          <Button size="sm">
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo Cliente
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Añadir Nuevo Cliente</DialogTitle>

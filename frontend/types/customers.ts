@@ -108,6 +108,7 @@ export interface AddCustomerDialogProps {
   onSubmit: () => void
   isProcessing: boolean
   validationErrors?: ValidationErrors
+  showTrigger?: boolean;
 }
 
 // Modificar EditCustomerDialogProps para incluir los errores de validación

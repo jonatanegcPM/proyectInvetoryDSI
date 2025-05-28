@@ -87,6 +87,29 @@ export function usePointOfSale() {
     }
   }, [])
 
+  // Función para refrescar la lista de clientes (útil después de crear uno nuevo)
+  const refreshCustomers = useCallback(async () => {
+    try {
+      const response = await POSService.getCustomers()
+      setCustomers(response.customers)
+      return response.customers // Devolver la lista actualizada
+    } catch (error) {
+      console.error("Error refreshing customers:", error)
+      toast({
+        title: "Error",
+        description: "No se pudieron actualizar los clientes",
+        variant: "destructive",
+      })
+      return []
+    }
+  }, [])
+
+  // Función para agregar un cliente a la lista sin recargar todo
+  const addCustomerToList = useCallback((newCustomer: Customer) => {
+    setCustomers((prevCustomers) => [...prevCustomers, newCustomer])
+    return newCustomer
+  }, [])
+
   // Cargar datos iniciales
   useEffect(() => {
     fetchProducts()
@@ -238,6 +261,11 @@ export function usePointOfSale() {
     setSelectedCustomer(customer || null)
   }
 
+  // Seleccionar cliente por objeto
+  const selectCustomer = useCallback((customer: Customer) => {
+    setSelectedCustomer(customer)
+  }, [])
+
   // Completar la venta
   const completeSale = async () => {
     if (cart.length === 0 || !selectedCustomer || !paymentMethod) {
@@ -377,6 +405,9 @@ export function usePointOfSale() {
     setPaymentMethod,
     completeSale,
     handleCustomerSelect,
+    selectCustomer,
+    refreshCustomers,
+    addCustomerToList,
     canAddMoreToCart,
 
     // Paginación
