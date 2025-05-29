@@ -123,7 +123,8 @@ namespace proyectInvetoryDSI.Services
                         Id = c.CustomerID,
                         Name = c.Name,
                         Email = c.Email,
-                        Phone = c.Phone
+                        Phone = c.Phone,
+                        Insurance = c.Insurance
                     })
                     .ToListAsync();
 

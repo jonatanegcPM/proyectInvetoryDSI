@@ -50,6 +50,8 @@ export interface CustomerSelectorProps {
 export interface PaymentMethodSelectorProps {
   paymentMethod: string
   onPaymentMethodChange: (method: string) => void
+  selectedCustomer?: Customer | null
+  disabled?: boolean
 }
 
 // Define the SaleItem interface
