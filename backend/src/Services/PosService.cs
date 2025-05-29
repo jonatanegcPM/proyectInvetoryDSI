@@ -117,6 +117,7 @@ namespace proyectInvetoryDSI.Services
             {
                 var customers = await _context.Customers
                     .AsNoTracking()
+                    .Where(c => c.Status == "active")
                     .OrderBy(c => c.Name)
                     .Select(c => new CustomerDTO
                     {
@@ -124,7 +125,8 @@ namespace proyectInvetoryDSI.Services
                         Name = c.Name,
                         Email = c.Email,
                         Phone = c.Phone,
-                        Insurance = c.Insurance
+                        Insurance = c.Insurance,
+                        Status = c.Status
                     })
                     .ToListAsync();
 
