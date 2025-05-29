@@ -18,12 +18,14 @@ namespace proyectInvetoryDSI.Services
     public class EventNotificationService : IEventNotificationService
     {
         private readonly INotificationService _notificationService;
+        private readonly INotificationSettingsService _notificationSettingsService;
         private readonly AppDbContext _context;
         private static readonly TimeZoneInfo ElSalvadorTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Central America Standard Time");
 
-        public EventNotificationService(INotificationService notificationService, AppDbContext context)
+        public EventNotificationService(INotificationService notificationService, INotificationSettingsService notificationSettingsService, AppDbContext context)
         {
             _notificationService = notificationService;
+            _notificationSettingsService = notificationSettingsService;
             _context = context;
         }
 
@@ -34,6 +36,18 @@ namespace proyectInvetoryDSI.Services
 
         public async Task NotifyInventoryEvent(InventoryEventType eventType, Product product, int? userId = null)
         {
+            // Validar configuración de usuario
+            if (userId.HasValue)
+            {
+                var settings = await _notificationSettingsService.GetUserNotificationSettingsAsync(userId.Value);
+                if (eventType == InventoryEventType.LowStock && !settings.LowStockAlerts) return;
+                if (eventType == InventoryEventType.CriticalStock && !settings.LowStockAlerts) return;
+                if (eventType == InventoryEventType.OutOfStock && !settings.LowStockAlerts) return;
+                if (eventType == InventoryEventType.NearExpiration && !settings.ExpirationAlerts) return;
+                if (eventType == InventoryEventType.Expired && !settings.ExpiredProductAlerts) return;
+                if (eventType == InventoryEventType.InventoryAdjustment && !settings.StockAdjustmentAlerts) return;
+            }
+
             string title = "";
             string message = "";
             string type = "";
@@ -103,6 +117,13 @@ namespace proyectInvetoryDSI.Services
 
         public async Task NotifySaleEvent(SaleEventType eventType, Sale sale, int? userId = null)
         {
+            // Validar configuración de usuario
+            if (userId.HasValue)
+            {
+                var settings = await _notificationSettingsService.GetUserNotificationSettingsAsync(userId.Value);
+                if (eventType == SaleEventType.Completed && !settings.SalesAlerts) return;
+            }
+
             string title = "";
             string message = "";
             string type = "";
@@ -132,6 +153,14 @@ namespace proyectInvetoryDSI.Services
 
         public async Task NotifyCustomerEvent(CustomerEventType eventType, Customer customer, int? userId = null)
         {
+            // Validar configuración de usuario
+            if (userId.HasValue)
+            {
+                var settings = await _notificationSettingsService.GetUserNotificationSettingsAsync(userId.Value);
+                if (eventType == CustomerEventType.NewCustomer && !settings.EditAlerts) return;
+                if (eventType == CustomerEventType.CustomerUpdated && !settings.EditAlerts) return;
+            }
+
             string title = "";
             string message = "";
             string type = "";
@@ -165,6 +194,16 @@ namespace proyectInvetoryDSI.Services
 
         public async Task NotifySupplierEvent(SupplierEventType eventType, Supplier supplier, int? userId = null)
         {
+            // Validar configuración de usuario
+            if (userId.HasValue)
+            {
+                var settings = await _notificationSettingsService.GetUserNotificationSettingsAsync(userId.Value);
+                if (eventType == SupplierEventType.NewOrder && !settings.EditAlerts) return;
+                if (eventType == SupplierEventType.OrderReceived && !settings.EditAlerts) return;
+                if (eventType == SupplierEventType.OrderCancelled && !settings.EditAlerts) return;
+                if (eventType == SupplierEventType.NewSupplier && !settings.EditAlerts) return;
+            }
+
             string title = "";
             string message = "";
             string type = "";

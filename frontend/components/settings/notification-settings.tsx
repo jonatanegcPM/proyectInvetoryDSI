@@ -1,15 +1,27 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "@/hooks/use-toast"
 import { Save } from "lucide-react"
+import { Loader2 } from "lucide-react"
+import { NotificationSettingsService } from "@/services/notification-settings-service"
+
+type SettingsType = {
+  lowStockAlerts: boolean
+  expirationAlerts: boolean
+  expiredProductAlerts: boolean
+  editAlerts: boolean
+  stockAdjustmentAlerts: boolean
+  salesAlerts: boolean
+}
 
 export function NotificationSettings() {
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<SettingsType>({
     lowStockAlerts: true,
     expirationAlerts: true,
     expiredProductAlerts: true,
@@ -18,12 +30,35 @@ export function NotificationSettings() {
     salesAlerts: true,
   })
 
+  const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
-  const handleToggle = (key: string) => {
+  // Cargar configuración inicial
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        setIsLoading(true)
+        const currentSettings = await NotificationSettingsService.getSettings()
+        setSettings(currentSettings)
+      } catch (error) {
+        console.error("Error al cargar la configuración:", error)
+        toast({
+          title: "Error",
+          description: "No se pudo cargar la configuración de notificaciones.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadSettings()
+  }, [])
+
+  const handleToggle = (key: keyof SettingsType) => {
     setSettings((prev) => ({
       ...prev,
-      [key]: !prev[key as keyof typeof prev],
+      [key]: !prev[key],
     }))
   }
 
@@ -31,11 +66,8 @@ export function NotificationSettings() {
     setIsSaving(true)
 
     try {
-      // Aquí iría la llamada a la API para guardar los datos
-      console.log("Guardando configuración de notificaciones:", settings)
-
-      // Simulamos un retraso para mostrar el estado de carga
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const updatedSettings = await NotificationSettingsService.updateSettings(settings)
+      setSettings(updatedSettings)
 
       toast({
         title: "Configuración guardada",
@@ -53,12 +85,34 @@ export function NotificationSettings() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-4">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index}>
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-64" />
+                </div>
+                <Skeleton className="h-6 w-11" />
+              </div>
+              {index < 5 && <Separator className="mt-4" />}
+            </div>
+          ))}
+        </div>
+        <Skeleton className="h-10 w-32" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="low-stock-alerts">Alertas de stock bajo</Label>
+            <Label htmlFor="low-stock-alerts">Alertas de Bajo Stock</Label>
             <p className="text-sm text-muted-foreground">
               Recibir alertas cuando los productos estén por debajo del nivel de reorden
             </p>
@@ -67,6 +121,7 @@ export function NotificationSettings() {
             id="low-stock-alerts"
             checked={settings.lowStockAlerts}
             onCheckedChange={() => handleToggle("lowStockAlerts")}
+            disabled={isSaving}
           />
         </div>
 
@@ -74,7 +129,7 @@ export function NotificationSettings() {
 
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="expiration-alerts">Alertas de vencimiento</Label>
+            <Label htmlFor="expiration-alerts">Alertas de Vencimiento</Label>
             <p className="text-sm text-muted-foreground">
               Recibir alertas cuando los productos estén próximos a vencer
             </p>
@@ -83,6 +138,7 @@ export function NotificationSettings() {
             id="expiration-alerts"
             checked={settings.expirationAlerts}
             onCheckedChange={() => handleToggle("expirationAlerts")}
+            disabled={isSaving}
           />
         </div>
 
@@ -97,6 +153,7 @@ export function NotificationSettings() {
             id="expired-product-alerts"
             checked={settings.expiredProductAlerts}
             onCheckedChange={() => handleToggle("expiredProductAlerts")}
+            disabled={isSaving}
           />
         </div>
 
@@ -109,7 +166,12 @@ export function NotificationSettings() {
               Recibir alertas cuando se editen productos o información importante
             </p>
           </div>
-          <Switch id="edit-alerts" checked={settings.editAlerts} onCheckedChange={() => handleToggle("editAlerts")} />
+          <Switch
+            id="edit-alerts"
+            checked={settings.editAlerts}
+            onCheckedChange={() => handleToggle("editAlerts")}
+            disabled={isSaving}
+          />
         </div>
 
         <Separator />
@@ -123,6 +185,7 @@ export function NotificationSettings() {
             id="stock-adjustment-alerts"
             checked={settings.stockAdjustmentAlerts}
             onCheckedChange={() => handleToggle("stockAdjustmentAlerts")}
+            disabled={isSaving}
           />
         </div>
 
@@ -137,13 +200,17 @@ export function NotificationSettings() {
             id="sales-alerts"
             checked={settings.salesAlerts}
             onCheckedChange={() => handleToggle("salesAlerts")}
+            disabled={isSaving}
           />
         </div>
       </div>
 
       <Button onClick={handleSave} disabled={isSaving}>
         {isSaving ? (
-          <>Guardando...</>
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Guardando...
+          </>
         ) : (
           <>
             <Save className="mr-2 h-4 w-4" />

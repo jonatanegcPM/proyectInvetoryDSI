@@ -103,6 +103,7 @@ export function ShoppingCart({
           key={paymentMethod || "no-payment"} // Añadir key para forzar re-render
           paymentMethod={paymentMethod}
           onPaymentMethodChange={onPaymentMethodChange}
+          selectedCustomer={selectedCustomer}
         />
 
         <Button

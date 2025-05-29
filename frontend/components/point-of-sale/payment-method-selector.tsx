@@ -5,13 +5,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CreditCard, DollarSign, ShoppingCart } from "lucide-react"
 import type { PaymentMethodSelectorProps } from "@/types/point-of-sale"
 
-export function PaymentMethodSelector({ paymentMethod, onPaymentMethodChange }: PaymentMethodSelectorProps) {
+export function PaymentMethodSelector({
+  paymentMethod,
+  onPaymentMethodChange,
+  selectedCustomer,
+  disabled = false,
+}: PaymentMethodSelectorProps) {
+  // Determinar si se debe mostrar la opción de seguro
+  const showInsuranceOption =
+    selectedCustomer?.insurance && selectedCustomer.insurance !== "null" && selectedCustomer.insurance !== ""
+
   return (
     <div className="w-full">
       <Label htmlFor="payment-method">Método de Pago</Label>
-      <Select onValueChange={onPaymentMethodChange} value={paymentMethod || undefined} defaultValue={undefined}>
+      <Select
+        onValueChange={onPaymentMethodChange}
+        value={paymentMethod || undefined}
+        defaultValue={undefined}
+        disabled={disabled || !selectedCustomer}
+      >
         <SelectTrigger id="payment-method">
-          <SelectValue placeholder="Seleccionar método de pago" />
+          <SelectValue
+            placeholder={!selectedCustomer ? "Seleccione un cliente primero" : "Seleccionar método de pago"}
+          />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="Efectivo">
@@ -32,15 +48,16 @@ export function PaymentMethodSelector({ paymentMethod, onPaymentMethodChange }: 
               Tarjeta de Débito
             </div>
           </SelectItem>
-          <SelectItem value="Seguro">
-            <div className="flex items-center">
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Seguro
-            </div>
-          </SelectItem>
+          {showInsuranceOption && (
+            <SelectItem value="Seguro">
+              <div className="flex items-center">
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Seguro
+              </div>
+            </SelectItem>
+          )}
         </SelectContent>
       </Select>
     </div>
   )
 }
-
