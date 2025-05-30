@@ -36,6 +36,9 @@ backend/obj/
 *.msm
 *.msp
 
+# env files
+.env*
+
 # Windows Installer Directory
 InstallShield/
 
