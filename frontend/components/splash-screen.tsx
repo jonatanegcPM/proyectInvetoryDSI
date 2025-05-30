@@ -105,7 +105,7 @@ export default function SplashScreen({ userName = "Usuario", duration = 3000 }: 
               transition={{ duration: 0.8, delay: 0.6 }}
               className="text-center mb-8"
             >
-              <h2 className={`text-xl font-normal ${isDark ? "text-gray-200" : "text-gray-800"} mb-1`}>Bienvenido</h2>
+              <h2 className={`text-xl font-normal ${isDark ? "text-gray-200" : "text-gray-800"} mb-1`}>Bienvenido/a</h2>
               <h1 className="text-2xl font-medium bg-gradient-to-r from-blue-600 to-green-500 bg-clip-text text-transparent">
                 {userName}
               </h1>
