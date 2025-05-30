@@ -1,12 +1,37 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "D:\\josec\\Documents\\Nueva carpeta (5)\\ANALISIS Y DISE\u00D1O DE SISTEMAS\\PROYECTO\\Nueva carpeta\\proyectInvetoryDSI\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{B5CEE1AB-68C5-FCEC-EA61-653FFB609ED2}|backend\\backend.csproj|d:\\josec\\documents\\nueva carpeta (5)\\analisis y dise\u00F1o de sistemas\\proyecto\\nueva carpeta\\proyectinvetorydsi\\backend\\src\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B5CEE1AB-68C5-FCEC-EA61-653FFB609ED2}|backend\\backend.csproj|solutionrelative:backend\\src\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\josec\\Documents\\Nueva carpeta (5)\\ANALISIS Y DISE\u00D1O DE SISTEMAS\\PROYECTO\\Nueva carpeta\\proyectInvetoryDSI\\backend\\src\\Program.cs",
+              "RelativeDocumentMoniker": "backend\\src\\Program.cs",
+              "ToolTip": "D:\\josec\\Documents\\Nueva carpeta (5)\\ANALISIS Y DISE\u00D1O DE SISTEMAS\\PROYECTO\\Nueva carpeta\\proyectInvetoryDSI\\backend\\src\\Program.cs",
+              "RelativeToolTip": "backend\\src\\Program.cs",
+              "ViewState": "AgIAADkAAAAAAAAAAAAAAFMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-30T15:15:04.124Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
     }
   ]
 }

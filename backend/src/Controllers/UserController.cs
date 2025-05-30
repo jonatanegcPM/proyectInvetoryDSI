@@ -21,7 +21,7 @@ namespace proyectInvetoryDSI.Controllers
 
         // GET: api/User
         [HttpGet]
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = "Administrador")]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             var users = await _userService.GetAllUsersAsync();
@@ -42,7 +42,7 @@ namespace proyectInvetoryDSI.Controllers
 
         // POST: api/User
         [HttpPost]
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = "Administrador")]
         public async Task<ActionResult<User>> PostUser(User user)
         {
             try
@@ -68,7 +68,7 @@ namespace proyectInvetoryDSI.Controllers
         {
             // Verificar si el usuario actual es admin o el mismo usuario
             var currentUserId = int.Parse(User.FindFirst("userId")?.Value ?? "0");
-            var isAdmin = User.IsInRole("1");
+            var isAdmin = User.IsInRole("Administrador");
 
             if (!isAdmin && currentUserId != id)
             {
@@ -97,7 +97,7 @@ namespace proyectInvetoryDSI.Controllers
 
         // DELETE: api/User/id
         [HttpDelete("{id}")]
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             await _userService.DeleteUserAsync(id);
